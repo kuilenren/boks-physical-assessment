@@ -23,6 +23,38 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
 
+  miniprogram:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.14.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @boks/miniprogram typecheck
+      - run: pnpm --filter @boks/miniprogram build:weapp
+
+  mobile:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.44.8"
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      - run: flutter build apk --debug --dart-define=BOKS_API_BASE_URL=https://api.example.invalid/v1
+
   python:
     runs-on: ubuntu-latest
     defaults:

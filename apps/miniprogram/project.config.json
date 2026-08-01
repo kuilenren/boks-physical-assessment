@@ -1,0 +1,19 @@
+{
+  "description": "BOKS 儿童体测与体态观察小程序",
+  "compileType": "miniprogram",
+  "libVersion": "3.8.0",
+  "appid": "touristappid",
+  "projectname": "boks-miniprogram",
+  "miniprogramRoot": "./dist",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "coverView": true,
+    "checkInvalidKey": true,
+    "checkSiteMap": false
+  },
+  "condition": {}
+}

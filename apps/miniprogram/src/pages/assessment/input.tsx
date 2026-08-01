@@ -1,0 +1,148 @@
+import { Button, Input, Text, View } from "@tarojs/components";
+import Taro, { useLoad } from "@tarojs/taro";
+import { useState } from "react";
+import type { ChildProfile, AssessmentSchema } from "../../models";
+import { ChildPicker } from "../../components/ChildPicker";
+import { LoadingState } from "../../components/PageState";
+import { listChildren } from "../../services/family";
+import {
+  createSession,
+  getSchema,
+  saveSession,
+  submitSession,
+} from "../../services/assessment";
+import { showError } from "../../utils/error";
+
+function initialValues(schema: AssessmentSchema): Record<string, string> {
+  return Object.fromEntries(
+    schema.indicators.map((indicator) => [indicator.indicator_code, ""]),
+  );
+}
+
+export default function AssessmentInputPage() {
+  const [children, setChildren] = useState<ChildProfile[]>([]);
+  const [childId, setChildId] = useState("");
+  const [schema, setSchema] = useState<AssessmentSchema | null>(null);
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [sessionId, setSessionId] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+
+  useLoad((params) => {
+    const queryChildId = params?.childId;
+    void listChildren()
+      .then(async (childItems) => {
+        setChildren(childItems);
+        const selectedChildId =
+          queryChildId &&
+          childItems.some((child) => child.child_id === queryChildId)
+            ? queryChildId
+            : (childItems[0]?.child_id ?? "");
+        setChildId(selectedChildId);
+        if (!selectedChildId) return;
+        const schemaValue = await getSchema(selectedChildId);
+        setSchema(schemaValue);
+        setValues(initialValues(schemaValue));
+      })
+      .catch((error) => showError(error, "体测项目加载失败。"))
+      .finally(() => setLoading(false));
+  });
+
+  const setMetric = (metricCode: string, value: string) => {
+    setValues((current) => ({ ...current, [metricCode]: value }));
+  };
+
+  const submit = async () => {
+    if (!childId) {
+      void Taro.showToast({ title: "请先选择孩子", icon: "none" });
+      return;
+    }
+
+    if (!schema) {
+      void Taro.showToast({ title: "体测项目尚未加载", icon: "none" });
+      return;
+    }
+
+    const valuesToSubmit = schema.indicators
+      .map((indicator) => ({
+        indicator_code: indicator.indicator_code,
+        raw_value: values[indicator.indicator_code] ?? "",
+        unit: indicator.unit,
+      }))
+      .filter((metric) => metric.raw_value.trim().length > 0);
+
+    if (valuesToSubmit.length === 0) {
+      void Taro.showToast({ title: "至少录入一项实际测量值", icon: "none" });
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const session = sessionId || (await createSession(schema)).id;
+      setSessionId(session);
+      await saveSession(session, valuesToSubmit);
+      const report = await submitSession(session, valuesToSubmit);
+      void Taro.redirectTo({
+        url: `/pages/report/detail?reportId=${report.report_id}`,
+      });
+    } catch (error) {
+      showError(error, "体测提交失败。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading)
+    return (
+      <View className="page">
+        <LoadingState />
+      </View>
+    );
+
+  return (
+    <View className="page">
+      <Text className="page-title">录入体测数据</Text>
+      <Text className="page-subtitle">
+        空白项目代表缺测，不会静默当作 0 分。
+      </Text>
+      <View className="card">
+        <ChildPicker
+          children={children}
+          value={childId}
+          onChange={setChildId}
+        />
+      </View>
+      <View className="card">
+        <Text className="section-title">测量项目</Text>
+        {schema?.indicators.map((indicator) => (
+          <View key={indicator.indicator_code}>
+            <View className="metric-heading">
+              <Text className="field-label">{indicator.display_name}</Text>
+              <Text className="unit">{indicator.unit}</Text>
+            </View>
+            <Input
+              className="metric-input"
+              type="digit"
+              value={values[indicator.indicator_code]}
+              placeholder={`请输入${indicator.display_name}`}
+              onInput={(event) =>
+                setMetric(indicator.indicator_code, event.detail.value)
+              }
+            />
+            <Text className="muted">{indicator.description}</Text>
+          </View>
+        ))}
+        <Button
+          className="primary-button"
+          loading={submitting}
+          onClick={() => void submit()}
+        >
+          提交并生成报告
+        </Button>
+      </View>
+      <Text className="muted">
+        当前开发环境使用演示评分夹具。正式上线前必须替换为审核发布的标准知识库规则。
+      </Text>
+    </View>
+  );
+}

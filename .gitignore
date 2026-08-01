@@ -10,6 +10,7 @@ build/
 coverage/
 .turbo/
 *.tsbuildinfo
+.swc/
 
 # Environment and secrets
 .env
@@ -34,6 +35,7 @@ __pycache__/
 .flutter-plugins-dependencies
 .packages
 pubspec.lock
+!apps/mobile/pubspec.lock
 android/.gradle/
 android/local.properties
 ios/Pods/

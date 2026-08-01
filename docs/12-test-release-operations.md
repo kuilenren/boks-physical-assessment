@@ -99,6 +99,8 @@
 7. 规则夹具回归；
 8. 生成 SBOM 和构建制品签名。
 
+当前仓库的 `.github/workflows/ci.yml` 已落地 TypeScript 契约/API 检查、小程序类型检查与微信构建、Flutter Android 静态分析/测试/Debug APK 构建，以及 Python AI 服务检查。Debug APK 使用占位 HTTPS 地址，不代表生产 API 配置；生产发布仍需完成下方标准、合规和签名闸门。
+
 生产发布需要：
 
 - 代码评审；
