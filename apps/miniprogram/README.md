@@ -17,4 +17,4 @@
 
 - 开发命令：`pnpm --filter @boks/miniprogram dev:weapp`
 - 构建命令：`pnpm --filter @boks/miniprogram build:weapp`
-- 真实 AppID、类目、隐私指引和生产 API 域名必须在上线前替换，开发 API 默认使用 `http://127.0.0.1:3000/v1`。
+- 真实 AppID、类目、隐私指引和生产 API 域名必须在上线前替换，开发 API 默认使用 `http://127.0.0.1:3000/v1`；生产构建请设置 `TARO_APP_API_BASE_URL=https://...`，未配置时使用 HTTPS 占位地址而不会回退到明文 HTTP。

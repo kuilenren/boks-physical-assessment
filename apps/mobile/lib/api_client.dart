@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import 'models.dart';
@@ -21,7 +22,9 @@ class BoksApiClient {
           (baseUrl ??
                   const String.fromEnvironment(
                     'BOKS_API_BASE_URL',
-                    defaultValue: 'http://10.0.2.2:3000/v1',
+                    defaultValue: kDebugMode
+                        ? 'http://10.0.2.2:3000/v1'
+                        : 'https://api.example.invalid/v1',
                   ))
               .replaceFirst(RegExp(r'/$'), '');
 

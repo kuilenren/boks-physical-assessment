@@ -21,7 +21,10 @@ interface ApiFailure {
 }
 
 const API_BASE_URL =
-  process.env.TARO_APP_API_BASE_URL ?? "http://127.0.0.1:3000/v1";
+  process.env.TARO_APP_API_BASE_URL ??
+  (process.env.NODE_ENV === "production"
+    ? "https://api.example.invalid/v1"
+    : "http://127.0.0.1:3000/v1");
 
 export class ApiRequestError extends Error {
   readonly code: string;

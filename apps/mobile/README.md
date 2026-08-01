@@ -15,6 +15,8 @@
 - `flutter test`
 - `flutter build apk --debug --dart-define=BOKS_API_BASE_URL=http://10.0.2.2:3000/v1`
 
+Debug 清单仅允许本地 HTTP 联调；生产清单默认拒绝明文流量，必须通过 `--dart-define=BOKS_API_BASE_URL=https://...` 配置 HTTPS。
+
 客户端权限、相机、语音和商店要求见：
 
 - [Android/iOS App 开发文档](../../docs/06-mobile-app-development.md)
