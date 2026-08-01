@@ -1,9 +1,0 @@
-pyproject.toml
-src/boks_ai/__init__.py
-src/boks_ai/main.py
-src/boks_ai.egg-info/PKG-INFO
-src/boks_ai.egg-info/SOURCES.txt
-src/boks_ai.egg-info/dependency_links.txt
-src/boks_ai.egg-info/requires.txt
-src/boks_ai.egg-info/top_level.txt
-tests/test_health.py

@@ -9,6 +9,7 @@ build/
 .next/
 coverage/
 .turbo/
+*.tsbuildinfo
 
 # Environment and secrets
 .env
@@ -25,6 +26,7 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .ruff_cache/
+*.egg-info/
 
 # Flutter / Dart
 .dart_tool/
