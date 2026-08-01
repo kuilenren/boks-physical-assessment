@@ -306,3 +306,38 @@ button {
   margin-top: $space-4;
   text-align: center;
 }
+
+.chat-list {
+  min-height: 260px;
+}
+
+.chat-bubble {
+  border-radius: $radius-md;
+  margin-bottom: $space-3;
+  padding: $space-3;
+}
+
+.chat-user {
+  background: $color-brand-100;
+  margin-left: 20%;
+}
+
+.chat-assistant {
+  background: #f3f7f3;
+  margin-right: 10%;
+}
+
+.chat-bubble .muted {
+  margin-top: $space-2;
+}
+
+.chat-input {
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  box-sizing: border-box;
+  min-height: 100px;
+  margin-bottom: $space-3;
+  padding: $space-3;
+  width: 100%;
+}

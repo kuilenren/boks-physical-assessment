@@ -7,6 +7,7 @@ import type {
   AssessmentReport,
   AssessmentSchema,
   AssessmentSession,
+  AssessmentTrendPoint,
   ChildProfile,
   ReportListItem,
   TrainingPlan,
@@ -56,6 +57,12 @@ export function listReports(childId: string, children: ChildProfile[] = []) {
 export function getReport(reportId: string, child?: ChildProfile) {
   return request<ContractAssessmentReport>(`/reports/${reportId}`).then(
     (report) => mapReport(report, child ? [child] : []),
+  );
+}
+
+export function getAssessmentTrend(childId: string) {
+  return request<{ child_id: string; points: AssessmentTrendPoint[] }>(
+    `/assessment/trends?child_id=${encodeURIComponent(childId)}`,
   );
 }
 

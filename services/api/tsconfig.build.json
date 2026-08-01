@@ -1,4 +1,9 @@
 {
   "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@boks/contracts": ["../../packages/contracts/dist/index.d.ts"]
+    }
+  },
   "exclude": ["src/**/*.spec.ts", "test", "dist"]
 }

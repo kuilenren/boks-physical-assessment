@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter/services.dart';
 
 import 'api_client.dart';
 import 'models.dart';
@@ -129,6 +132,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         label: '管理儿童档案',
                         onPressed: () =>
                             _open(FamilyScreen(client: widget.client)),
+                      ),
+                      ActionButton(
+                        label: '专业咨询',
+                        onPressed: () =>
+                            _open(ChatScreen(client: widget.client)),
+                      ),
+                      ActionButton(
+                        label: '数据控制与导出',
+                        onPressed: () =>
+                            _open(DataControlScreen(client: widget.client)),
                       ),
                     ],
                   ),
@@ -720,6 +733,44 @@ class ReportDetailScreen extends StatelessWidget {
               style: const TextStyle(color: boksMuted),
             ),
           ),
+          FutureBuilder<List<TrendPoint>>(
+            future: client.getAssessmentTrend(report.childId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return const SectionCard(
+                  title: '历史趋势',
+                  child: LinearProgressIndicator(),
+                );
+              }
+              if (snapshot.hasError || snapshot.data!.isEmpty) {
+                return const SectionCard(
+                  title: '历史趋势',
+                  child: Text(
+                    '完成更多次体测后，这里会显示变化趋势。',
+                    style: TextStyle(color: boksMuted),
+                  ),
+                );
+              }
+              return SectionCard(
+                title: '历史趋势',
+                child: Column(
+                  children: snapshot.data!
+                      .map(
+                        (point) => ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(point.measurementDate),
+                          trailing: Text(
+                            point.totalScore == null
+                                ? '参考记录'
+                                : '${point.totalScore!.toStringAsFixed(1)} 分',
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -745,8 +796,10 @@ class TrainingScreen extends StatefulWidget {
 class _TrainingScreenState extends State<TrainingScreen> {
   late Future<List<Child>> _children;
   List<TrainingPlan> _plans = [];
+  TrainingProgress? _progress;
   String? _childId;
   bool _loadingPlan = false;
+  int? _workingDay;
 
   @override
   void initState() {
@@ -763,7 +816,15 @@ class _TrainingScreenState extends State<TrainingScreen> {
     final childId = widget.initialChildId ?? _childId;
     if (childId == null) return;
     final plans = await widget.client.listTrainingPlans(childId);
-    if (mounted) setState(() => _plans = plans);
+    final progress = plans.isEmpty
+        ? null
+        : await widget.client.getTrainingProgress(plans.first.id);
+    if (mounted) {
+      setState(() {
+        _plans = plans;
+        _progress = progress;
+      });
+    }
   }
 
   Future<void> _generate() async {
@@ -775,7 +836,13 @@ class _TrainingScreenState extends State<TrainingScreen> {
         childId,
         sourceReportId: widget.sourceReportId,
       );
-      if (mounted) setState(() => _plans = [plan, ..._plans]);
+      final progress = await widget.client.getTrainingProgress(plan.id);
+      if (mounted) {
+        setState(() {
+          _plans = [plan, ..._plans];
+          _progress = progress;
+        });
+      }
     } on ApiException catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -784,6 +851,46 @@ class _TrainingScreenState extends State<TrainingScreen> {
       }
     } finally {
       if (mounted) setState(() => _loadingPlan = false);
+    }
+  }
+
+  Future<void> _checkIn(TrainingPlan plan, int day) async {
+    setState(() => _workingDay = day);
+    try {
+      await widget.client.checkInTraining(plan.id, day: day);
+      final progress = await widget.client.getTrainingProgress(plan.id);
+      if (mounted) setState(() => _progress = progress);
+    } on ApiException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    } finally {
+      if (mounted) setState(() => _workingDay = null);
+    }
+  }
+
+  Future<void> _togglePause(TrainingPlan plan) async {
+    try {
+      final updated = plan.status == 'paused_safety_review'
+          ? await widget.client.resumeTraining(plan.id)
+          : await widget.client.pauseTraining(plan.id, '监护人主动暂停，等待安全确认。');
+      final progress = await widget.client.getTrainingProgress(plan.id);
+      if (mounted) {
+        setState(() {
+          _plans = _plans
+              .map((item) => item.id == updated.id ? updated : item)
+              .toList();
+          _progress = progress;
+        });
+      }
+    } on ApiException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
+      }
     }
   }
 
@@ -822,7 +929,17 @@ class _TrainingScreenState extends State<TrainingScreen> {
                   setState(() => _childId = value);
                   if (value != null) {
                     final plans = await widget.client.listTrainingPlans(value);
-                    if (mounted) setState(() => _plans = plans);
+                    final progress = plans.isEmpty
+                        ? null
+                        : await widget.client.getTrainingProgress(
+                            plans.first.id,
+                          );
+                    if (mounted) {
+                      setState(() {
+                        _plans = plans;
+                        _progress = progress;
+                      });
+                    }
                   }
                 },
               ),
@@ -836,7 +953,15 @@ class _TrainingScreenState extends State<TrainingScreen> {
               const SizedBox(height: 16),
               if (_plans.isEmpty)
                 const Text('还没有训练计划。', style: TextStyle(color: boksMuted)),
-              ..._plans.map((plan) => _TrainingPlanCard(plan: plan)),
+              ..._plans.map(
+                (plan) => _TrainingPlanCard(
+                  plan: plan,
+                  progress: _progress,
+                  workingDay: _workingDay,
+                  onCheckIn: (day) => _checkIn(plan, day),
+                  onTogglePause: () => _togglePause(plan),
+                ),
+              ),
             ],
           );
         },
@@ -846,13 +971,27 @@ class _TrainingScreenState extends State<TrainingScreen> {
 }
 
 class _TrainingPlanCard extends StatelessWidget {
-  const _TrainingPlanCard({required this.plan});
+  const _TrainingPlanCard({
+    required this.plan,
+    required this.progress,
+    required this.workingDay,
+    required this.onCheckIn,
+    required this.onTogglePause,
+  });
 
   final TrainingPlan plan;
+  final TrainingProgress? progress;
+  final int? workingDay;
+  final Future<void> Function(int day) onCheckIn;
+  final Future<void> Function() onTogglePause;
 
   @override
   Widget build(BuildContext context) {
     final firstWeek = plan.items.where((item) => item.week == 1).toList();
+    final dayItems = <int, TrainingItem>{};
+    for (final item in firstWeek) {
+      dayItems.putIfAbsent(item.day, () => item);
+    }
     return SectionCard(
       title: plan.goal,
       child: Column(
@@ -862,17 +1001,50 @@ class _TrainingPlanCard extends StatelessWidget {
             '${plan.durationWeeks} 周 · 每周 ${plan.daysPerWeek} 次 · 每次约 ${plan.minutesPerSession} 分钟',
             style: const TextStyle(color: boksMuted),
           ),
-          const SizedBox(height: 8),
-          ...firstWeek
-              .take(9)
-              .map(
-                (item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Text(
-                    '第 ${item.day} 天 · ${item.exerciseName} · ${item.durationMinutes.toStringAsFixed(0)} 分钟',
-                  ),
-                ),
+          StatusPill(
+            label: plan.status == 'paused_safety_review' ? '已暂停安全复核' : '进行中',
+          ),
+          if (progress != null)
+            Text(
+              '已完成 ${progress!.completed} 次 · 跳过 ${progress!.skipped} 次 · 共 ${progress!.totalDays} 次',
+              style: const TextStyle(color: boksMuted),
+            ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () => onTogglePause(),
+              child: Text(
+                plan.status == 'paused_safety_review' ? '监护人确认后恢复' : '暂停训练',
               ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...dayItems.values.map(
+            (item) => Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '第 ${item.day} 天 · ${item.exerciseName} · ${item.durationMinutes.toStringAsFixed(0)} 分钟',
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: workingDay == item.day
+                        ? null
+                        : () => onCheckIn(item.day),
+                    child: workingDay == item.day
+                        ? const SizedBox(
+                            height: 16,
+                            width: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('打卡'),
+                  ),
+                ],
+              ),
+            ),
+          ),
           const SizedBox(height: 8),
           const Text('安全提醒', style: TextStyle(fontWeight: FontWeight.bold)),
           ...firstWeek
@@ -1084,13 +1256,14 @@ class _PostureCaptureScreenState extends State<PostureCaptureScreen> {
       final updated = await widget.client.submitPostureSession(_session.id);
       if (!mounted) return;
       setState(() => _session = updated);
+      final reportId = updated.analysis?.reportId;
       await showDialog<void>(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('体态任务状态'),
           content: Text(
             updated.qualityOverall == 'passed'
-                ? '四个视角已登记，任务进入审核队列。当前版本不会直接生成风险结论。'
+                ? '四个视角质量检查通过，已生成非诊断性观察报告。'
                 : '视角尚未完整，请补齐后再提交。',
           ),
           actions: [
@@ -1101,6 +1274,14 @@ class _PostureCaptureScreenState extends State<PostureCaptureScreen> {
           ],
         ),
       );
+      if (reportId != null && mounted) {
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) =>
+                PostureReportScreen(client: widget.client, reportId: reportId),
+          ),
+        );
+      }
     } on ApiException catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -1174,6 +1355,429 @@ class _PostureCaptureScreenState extends State<PostureCaptureScreen> {
             style: const TextStyle(color: boksMuted, fontSize: 12),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class PostureReportScreen extends StatelessWidget {
+  const PostureReportScreen({
+    required this.client,
+    required this.reportId,
+    super.key,
+  });
+
+  final BoksApiClient client;
+  final String reportId;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('体态观察报告')),
+      body: FutureBuilder<PostureReport>(
+        future: client.getPostureReport(reportId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return ErrorPanel(message: snapshot.error.toString());
+          }
+          final report = snapshot.data!;
+          final riskLabel = const {
+            'A': '未发现明显照片层面差异',
+            'B': '需要改善拍摄条件或人工复核',
+            'C': '建议家长安排专业人工复核',
+            'D': '请停止训练并及时就医',
+          }[report.riskLevel];
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              const DangerCard(
+                message: '普通照片不能诊断疾病，也不能测量 Cobb 角。本报告是非诊断性观察，当前版本会明确标记数据和模型限制。',
+              ),
+              Card(
+                color: boksBrand,
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      const Text('行动层级', style: TextStyle(color: Colors.white)),
+                      Text(
+                        report.riskLevel,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 48,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        riskLabel ?? '数据不足',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SectionCard(
+                title: '观察结果',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: report.observations
+                      .map(
+                        (item) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Text(item),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
+              SectionCard(
+                title: '建议',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: report.recommendations
+                      .map(
+                        (item) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Text(item),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
+              SectionCard(
+                title: '限制说明',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: report.limitations
+                      .map(
+                        (item) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Text(
+                            item,
+                            style: const TextStyle(color: boksMuted),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class ChatScreen extends StatefulWidget {
+  const ChatScreen({required this.client, super.key});
+
+  final BoksApiClient client;
+
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  late Future<void> _ready;
+  final TextEditingController _controller = TextEditingController();
+  List<Child> _children = [];
+  List<ChatMessage> _messages = [];
+  String? _childId;
+  String? _conversationId;
+  bool _sending = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ready = _initialize();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _initialize() async {
+    final results = await Future.wait<dynamic>([
+      widget.client.listChildren(),
+      widget.client.createConversation(),
+    ]);
+    _children = results[0] as List<Child>;
+    final conversation = results[1] as ChatConversation;
+    _messages = conversation.messages;
+    _conversationId = conversation.id;
+    _childId = _children.isEmpty ? null : _children.first.id;
+  }
+
+  Future<void> _send() async {
+    final text = _controller.text.trim();
+    final conversationId = _conversationId;
+    if (text.isEmpty || conversationId == null) return;
+    setState(() => _sending = true);
+    try {
+      final message = await widget.client.sendChatMessage(
+        conversationId,
+        content: text,
+        childId: _childId,
+      );
+      setState(() {
+        _messages = [
+          ..._messages,
+          ChatMessage(
+            id: 'local-user-${DateTime.now().microsecondsSinceEpoch}',
+            role: 'user',
+            content: text,
+            citations: const [],
+            createdAt: DateTime.now().toIso8601String(),
+          ),
+          message,
+        ];
+        _controller.clear();
+      });
+    } on ApiException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('专业咨询')),
+      body: FutureBuilder<void>(
+        future: _ready,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return ErrorPanel(message: snapshot.error.toString());
+          }
+          return Column(
+            children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: DangerCard(
+                  message:
+                      '只回答 BOKS 体测、训练、体态观察和隐私流程，不提供诊断或处方。出现疼痛、麻木、无力或急症请停止训练并及时就医。',
+                ),
+              ),
+              if (_children.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: DropdownButtonFormField<String>(
+                    initialValue: _childId,
+                    decoration: const InputDecoration(labelText: '咨询对象'),
+                    items: _children
+                        .map(
+                          (child) => DropdownMenuItem(
+                            value: child.id,
+                            child: Text(child.displayName),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) => setState(() => _childId = value),
+                  ),
+                ),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: _messages.isEmpty
+                      ? const [
+                          Text(
+                            '可以问：如何看体测报告？如何安排训练？体态照片有哪些拍摄要求？',
+                            style: TextStyle(color: boksMuted),
+                          ),
+                        ]
+                      : _messages
+                            .map(
+                              (message) => Align(
+                                alignment: message.role == 'user'
+                                    ? Alignment.centerRight
+                                    : Alignment.centerLeft,
+                                child: Card(
+                                  color: message.role == 'user'
+                                      ? boksBrandLight
+                                      : null,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(message.content),
+                                        if (message.citations.isNotEmpty)
+                                          Text(
+                                            '依据：${message.citations.map((item) => '${item.title}（${item.version}）').join('、')}',
+                                            style: const TextStyle(
+                                              color: boksMuted,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                ),
+              ),
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _controller,
+                          minLines: 1,
+                          maxLines: 4,
+                          decoration: const InputDecoration(
+                            hintText: '请输入想咨询的问题',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      FilledButton(
+                        onPressed: _sending ? null : _send,
+                        child: const Text('发送'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class DataControlScreen extends StatefulWidget {
+  const DataControlScreen({required this.client, super.key});
+
+  final BoksApiClient client;
+
+  @override
+  State<DataControlScreen> createState() => _DataControlScreenState();
+}
+
+class _DataControlScreenState extends State<DataControlScreen> {
+  late Future<List<Child>> _children;
+
+  @override
+  void initState() {
+    super.initState();
+    _children = widget.client.listChildren();
+  }
+
+  Future<void> _export() async {
+    try {
+      final data = await widget.client.exportFamily();
+      await Clipboard.setData(ClipboardData(text: jsonEncode(data)));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('家庭数据已复制到剪贴板。')));
+      }
+    } on ApiException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    }
+  }
+
+  Future<void> _requestDeletion(Child child) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('申请删除儿童数据'),
+        content: Text('将为${child.displayName}提交删除申请，报告、训练和体态任务会进入清理流程。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('提交申请'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await widget.client.requestChildDeletion(child.id);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('删除申请已提交。')));
+      }
+    } on ApiException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('数据控制与导出')),
+      body: FutureBuilder<List<Child>>(
+        future: _children,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return ErrorPanel(message: snapshot.error.toString());
+          }
+          final children = snapshot.data!;
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              const SectionCard(
+                title: '监护人控制',
+                child: Text('你可以导出当前家庭数据，或为某个儿童提交删除申请。删除会保留必要的最小审计记录。'),
+              ),
+              FilledButton.icon(
+                onPressed: _export,
+                icon: const Icon(Icons.download_outlined),
+                label: const Text('导出家庭数据'),
+              ),
+              const SizedBox(height: 16),
+              ...children.map(
+                (child) => Card(
+                  child: ListTile(
+                    title: Text(child.displayName),
+                    subtitle: const Text('报告、训练和体态任务'),
+                    trailing: TextButton(
+                      onPressed: () => _requestDeletion(child),
+                      child: const Text('申请删除'),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

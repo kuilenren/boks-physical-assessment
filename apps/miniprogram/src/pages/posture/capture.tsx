@@ -84,13 +84,20 @@ export default function PostureCapturePage() {
     try {
       const updated = await submitPostureSession(session.session_id);
       setSession(updated);
+      const reportId = updated.analysis?.report_id;
       void Taro.showModal({
         title: "已完成拍摄",
         content:
           updated.quality_status === "ready_for_review"
-            ? "四个视角已登记，任务进入审核队列。当前版本不会直接生成风险结论。"
+            ? "四个视角质量检查通过，已生成非诊断性观察报告。"
             : "视角尚未完整，请补齐后再提交。",
         showCancel: false,
+      }).then(() => {
+        if (reportId) {
+          void Taro.redirectTo({
+            url: `/pages/posture/report?reportId=${reportId}`,
+          });
+        }
       });
     } catch (error) {
       showError(error, "提交体态任务失败。");

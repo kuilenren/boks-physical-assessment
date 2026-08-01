@@ -52,6 +52,35 @@ class Family {
   }
 }
 
+class Consent {
+  const Consent({
+    required this.id,
+    required this.childId,
+    required this.purpose,
+    required this.version,
+    required this.granted,
+    required this.withdrawnAt,
+  });
+
+  final String id;
+  final String childId;
+  final String purpose;
+  final String version;
+  final bool granted;
+  final String? withdrawnAt;
+
+  factory Consent.fromJson(Map<String, dynamic> json) {
+    return Consent(
+      id: json['id'] as String,
+      childId: json['child_id'] as String,
+      purpose: json['purpose'] as String,
+      version: json['version'] as String,
+      granted: json['granted'] as bool,
+      withdrawnAt: json['withdrawn_at'] as String?,
+    );
+  }
+}
+
 class AssessmentIndicator {
   const AssessmentIndicator({
     required this.code,
@@ -281,6 +310,26 @@ class AssessmentReport {
   }
 }
 
+class TrendPoint {
+  const TrendPoint({
+    required this.reportId,
+    required this.measurementDate,
+    required this.totalScore,
+  });
+
+  final String reportId;
+  final String measurementDate;
+  final double? totalScore;
+
+  factory TrendPoint.fromJson(Map<String, dynamic> json) {
+    return TrendPoint(
+      reportId: json['report_id'] as String,
+      measurementDate: json['measurement_date'] as String,
+      totalScore: (json['total_score'] as num?)?.toDouble(),
+    );
+  }
+}
+
 class TrainingItem {
   const TrainingItem({
     required this.week,
@@ -353,6 +402,32 @@ class TrainingPlan {
   }
 }
 
+class TrainingProgress {
+  const TrainingProgress({
+    required this.planId,
+    required this.completed,
+    required this.skipped,
+    required this.totalDays,
+    required this.status,
+  });
+
+  final String planId;
+  final int completed;
+  final int skipped;
+  final int totalDays;
+  final String status;
+
+  factory TrainingProgress.fromJson(Map<String, dynamic> json) {
+    return TrainingProgress(
+      planId: json['plan_id'] as String,
+      completed: json['completed'] as int,
+      skipped: json['skipped'] as int,
+      totalDays: json['total_days'] as int,
+      status: json['status'] as String,
+    );
+  }
+}
+
 class PostureSession {
   const PostureSession({
     required this.id,
@@ -361,6 +436,7 @@ class PostureSession {
     required this.requiredViews,
     required this.attachedViews,
     required this.qualityOverall,
+    required this.analysis,
     required this.limitations,
   });
 
@@ -370,6 +446,7 @@ class PostureSession {
   final List<String> requiredViews;
   final List<String> attachedViews;
   final String qualityOverall;
+  final PostureAnalysis? analysis;
   final List<String> limitations;
 
   factory PostureSession.fromJson(Map<String, dynamic> json) {
@@ -381,7 +458,139 @@ class PostureSession {
       requiredViews: (json['required_views'] as List<dynamic>).cast<String>(),
       attachedViews: (json['attached_views'] as List<dynamic>).cast<String>(),
       qualityOverall: (quality['overall'] as String),
+      analysis: json['analysis'] is Map<String, dynamic>
+          ? PostureAnalysis.fromJson(json['analysis'] as Map<String, dynamic>)
+          : null,
       limitations: (json['limitations'] as List<dynamic>).cast<String>(),
+    );
+  }
+}
+
+class PostureAnalysis {
+  const PostureAnalysis({
+    required this.reportId,
+    required this.riskLevel,
+    required this.observationStatus,
+    required this.confidence,
+  });
+
+  final String reportId;
+  final String riskLevel;
+  final String observationStatus;
+  final String confidence;
+
+  factory PostureAnalysis.fromJson(Map<String, dynamic> json) {
+    return PostureAnalysis(
+      reportId: json['report_id'] as String,
+      riskLevel: json['risk_level'] as String,
+      observationStatus: json['observation_status'] as String,
+      confidence: json['confidence'] as String,
+    );
+  }
+}
+
+class PostureReport {
+  const PostureReport({
+    required this.id,
+    required this.childId,
+    required this.sessionId,
+    required this.riskLevel,
+    required this.observationStatus,
+    required this.confidence,
+    required this.observations,
+    required this.recommendations,
+    required this.limitations,
+    required this.generatedAt,
+  });
+
+  final String id;
+  final String childId;
+  final String sessionId;
+  final String riskLevel;
+  final String observationStatus;
+  final String confidence;
+  final List<String> observations;
+  final List<String> recommendations;
+  final List<String> limitations;
+  final String generatedAt;
+
+  factory PostureReport.fromJson(Map<String, dynamic> json) {
+    return PostureReport(
+      id: json['id'] as String,
+      childId: json['child_id'] as String,
+      sessionId: json['session_id'] as String,
+      riskLevel: json['risk_level'] as String,
+      observationStatus: json['observation_status'] as String,
+      confidence: json['confidence'] as String,
+      observations: (json['observations'] as List<dynamic>).cast<String>(),
+      recommendations: (json['recommendations'] as List<dynamic>)
+          .cast<String>(),
+      limitations: (json['limitations'] as List<dynamic>).cast<String>(),
+      generatedAt: json['generated_at'] as String,
+    );
+  }
+}
+
+class ChatCitation {
+  const ChatCitation({
+    required this.sourceId,
+    required this.title,
+    required this.version,
+  });
+
+  final String sourceId;
+  final String title;
+  final String version;
+
+  factory ChatCitation.fromJson(Map<String, dynamic> json) {
+    return ChatCitation(
+      sourceId: json['source_id'] as String,
+      title: json['title'] as String,
+      version: json['version'] as String,
+    );
+  }
+}
+
+class ChatMessage {
+  const ChatMessage({
+    required this.id,
+    required this.role,
+    required this.content,
+    required this.citations,
+    required this.createdAt,
+  });
+
+  final String id;
+  final String role;
+  final String content;
+  final List<ChatCitation> citations;
+  final String createdAt;
+
+  factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    return ChatMessage(
+      id: json['id'] as String,
+      role: json['role'] as String,
+      content: json['content'] as String,
+      citations: (json['citations'] as List<dynamic>)
+          .map((item) => ChatCitation.fromJson(item as Map<String, dynamic>))
+          .toList(),
+      createdAt: json['created_at'] as String,
+    );
+  }
+}
+
+class ChatConversation {
+  const ChatConversation({required this.id, required this.messages});
+
+  final String id;
+  final List<ChatMessage> messages;
+
+  factory ChatConversation.fromJson(Map<String, dynamic> json) {
+    return ChatConversation(
+      id: json['id'] as String,
+      messages: (json['messages'] as List<dynamic>)
+          .map((item) => ChatMessage.fromJson(item as Map<String, dynamic>))
+          .toList(),
     );
   }
 }

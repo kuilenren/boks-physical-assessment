@@ -1,5 +1,8 @@
-import type { TrainingPlan as ContractTrainingPlan } from "@boks/contracts";
-import type { TrainingPlan } from "../models";
+import type {
+  TrainingPlan as ContractTrainingPlan,
+  TrainingCheckInRequest,
+} from "@boks/contracts";
+import type { TrainingPlan, TrainingProgress } from "../models";
 import { request } from "./http";
 
 export function createTrainingPlan(childId: string, sourceReportId?: string) {
@@ -52,5 +55,41 @@ function mapPlan(plan: ContractTrainingPlan): TrainingPlan {
         plan.items.map((item) => `${item.safety_note} ${item.stop_condition}`),
       ),
     ],
+    status: plan.status,
   };
+}
+
+export function getTrainingProgress(planId: string) {
+  return request<TrainingProgress>(
+    `/training/plans/${encodeURIComponent(planId)}/progress`,
+  );
+}
+
+export function checkInTraining(planId: string, input: TrainingCheckInRequest) {
+  return request<{
+    id: string;
+    plan_id: string;
+    child_id: string;
+    day: number;
+    status: "completed" | "skipped";
+    note: string | null;
+    created_at: string;
+  }>(`/training/plans/${encodeURIComponent(planId)}/check-ins`, {
+    method: "POST",
+    data: input,
+  });
+}
+
+export function pauseTraining(planId: string, reason: string) {
+  return request<{ plan: ContractTrainingPlan; reason: string }>(
+    `/training/plans/${encodeURIComponent(planId)}/pause`,
+    { method: "POST", data: { reason } },
+  );
+}
+
+export function resumeTraining(planId: string) {
+  return request<ContractTrainingPlan>(
+    `/training/plans/${encodeURIComponent(planId)}/resume`,
+    { method: "POST", data: { guardian_confirmed: true } },
+  ).then(mapPlan);
 }

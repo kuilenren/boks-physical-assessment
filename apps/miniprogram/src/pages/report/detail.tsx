@@ -2,7 +2,7 @@ import { Button, Text, View } from "@tarojs/components";
 import Taro, { useLoad } from "@tarojs/taro";
 import { useState } from "react";
 import type { AssessmentReport } from "../../models";
-import { getReport } from "../../services/assessment";
+import { getAssessmentTrend, getReport } from "../../services/assessment";
 import { ErrorState, LoadingState } from "../../components/PageState";
 import { showError } from "../../utils/error";
 
@@ -10,6 +10,13 @@ export default function ReportDetailPage() {
   const [report, setReport] = useState<AssessmentReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [trend, setTrend] = useState<
+    Array<{
+      report_id: string;
+      measurement_date: string;
+      total_score: number | null;
+    }>
+  >([]);
 
   useLoad((params) => {
     const reportId = params?.reportId;
@@ -19,7 +26,11 @@ export default function ReportDetailPage() {
       return;
     }
     void getReport(reportId)
-      .then(setReport)
+      .then(async (value) => {
+        setReport(value);
+        const trendValue = await getAssessmentTrend(value.child_id);
+        setTrend(trendValue.points);
+      })
       .catch((loadError) =>
         setError(
           loadError instanceof Error ? loadError.message : "报告加载失败。",
@@ -109,6 +120,23 @@ export default function ReportDetailPage() {
         <Text className="muted">算法版本：{report.algorithm_version}</Text>
         <Text className="muted">知识快照：{report.knowledge_snapshot_id}</Text>
         <Text className="muted limitation">{report.limitation_text}</Text>
+      </View>
+      <View className="card">
+        <Text className="section-title">历史趋势</Text>
+        {trend.length === 0 ? (
+          <Text className="muted">完成更多次体测后，这里会显示变化趋势。</Text>
+        ) : (
+          trend.map((point) => (
+            <View className="list-row" key={point.report_id}>
+              <Text className="muted">{point.measurement_date}</Text>
+              <Text className="result-label">
+                {point.total_score === null
+                  ? "参考记录"
+                  : `${point.total_score} 分`}
+              </Text>
+            </View>
+          ))
+        )}
       </View>
     </View>
   );

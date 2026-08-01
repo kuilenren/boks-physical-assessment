@@ -3,18 +3,29 @@ import type {
   PostureView as ContractPostureView,
 } from "@boks/contracts";
 import type { PostureSession } from "../models";
+import type { PostureReport } from "../models";
 import { request } from "./http";
+import { recordConsent } from "./family";
 
-export function createPostureSession(childId: string, consentVersion: string) {
-  return request<ContractPostureSession>("/posture/sessions", {
+export async function createPostureSession(
+  childId: string,
+  consentVersion: string,
+) {
+  const consent = await recordConsent({
+    child_id: childId,
+    purpose: "photo",
+    version: consentVersion,
+  });
+  const session = await request<ContractPostureSession>("/posture/sessions", {
     method: "POST",
     data: {
       child_id: childId,
-      consent_record_id: consentVersion,
+      consent_record_id: consent.id,
       capture_protocol_version: "posture-capture-v1",
       required_views: ["front", "back", "left", "right"],
     },
-  }).then(mapSession);
+  });
+  return mapSession(session);
 }
 
 export function attachPostureView(
@@ -43,6 +54,18 @@ export function submitPostureSession(sessionId: string) {
 export function getPostureSession(sessionId: string) {
   return request<ContractPostureSession>(`/posture/sessions/${sessionId}`).then(
     mapSession,
+  );
+}
+
+export function getPostureReport(reportId: string) {
+  return request<PostureReport>(
+    `/posture/reports/${encodeURIComponent(reportId)}`,
+  );
+}
+
+export function listPostureReports(childId: string) {
+  return request<PostureReport[]>(
+    `/posture/reports?child_id=${encodeURIComponent(childId)}`,
   );
 }
 

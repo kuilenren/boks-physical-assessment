@@ -14,6 +14,31 @@ export interface FamilySummary {
   pending_actions: number;
 }
 
+export interface Consent {
+  id: string;
+  family_id: string;
+  child_id: string;
+  purpose: "privacy" | "assessment" | "photo" | "voice";
+  version: string;
+  granted: boolean;
+  granted_at: string;
+  withdrawn_at: string | null;
+}
+
+export interface DeletionRequest {
+  id: string;
+  family_id: string;
+  child_id: string;
+  status: "requested" | "completed";
+  created_at: string;
+}
+
+export interface DataExport {
+  family_id: string;
+  exported_at: string;
+  data: Record<string, unknown>;
+}
+
 export interface AssessmentIndicator {
   indicator_code: string;
   display_name: string;
@@ -80,6 +105,12 @@ export interface AssessmentReport {
   created_at: string;
 }
 
+export interface AssessmentTrendPoint {
+  report_id: string;
+  measurement_date: string;
+  total_score: number | null;
+}
+
 export type ReportListItem = Pick<
   AssessmentReport,
   | "report_id"
@@ -107,6 +138,15 @@ export interface TrainingPlan {
   session_minutes: number;
   weekly_schedule: TrainingSession[];
   safety_notes: string[];
+  status: "active" | "paused_safety_review" | "completed";
+}
+
+export interface TrainingProgress {
+  plan_id: string;
+  completed: number;
+  skipped: number;
+  total_days: number;
+  status: "active" | "paused_safety_review" | "completed";
 }
 
 export type PostureViewCode = "front" | "back" | "left" | "right";
@@ -123,6 +163,49 @@ export interface PostureSession {
   required_views: PostureViewCode[];
   views: PostureView[];
   quality_status: "pending" | "ready_for_review" | "needs_retake";
-  analysis: null;
+  analysis: {
+    report_id: string;
+    risk_level: "A" | "B" | "C" | "D";
+    observation_status: "insufficient_data" | "observed";
+    confidence: "low" | "medium" | "high";
+  } | null;
   limitations: string[];
+}
+
+export interface PostureReport {
+  id: string;
+  report_type: "posture";
+  child_id: string;
+  session_id: string;
+  risk_level: "A" | "B" | "C" | "D";
+  observation_status: "insufficient_data" | "observed";
+  confidence: "low" | "medium" | "high";
+  observations: string[];
+  recommendations: string[];
+  limitations: string[];
+  generated_at: string;
+}
+
+export interface ChatCitation {
+  source_id: string;
+  title: string;
+  version: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  citations: ChatCitation[];
+  created_at: string;
+}
+
+export interface ChatConversation {
+  id: string;
+  family_id: string;
+  child_id: string | null;
+  context_report_id: string | null;
+  context_plan_id: string | null;
+  messages: ChatMessage[];
+  created_at: string;
 }

@@ -1,5 +1,11 @@
 import type { Child } from "@boks/contracts";
-import type { ChildProfile, FamilySummary } from "../models";
+import type {
+  ChildProfile,
+  Consent,
+  DataExport,
+  DeletionRequest,
+  FamilySummary,
+} from "../models";
 import { request } from "./http";
 
 export function getFamilySummary() {
@@ -34,6 +40,48 @@ export function createChild(data: {
       grade_code: "unassigned",
     },
   }).then(mapChild);
+}
+
+export function recordConsent(data: {
+  child_id: string;
+  purpose: Consent["purpose"];
+  version: string;
+}) {
+  return request<Consent>("/families/me/consents", {
+    method: "POST",
+    data: { ...data, granted: true },
+  });
+}
+
+export function listConsents() {
+  return request<Consent[]>("/families/me/consents");
+}
+
+export function withdrawConsent(consentId: string) {
+  return request<Consent>(
+    `/consents/${encodeURIComponent(consentId)}/withdraw`,
+    {
+      method: "POST",
+    },
+  );
+}
+
+export function exportFamily() {
+  return request<DataExport>("/families/me/export");
+}
+
+export function requestChildDeletion(childId: string) {
+  return request<DeletionRequest>(
+    `/children/${encodeURIComponent(childId)}/deletion-request`,
+    { method: "POST" },
+  );
+}
+
+export function deleteChild(childId: string) {
+  return request<{ id: string; status: "deleted" }>(
+    `/children/${encodeURIComponent(childId)}`,
+    { method: "DELETE" },
+  );
 }
 
 function mapChild(child: Child): ChildProfile {

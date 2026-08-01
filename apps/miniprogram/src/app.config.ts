@@ -9,6 +9,8 @@ export default defineAppConfig({
     "pages/training/detail",
     "pages/posture/consent",
     "pages/posture/capture",
+    "pages/posture/report",
+    "pages/chat/index",
     "pages/privacy/index",
   ],
   window: {

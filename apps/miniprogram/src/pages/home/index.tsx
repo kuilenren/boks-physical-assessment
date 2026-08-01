@@ -117,6 +117,12 @@ export default function HomePage() {
         >
           管理儿童档案
         </Button>
+        <Button
+          className="action-row"
+          onClick={() => open("/pages/chat/index")}
+        >
+          专业咨询
+        </Button>
       </View>
 
       <Text
