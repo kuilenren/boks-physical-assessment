@@ -1,0 +1,50 @@
+# Node / pnpm
+node_modules/
+.pnpm-store/
+pnpm-debug.log*
+
+# Build outputs
+dist/
+build/
+.next/
+coverage/
+.turbo/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+pubspec.lock
+android/.gradle/
+android/local.properties
+ios/Pods/
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Local runtime data
+tmp/
+runtime/
+*.log
+inst_user_settings.tmp

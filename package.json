@@ -1,0 +1,24 @@
+{
+  "name": "boks-physical-assessment",
+  "version": "0.1.0",
+  "private": true,
+  "description": "BOKS（搏克斯）儿童体测与体态健康平台",
+  "packageManager": "pnpm@10.14.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "hooks:enable": "node scripts/enable-hooks.mjs",
+    "format": "prettier --write \"**/*.{js,cjs,mjs,ts,tsx,json,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{js,cjs,mjs,ts,tsx,json,yml,yaml}\"",
+    "typecheck": "pnpm --filter @boks/contracts build && pnpm --filter @boks/api typecheck",
+    "test": "pnpm --filter @boks/contracts test && pnpm --filter @boks/api test",
+    "check": "pnpm format:check && pnpm typecheck && pnpm test"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

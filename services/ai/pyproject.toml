@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "boks-ai"
+version = "0.1.0"
+description = "BOKS 体态分析与 AI 编排服务骨架"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "pydantic>=2.10,<3",
+  "uvicorn[standard]>=0.34,<1"
+]
+
+[project.optional-dependencies]
+dev = [
+  "httpx>=0.28,<1",
+  "pytest>=8.3,<9",
+  "ruff>=0.11,<1"
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"

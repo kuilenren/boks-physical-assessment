@@ -1,0 +1,11 @@
+.git/
+.githooks/
+.pnpm-store/
+node_modules/
+dist/
+build/
+.next/
+.venv/
+docs/
+*.md
+*.lock
