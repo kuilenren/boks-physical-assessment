@@ -6,4 +6,13 @@ if [ -z "$branch" ]; then
   exit 0
 fi
 
-git push origin "$branch"
+attempt=1
+max_attempts="${BOKS_PUSH_RETRIES:-3}"
+while ! git push origin "$branch"; do
+  if [ "$attempt" -ge "$max_attempts" ]; then
+    printf '%s\n' "自动推送失败，请稍后运行 scripts/push.ps1。" >&2
+    exit 1
+  fi
+  sleep 5
+  attempt=$((attempt + 1))
+done
