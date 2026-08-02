@@ -1,4 +1,4 @@
-@use "./styles/tokens.scss" as *;
+﻿@use "./styles/tokens.scss" as *;
 
 page {
   background:
@@ -27,10 +27,10 @@ button {
   letter-spacing: 0.01em;
   line-height: 1.4;
   transition:
-    transform $duration-fast $ease-out,
-    opacity $duration-fast $ease-out,
-    box-shadow $duration $ease-out,
-    background-color $duration $ease-out;
+    transform $duration-fast $easing-out,
+    opacity $duration-fast $easing-out,
+    box-shadow $duration $easing-out,
+    background-color $duration $easing-out;
 }
 
 button::after {
@@ -43,7 +43,7 @@ button:active {
 }
 
 .page {
-  animation: page-enter $duration-slow $ease-out both;
+  animation: page-enter $duration-slow $easing-out both;
   min-height: 100vh;
   padding: $space-5 $space-4 $space-10;
 }
@@ -113,8 +113,8 @@ button:active {
   margin-bottom: $space-4;
   padding: $space-5;
   transition:
-    transform $duration $ease-out,
-    box-shadow $duration $ease-out;
+    transform $duration $easing-out,
+    box-shadow $duration $easing-out;
 }
 
 .card-soft {
@@ -263,9 +263,9 @@ button:active {
   min-height: 176px;
   padding: $space-4;
   transition:
-    transform $duration $ease-out,
-    box-shadow $duration $ease-out,
-    border-color $duration $ease-out;
+    transform $duration $easing-out,
+    box-shadow $duration $easing-out,
+    border-color $duration $easing-out;
 }
 
 .entry-card:active {
@@ -350,9 +350,9 @@ button:active {
   min-height: 52px;
   padding: 14px 16px;
   transition:
-    border-color $duration-fast $ease-out,
-    box-shadow $duration-fast $ease-out,
-    background-color $duration-fast $ease-out;
+    border-color $duration-fast $easing-out,
+    box-shadow $duration-fast $easing-out,
+    background-color $duration-fast $easing-out;
   width: 100%;
 }
 
@@ -507,8 +507,8 @@ button:active {
   margin-bottom: $space-4;
   padding: $space-4;
   transition:
-    background-color $duration $ease-out,
-    border-color $duration $ease-out;
+    background-color $duration $easing-out,
+    border-color $duration $easing-out;
 }
 
 .consent-checked {
@@ -563,9 +563,9 @@ button:active {
   padding: 10px 4px;
   text-align: center;
   transition:
-    background-color $duration $ease-out,
-    color $duration $ease-out,
-    border-color $duration $ease-out;
+    background-color $duration $easing-out,
+    color $duration $easing-out,
+    border-color $duration $easing-out;
 }
 
 .view-dot-done {
@@ -889,8 +889,8 @@ button:active {
   margin-bottom: $space-3;
   padding: $space-4;
   transition:
-    border-color $duration $ease-out,
-    transform $duration $ease-out;
+    border-color $duration $easing-out,
+    transform $duration $easing-out;
 }
 
 .next-action:active {
@@ -996,7 +996,7 @@ button:active {
   background: linear-gradient(90deg, $color-brand-600, $color-brand-500);
   border-radius: $radius-pill;
   height: 100%;
-  transition: width $duration-slow $ease-out;
+  transition: width $duration-slow $easing-out;
 }
 
 .training-item {

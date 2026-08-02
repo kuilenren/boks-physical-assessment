@@ -24,13 +24,13 @@ const config: UserConfigExport = {
     ],
   },
   mini: {
+    // 关闭分块优化，避免 prebundle 与 app.js 时序竞争（lib 3.8.0 + Taro 4.2.1）
+    webpackChain(chain: any) {
+      chain.optimization.splitChunks({ chunks: "all", minSize: 0, cacheGroups: {} });
+    },
     postcss: {
-      pxtransform: {
-        enable: true,
-      },
-      cssModules: {
-        enable: false,
-      },
+      pxtransform: { enable: true },
+      cssModules: { enable: false },
     },
   },
   h5: {},

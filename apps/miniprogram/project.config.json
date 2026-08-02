@@ -2,7 +2,7 @@
   "description": "BOKS智能体测体态分析",
   "compileType": "miniprogram",
   "libVersion": "3.8.0",
-  "appid": "wxabef59d1d9eec429",
+  "appid": "wx2b1c048c953f409c",
   "projectname": "BOKS智能体测体态分析",
   "miniprogramRoot": "dist/",
   "setting": {
@@ -25,8 +25,8 @@
     "disableUseStrict": false,
     "useCompilerPlugins": false,
     "condition": false,
-    "swc": false,
-    "disableSWC": true,
+    "swc": true,
+    "disableSWC": false,
     "babelSetting": {
       "ignore": [],
       "disablePlugins": [],
