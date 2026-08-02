@@ -1,0 +1,14 @@
+{
+  "name": "@boks/version",
+  "version": "0.2.0",
+  "description": "BOKS 客户端版本管理 + 热更新元数据",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js",
+    "./meta": "./meta.json"
+  },
+  "scripts": {
+    "check": "node scripts/check-compat.mjs",
+    "rollback": "node scripts/rollback.mjs"
+  }
+}

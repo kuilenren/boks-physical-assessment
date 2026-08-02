@@ -1,0 +1,2276 @@
+{
+  "family_id": "family-demo-001",
+  "families": {
+    "family-demo-001": {
+      "id": "family-demo-001",
+      "display_name": "BOKS 演示家庭",
+      "status": "active"
+    },
+    "family-primary-low-001": {
+      "id": "family-primary-low-001",
+      "display_name": "张家（小学低段）",
+      "status": "active"
+    },
+    "family-primary-high-002": {
+      "id": "family-primary-high-002",
+      "display_name": "李家（小学高段）",
+      "status": "active"
+    },
+    "family-junior-003": {
+      "id": "family-junior-003",
+      "display_name": "王家（初中）",
+      "status": "active"
+    },
+    "family-senior-004": {
+      "id": "family-senior-004",
+      "display_name": "赵家（高中）",
+      "status": "active"
+    },
+    "family-preschool-005": {
+      "id": "family-preschool-005",
+      "display_name": "钱家（幼儿）",
+      "status": "active"
+    },
+    "family-multi-006": {
+      "id": "family-multi-006",
+      "display_name": "孙家（多子女）",
+      "status": "active"
+    }
+  },
+  "organizations": {},
+  "accounts": {},
+  "children": [
+    {
+      "id": "child-demo-001",
+      "family_id": "family-demo-001",
+      "display_name": "小朋友",
+      "birth_date": "2018-04-12",
+      "age_in_months": 99,
+      "sex_code": "female",
+      "school_stage": "primary",
+      "grade_code": "grade_2",
+      "profile_status": "active"
+    },
+    {
+      "id": "child-001",
+      "family_id": "family-primary-low-001",
+      "display_name": "张一",
+      "birth_date": "2019-09-01",
+      "sex_code": "male",
+      "school_stage": "primary",
+      "grade_code": "2",
+      "profile_status": "active",
+      "payload": {},
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z"
+    },
+    {
+      "id": "child-002",
+      "family_id": "family-primary-high-002",
+      "display_name": "李二",
+      "birth_date": "2014-03-12",
+      "sex_code": "female",
+      "school_stage": "primary",
+      "grade_code": "5",
+      "profile_status": "active",
+      "payload": {},
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z"
+    },
+    {
+      "id": "child-003",
+      "family_id": "family-junior-003",
+      "display_name": "王三",
+      "birth_date": "2010-07-22",
+      "sex_code": "male",
+      "school_stage": "junior_high",
+      "grade_code": "8",
+      "profile_status": "active",
+      "payload": {},
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z"
+    },
+    {
+      "id": "child-004",
+      "family_id": "family-senior-004",
+      "display_name": "赵四",
+      "birth_date": "2007-11-05",
+      "sex_code": "female",
+      "school_stage": "senior_high",
+      "grade_code": "11",
+      "profile_status": "active",
+      "payload": {},
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z"
+    },
+    {
+      "id": "child-005",
+      "family_id": "family-preschool-005",
+      "display_name": "钱五",
+      "birth_date": "2021-04-18",
+      "sex_code": "female",
+      "school_stage": "preschool",
+      "grade_code": "kindergarten-2",
+      "profile_status": "active",
+      "payload": {},
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z"
+    },
+    {
+      "id": "child-006",
+      "family_id": "family-multi-006",
+      "display_name": "孙六",
+      "birth_date": "2013-08-30",
+      "sex_code": "male",
+      "school_stage": "primary",
+      "grade_code": "4",
+      "profile_status": "active",
+      "payload": {},
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z"
+    },
+    {
+      "id": "child-007",
+      "family_id": "family-multi-006",
+      "display_name": "孙七",
+      "birth_date": "2011-02-14",
+      "sex_code": "female",
+      "school_stage": "junior_high",
+      "grade_code": "7",
+      "profile_status": "active",
+      "payload": {},
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z"
+    }
+  ],
+  "assessmentSessions": {
+    "as-child-001-seed": {
+      "id": "as-child-001-seed",
+      "family_id": "family-primary-low-001",
+      "child_id": "child-001",
+      "standard_version_id": "std-national-primary-2014-v1",
+      "measurement_date": "2026-08-02",
+      "status": "completed",
+      "values": [
+        {
+          "indicator_code": "height",
+          "raw_value": "152"
+        },
+        {
+          "indicator_code": "weight",
+          "raw_value": "37.4"
+        },
+        {
+          "indicator_code": "run_50m",
+          "raw_value": "10.6"
+        },
+        {
+          "indicator_code": "sit_reach",
+          "raw_value": "10"
+        },
+        {
+          "indicator_code": "rope_1min",
+          "raw_value": "90"
+        },
+        {
+          "indicator_code": "lung_capacity",
+          "raw_value": "1000"
+        }
+      ],
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z"
+    },
+    "as-child-002-seed": {
+      "id": "as-child-002-seed",
+      "family_id": "family-primary-high-002",
+      "child_id": "child-002",
+      "standard_version_id": "std-national-primary-2014-v1",
+      "measurement_date": "2026-08-02",
+      "status": "completed",
+      "values": [
+        {
+          "indicator_code": "height",
+          "raw_value": "165"
+        },
+        {
+          "indicator_code": "weight",
+          "raw_value": "43.2"
+        },
+        {
+          "indicator_code": "run_50m",
+          "raw_value": "12.1"
+        },
+        {
+          "indicator_code": "sit_reach",
+          "raw_value": "17"
+        },
+        {
+          "indicator_code": "rope_1min",
+          "raw_value": "100"
+        },
+        {
+          "indicator_code": "lung_capacity",
+          "raw_value": "1300"
+        }
+      ],
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z"
+    },
+    "as-child-003-seed": {
+      "id": "as-child-003-seed",
+      "family_id": "family-junior-003",
+      "child_id": "child-003",
+      "standard_version_id": "std-national-primary-2014-v1",
+      "measurement_date": "2026-08-02",
+      "status": "completed",
+      "values": [
+        {
+          "indicator_code": "height",
+          "raw_value": "160"
+        },
+        {
+          "indicator_code": "weight",
+          "raw_value": "50"
+        },
+        {
+          "indicator_code": "run_50m",
+          "raw_value": "8"
+        },
+        {
+          "indicator_code": "sit_reach",
+          "raw_value": "8"
+        },
+        {
+          "indicator_code": "rope_1min",
+          "raw_value": "160"
+        },
+        {
+          "indicator_code": "lung_capacity",
+          "raw_value": "3000"
+        },
+        {
+          "indicator_code": "standing_jump",
+          "raw_value": "200"
+        },
+        {
+          "indicator_code": "pull_up",
+          "raw_value": "3"
+        },
+        {
+          "indicator_code": "endurance_run",
+          "raw_value": "270"
+        }
+      ],
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z"
+    },
+    "as-child-004-seed": {
+      "id": "as-child-004-seed",
+      "family_id": "family-senior-004",
+      "child_id": "child-004",
+      "standard_version_id": "std-national-primary-2014-v1",
+      "measurement_date": "2026-08-02",
+      "status": "completed",
+      "values": [
+        {
+          "indicator_code": "height",
+          "raw_value": "162"
+        },
+        {
+          "indicator_code": "weight",
+          "raw_value": "53"
+        },
+        {
+          "indicator_code": "run_50m",
+          "raw_value": "8"
+        },
+        {
+          "indicator_code": "sit_reach",
+          "raw_value": "13"
+        },
+        {
+          "indicator_code": "rope_1min",
+          "raw_value": "170"
+        },
+        {
+          "indicator_code": "lung_capacity",
+          "raw_value": "4000"
+        },
+        {
+          "indicator_code": "standing_jump",
+          "raw_value": "190"
+        },
+        {
+          "indicator_code": "sit_up",
+          "raw_value": "38"
+        },
+        {
+          "indicator_code": "endurance_run",
+          "raw_value": "230"
+        }
+      ],
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z"
+    },
+    "as-child-006-seed": {
+      "id": "as-child-006-seed",
+      "family_id": "family-multi-006",
+      "child_id": "child-006",
+      "standard_version_id": "std-national-primary-2014-v1",
+      "measurement_date": "2026-08-02",
+      "status": "completed",
+      "values": [
+        {
+          "indicator_code": "height",
+          "raw_value": "162"
+        },
+        {
+          "indicator_code": "weight",
+          "raw_value": "41.8"
+        },
+        {
+          "indicator_code": "run_50m",
+          "raw_value": "11.2"
+        },
+        {
+          "indicator_code": "sit_reach",
+          "raw_value": "12"
+        },
+        {
+          "indicator_code": "rope_1min",
+          "raw_value": "100"
+        },
+        {
+          "indicator_code": "lung_capacity",
+          "raw_value": "1200"
+        }
+      ],
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z"
+    },
+    "as-child-007-seed": {
+      "id": "as-child-007-seed",
+      "family_id": "family-multi-006",
+      "child_id": "child-007",
+      "standard_version_id": "std-national-primary-2014-v1",
+      "measurement_date": "2026-08-02",
+      "status": "completed",
+      "values": [
+        {
+          "indicator_code": "height",
+          "raw_value": "158"
+        },
+        {
+          "indicator_code": "weight",
+          "raw_value": "47"
+        },
+        {
+          "indicator_code": "run_50m",
+          "raw_value": "8.6"
+        },
+        {
+          "indicator_code": "sit_reach",
+          "raw_value": "11"
+        },
+        {
+          "indicator_code": "rope_1min",
+          "raw_value": "155"
+        },
+        {
+          "indicator_code": "lung_capacity",
+          "raw_value": "3000"
+        },
+        {
+          "indicator_code": "standing_jump",
+          "raw_value": "175"
+        },
+        {
+          "indicator_code": "sit_up",
+          "raw_value": "30"
+        },
+        {
+          "indicator_code": "endurance_run",
+          "raw_value": "250"
+        }
+      ],
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z"
+    }
+  },
+  "reports": {
+    "ar-child-001-seed": {
+      "id": "ar-child-001-seed",
+      "family_id": "family-primary-low-001",
+      "child_id": "child-001",
+      "measurement_date": "2026-08-02",
+      "standard_version_id": "std-national-primary-2014-v1",
+      "total_score": 78.5,
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ar-child-002-seed": {
+      "id": "ar-child-002-seed",
+      "family_id": "family-primary-high-002",
+      "child_id": "child-002",
+      "measurement_date": "2026-08-02",
+      "standard_version_id": "std-national-primary-2014-v1",
+      "total_score": 78.5,
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ar-child-003-seed": {
+      "id": "ar-child-003-seed",
+      "family_id": "family-junior-003",
+      "child_id": "child-003",
+      "measurement_date": "2026-08-02",
+      "standard_version_id": "std-national-primary-2014-v1",
+      "total_score": 78.5,
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ar-child-004-seed": {
+      "id": "ar-child-004-seed",
+      "family_id": "family-senior-004",
+      "child_id": "child-004",
+      "measurement_date": "2026-08-02",
+      "standard_version_id": "std-national-primary-2014-v1",
+      "total_score": 78.5,
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ar-child-006-seed": {
+      "id": "ar-child-006-seed",
+      "family_id": "family-multi-006",
+      "child_id": "child-006",
+      "measurement_date": "2026-08-02",
+      "standard_version_id": "std-national-primary-2014-v1",
+      "total_score": 78.5,
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ar-child-007-seed": {
+      "id": "ar-child-007-seed",
+      "family_id": "family-multi-006",
+      "child_id": "child-007",
+      "measurement_date": "2026-08-02",
+      "standard_version_id": "std-national-primary-2014-v1",
+      "total_score": 78.5,
+      "created_at": "2026-08-02T10:39:33.965Z"
+    }
+  },
+  "trainingPlans": {
+    "tp-child-001-seed": {
+      "id": "tp-child-001-seed",
+      "family_id": "family-primary-low-001",
+      "child_id": "child-001",
+      "status": "active",
+      "duration_days": 84,
+      "weekly_template": [
+        "balance",
+        "core",
+        "jump",
+        "endurance",
+        "stretch",
+        "rest",
+        "rest"
+      ],
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z"
+    },
+    "tp-child-002-seed": {
+      "id": "tp-child-002-seed",
+      "family_id": "family-primary-high-002",
+      "child_id": "child-002",
+      "status": "active",
+      "duration_days": 84,
+      "weekly_template": [
+        "balance",
+        "core",
+        "jump",
+        "endurance",
+        "stretch",
+        "rest",
+        "rest"
+      ],
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z"
+    },
+    "tp-child-003-seed": {
+      "id": "tp-child-003-seed",
+      "family_id": "family-junior-003",
+      "child_id": "child-003",
+      "status": "active",
+      "duration_days": 84,
+      "weekly_template": [
+        "balance",
+        "core",
+        "jump",
+        "endurance",
+        "stretch",
+        "rest",
+        "rest"
+      ],
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z"
+    },
+    "tp-child-004-seed": {
+      "id": "tp-child-004-seed",
+      "family_id": "family-senior-004",
+      "child_id": "child-004",
+      "status": "active",
+      "duration_days": 84,
+      "weekly_template": [
+        "balance",
+        "core",
+        "jump",
+        "endurance",
+        "stretch",
+        "rest",
+        "rest"
+      ],
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z"
+    },
+    "tp-child-006-seed": {
+      "id": "tp-child-006-seed",
+      "family_id": "family-multi-006",
+      "child_id": "child-006",
+      "status": "active",
+      "duration_days": 84,
+      "weekly_template": [
+        "balance",
+        "core",
+        "jump",
+        "endurance",
+        "stretch",
+        "rest",
+        "rest"
+      ],
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z"
+    },
+    "tp-child-007-seed": {
+      "id": "tp-child-007-seed",
+      "family_id": "family-multi-006",
+      "child_id": "child-007",
+      "status": "active",
+      "duration_days": 84,
+      "weekly_template": [
+        "balance",
+        "core",
+        "jump",
+        "endurance",
+        "stretch",
+        "rest",
+        "rest"
+      ],
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z"
+    }
+  },
+  "postureSessions": {
+    "ps-child-001-seed": {
+      "id": "ps-child-001-seed",
+      "family_id": "family-primary-low-001",
+      "child_id": "child-001",
+      "status": "completed",
+      "required_views": [
+        "front",
+        "back",
+        "left",
+        "right"
+      ],
+      "quality": {
+        "overall": "passed",
+        "views": {
+          "front": {
+            "status": "passed",
+            "score": 0.88,
+            "reasons": []
+          },
+          "back": {
+            "status": "passed",
+            "score": 0.91,
+            "reasons": []
+          },
+          "left": {
+            "status": "passed",
+            "score": 0.85,
+            "reasons": []
+          },
+          "right": {
+            "status": "passed",
+            "score": 0.87,
+            "reasons": []
+          }
+        }
+      },
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ps-child-003-seed": {
+      "id": "ps-child-003-seed",
+      "family_id": "family-junior-003",
+      "child_id": "child-003",
+      "status": "completed",
+      "required_views": [
+        "front",
+        "back",
+        "left",
+        "right"
+      ],
+      "quality": {
+        "overall": "passed",
+        "views": {
+          "front": {
+            "status": "passed",
+            "score": 0.88,
+            "reasons": []
+          },
+          "back": {
+            "status": "passed",
+            "score": 0.91,
+            "reasons": []
+          },
+          "left": {
+            "status": "passed",
+            "score": 0.85,
+            "reasons": []
+          },
+          "right": {
+            "status": "passed",
+            "score": 0.87,
+            "reasons": []
+          }
+        }
+      },
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ps-child-006-seed": {
+      "id": "ps-child-006-seed",
+      "family_id": "family-multi-006",
+      "child_id": "child-006",
+      "status": "completed",
+      "required_views": [
+        "front",
+        "back",
+        "left",
+        "right"
+      ],
+      "quality": {
+        "overall": "passed",
+        "views": {
+          "front": {
+            "status": "passed",
+            "score": 0.88,
+            "reasons": []
+          },
+          "back": {
+            "status": "passed",
+            "score": 0.91,
+            "reasons": []
+          },
+          "left": {
+            "status": "passed",
+            "score": 0.85,
+            "reasons": []
+          },
+          "right": {
+            "status": "passed",
+            "score": 0.87,
+            "reasons": []
+          }
+        }
+      },
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ps-child-007-seed": {
+      "id": "ps-child-007-seed",
+      "family_id": "family-multi-006",
+      "child_id": "child-007",
+      "status": "completed",
+      "required_views": [
+        "front",
+        "back",
+        "left",
+        "right"
+      ],
+      "quality": {
+        "overall": "passed",
+        "views": {
+          "front": {
+            "status": "passed",
+            "score": 0.88,
+            "reasons": []
+          },
+          "back": {
+            "status": "passed",
+            "score": 0.91,
+            "reasons": []
+          },
+          "left": {
+            "status": "passed",
+            "score": 0.85,
+            "reasons": []
+          },
+          "right": {
+            "status": "passed",
+            "score": 0.87,
+            "reasons": []
+          }
+        }
+      },
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z"
+    }
+  },
+  "postureAssets": {
+    "pa-ps-child-001-seed-front": {
+      "id": "pa-ps-child-001-seed-front",
+      "family_id": "family-primary-low-001",
+      "session_id": "ps-child-001-seed",
+      "view_code": "front",
+      "storage_key": "runtime/posture-assets/ps-child-001-seed-front.jpg",
+      "checksum_sha256": "aed48b6defb54afd9e91708f465d3ff1",
+      "size_bytes": 524288,
+      "mime_type": "image/jpeg",
+      "captured_at": "2026-08-02T10:39:33.965Z",
+      "quality_status": "passed",
+      "quality_score": 0.88
+    },
+    "pa-ps-child-001-seed-back": {
+      "id": "pa-ps-child-001-seed-back",
+      "family_id": "family-primary-low-001",
+      "session_id": "ps-child-001-seed",
+      "view_code": "back",
+      "storage_key": "runtime/posture-assets/ps-child-001-seed-back.jpg",
+      "checksum_sha256": "c65f70a5902f45ed866f658411d4b4fc",
+      "size_bytes": 524288,
+      "mime_type": "image/jpeg",
+      "captured_at": "2026-08-02T10:39:33.965Z",
+      "quality_status": "passed",
+      "quality_score": 0.88
+    },
+    "pa-ps-child-001-seed-left": {
+      "id": "pa-ps-child-001-seed-left",
+      "family_id": "family-primary-low-001",
+      "session_id": "ps-child-001-seed",
+      "view_code": "left",
+      "storage_key": "runtime/posture-assets/ps-child-001-seed-left.jpg",
+      "checksum_sha256": "2d920b772b384a43a503f8c06548ff93",
+      "size_bytes": 524288,
+      "mime_type": "image/jpeg",
+      "captured_at": "2026-08-02T10:39:33.965Z",
+      "quality_status": "passed",
+      "quality_score": 0.88
+    },
+    "pa-ps-child-001-seed-right": {
+      "id": "pa-ps-child-001-seed-right",
+      "family_id": "family-primary-low-001",
+      "session_id": "ps-child-001-seed",
+      "view_code": "right",
+      "storage_key": "runtime/posture-assets/ps-child-001-seed-right.jpg",
+      "checksum_sha256": "bb403bdbd3d24e9ab12fa3854fbe0267",
+      "size_bytes": 524288,
+      "mime_type": "image/jpeg",
+      "captured_at": "2026-08-02T10:39:33.965Z",
+      "quality_status": "passed",
+      "quality_score": 0.88
+    },
+    "pa-ps-child-003-seed-front": {
+      "id": "pa-ps-child-003-seed-front",
+      "family_id": "family-junior-003",
+      "session_id": "ps-child-003-seed",
+      "view_code": "front",
+      "storage_key": "runtime/posture-assets/ps-child-003-seed-front.jpg",
+      "checksum_sha256": "50d11c5d3d7e4c40a5f716fd6b29a353",
+      "size_bytes": 524288,
+      "mime_type": "image/jpeg",
+      "captured_at": "2026-08-02T10:39:33.965Z",
+      "quality_status": "passed",
+      "quality_score": 0.88
+    },
+    "pa-ps-child-003-seed-back": {
+      "id": "pa-ps-child-003-seed-back",
+      "family_id": "family-junior-003",
+      "session_id": "ps-child-003-seed",
+      "view_code": "back",
+      "storage_key": "runtime/posture-assets/ps-child-003-seed-back.jpg",
+      "checksum_sha256": "31790e4a6fff4f69b51b2458b2c4eafb",
+      "size_bytes": 524288,
+      "mime_type": "image/jpeg",
+      "captured_at": "2026-08-02T10:39:33.965Z",
+      "quality_status": "passed",
+      "quality_score": 0.88
+    },
+    "pa-ps-child-003-seed-left": {
+      "id": "pa-ps-child-003-seed-left",
+      "family_id": "family-junior-003",
+      "session_id": "ps-child-003-seed",
+      "view_code": "left",
+      "storage_key": "runtime/posture-assets/ps-child-003-seed-left.jpg",
+      "checksum_sha256": "bb456c9bec994bcaaf57aa9c632fddff",
+      "size_bytes": 524288,
+      "mime_type": "image/jpeg",
+      "captured_at": "2026-08-02T10:39:33.965Z",
+      "quality_status": "passed",
+      "quality_score": 0.88
+    },
+    "pa-ps-child-003-seed-right": {
+      "id": "pa-ps-child-003-seed-right",
+      "family_id": "family-junior-003",
+      "session_id": "ps-child-003-seed",
+      "view_code": "right",
+      "storage_key": "runtime/posture-assets/ps-child-003-seed-right.jpg",
+      "checksum_sha256": "47ccfd911b2b45ce8625c7733866d555",
+      "size_bytes": 524288,
+      "mime_type": "image/jpeg",
+      "captured_at": "2026-08-02T10:39:33.965Z",
+      "quality_status": "passed",
+      "quality_score": 0.88
+    },
+    "pa-ps-child-006-seed-front": {
+      "id": "pa-ps-child-006-seed-front",
+      "family_id": "family-multi-006",
+      "session_id": "ps-child-006-seed",
+      "view_code": "front",
+      "storage_key": "runtime/posture-assets/ps-child-006-seed-front.jpg",
+      "checksum_sha256": "29f9472ae2af477b96655fdde81a6b4c",
+      "size_bytes": 524288,
+      "mime_type": "image/jpeg",
+      "captured_at": "2026-08-02T10:39:33.965Z",
+      "quality_status": "passed",
+      "quality_score": 0.88
+    },
+    "pa-ps-child-006-seed-back": {
+      "id": "pa-ps-child-006-seed-back",
+      "family_id": "family-multi-006",
+      "session_id": "ps-child-006-seed",
+      "view_code": "back",
+      "storage_key": "runtime/posture-assets/ps-child-006-seed-back.jpg",
+      "checksum_sha256": "12011ca8ee7d4c6e9b1d2cdc843aca17",
+      "size_bytes": 524288,
+      "mime_type": "image/jpeg",
+      "captured_at": "2026-08-02T10:39:33.965Z",
+      "quality_status": "passed",
+      "quality_score": 0.88
+    },
+    "pa-ps-child-006-seed-left": {
+      "id": "pa-ps-child-006-seed-left",
+      "family_id": "family-multi-006",
+      "session_id": "ps-child-006-seed",
+      "view_code": "left",
+      "storage_key": "runtime/posture-assets/ps-child-006-seed-left.jpg",
+      "checksum_sha256": "05e5939847f94fbda43d917367f5350c",
+      "size_bytes": 524288,
+      "mime_type": "image/jpeg",
+      "captured_at": "2026-08-02T10:39:33.965Z",
+      "quality_status": "passed",
+      "quality_score": 0.88
+    },
+    "pa-ps-child-006-seed-right": {
+      "id": "pa-ps-child-006-seed-right",
+      "family_id": "family-multi-006",
+      "session_id": "ps-child-006-seed",
+      "view_code": "right",
+      "storage_key": "runtime/posture-assets/ps-child-006-seed-right.jpg",
+      "checksum_sha256": "5ad8370dfb634976bde8482365c25a38",
+      "size_bytes": 524288,
+      "mime_type": "image/jpeg",
+      "captured_at": "2026-08-02T10:39:33.965Z",
+      "quality_status": "passed",
+      "quality_score": 0.88
+    },
+    "pa-ps-child-007-seed-front": {
+      "id": "pa-ps-child-007-seed-front",
+      "family_id": "family-multi-006",
+      "session_id": "ps-child-007-seed",
+      "view_code": "front",
+      "storage_key": "runtime/posture-assets/ps-child-007-seed-front.jpg",
+      "checksum_sha256": "01989a19cdb5476d8aadcb95e6314632",
+      "size_bytes": 524288,
+      "mime_type": "image/jpeg",
+      "captured_at": "2026-08-02T10:39:33.965Z",
+      "quality_status": "passed",
+      "quality_score": 0.88
+    },
+    "pa-ps-child-007-seed-back": {
+      "id": "pa-ps-child-007-seed-back",
+      "family_id": "family-multi-006",
+      "session_id": "ps-child-007-seed",
+      "view_code": "back",
+      "storage_key": "runtime/posture-assets/ps-child-007-seed-back.jpg",
+      "checksum_sha256": "65d15bf551c244388f55700d246f3c53",
+      "size_bytes": 524288,
+      "mime_type": "image/jpeg",
+      "captured_at": "2026-08-02T10:39:33.965Z",
+      "quality_status": "passed",
+      "quality_score": 0.88
+    },
+    "pa-ps-child-007-seed-left": {
+      "id": "pa-ps-child-007-seed-left",
+      "family_id": "family-multi-006",
+      "session_id": "ps-child-007-seed",
+      "view_code": "left",
+      "storage_key": "runtime/posture-assets/ps-child-007-seed-left.jpg",
+      "checksum_sha256": "c184432e0e924149b2691512825d9962",
+      "size_bytes": 524288,
+      "mime_type": "image/jpeg",
+      "captured_at": "2026-08-02T10:39:33.965Z",
+      "quality_status": "passed",
+      "quality_score": 0.88
+    },
+    "pa-ps-child-007-seed-right": {
+      "id": "pa-ps-child-007-seed-right",
+      "family_id": "family-multi-006",
+      "session_id": "ps-child-007-seed",
+      "view_code": "right",
+      "storage_key": "runtime/posture-assets/ps-child-007-seed-right.jpg",
+      "checksum_sha256": "8c47b59ade96477d9cec7994b0d0c4b8",
+      "size_bytes": 524288,
+      "mime_type": "image/jpeg",
+      "captured_at": "2026-08-02T10:39:33.965Z",
+      "quality_status": "passed",
+      "quality_score": 0.88
+    }
+  },
+  "postureReports": {
+    "pr-ps-child-001-seed": {
+      "id": "pr-ps-child-001-seed",
+      "family_id": "family-primary-low-001",
+      "session_id": "ps-child-001-seed",
+      "child_id": "child-001",
+      "risk_level": "not_scored",
+      "observation_status": "insufficient_data",
+      "confidence": "low",
+      "observations": [
+        "四视角任务质量通过，但当前没有真实姿态模型，无法测量或确认风险。"
+      ],
+      "recommendations": [
+        "建议在自然光下按同一拍摄协议复拍；如有持续不适，请由专业人员人工复核。"
+      ],
+      "limitations": [
+        "非诊断性观察，不输出角度、骨骼测量或疾病结论。",
+        "照片不会写入日志。"
+      ],
+      "generated_at": "2026-08-02T10:39:33.965Z"
+    },
+    "pr-ps-child-003-seed": {
+      "id": "pr-ps-child-003-seed",
+      "family_id": "family-junior-003",
+      "session_id": "ps-child-003-seed",
+      "child_id": "child-003",
+      "risk_level": "not_scored",
+      "observation_status": "insufficient_data",
+      "confidence": "low",
+      "observations": [
+        "四视角任务质量通过，但当前没有真实姿态模型，无法测量或确认风险。"
+      ],
+      "recommendations": [
+        "建议在自然光下按同一拍摄协议复拍；如有持续不适，请由专业人员人工复核。"
+      ],
+      "limitations": [
+        "非诊断性观察，不输出角度、骨骼测量或疾病结论。",
+        "照片不会写入日志。"
+      ],
+      "generated_at": "2026-08-02T10:39:33.965Z"
+    },
+    "pr-ps-child-006-seed": {
+      "id": "pr-ps-child-006-seed",
+      "family_id": "family-multi-006",
+      "session_id": "ps-child-006-seed",
+      "child_id": "child-006",
+      "risk_level": "not_scored",
+      "observation_status": "insufficient_data",
+      "confidence": "low",
+      "observations": [
+        "四视角任务质量通过，但当前没有真实姿态模型，无法测量或确认风险。"
+      ],
+      "recommendations": [
+        "建议在自然光下按同一拍摄协议复拍；如有持续不适，请由专业人员人工复核。"
+      ],
+      "limitations": [
+        "非诊断性观察，不输出角度、骨骼测量或疾病结论。",
+        "照片不会写入日志。"
+      ],
+      "generated_at": "2026-08-02T10:39:33.965Z"
+    },
+    "pr-ps-child-007-seed": {
+      "id": "pr-ps-child-007-seed",
+      "family_id": "family-multi-006",
+      "session_id": "ps-child-007-seed",
+      "child_id": "child-007",
+      "risk_level": "not_scored",
+      "observation_status": "insufficient_data",
+      "confidence": "low",
+      "observations": [
+        "四视角任务质量通过，但当前没有真实姿态模型，无法测量或确认风险。"
+      ],
+      "recommendations": [
+        "建议在自然光下按同一拍摄协议复拍；如有持续不适，请由专业人员人工复核。"
+      ],
+      "limitations": [
+        "非诊断性观察，不输出角度、骨骼测量或疾病结论。",
+        "照片不会写入日志。"
+      ],
+      "generated_at": "2026-08-02T10:39:33.965Z"
+    }
+  },
+  "sessions": {},
+  "identityBindings": {},
+  "consents": {},
+  "checkIns": {
+    "ci-tp-child-001-seed-1": {
+      "id": "ci-tp-child-001-seed-1",
+      "family_id": "family-primary-low-001",
+      "plan_id": "tp-child-001-seed",
+      "child_id": "child-001",
+      "day": 1,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-001-seed-2": {
+      "id": "ci-tp-child-001-seed-2",
+      "family_id": "family-primary-low-001",
+      "plan_id": "tp-child-001-seed",
+      "child_id": "child-001",
+      "day": 2,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-001-seed-3": {
+      "id": "ci-tp-child-001-seed-3",
+      "family_id": "family-primary-low-001",
+      "plan_id": "tp-child-001-seed",
+      "child_id": "child-001",
+      "day": 3,
+      "status": "partial",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-001-seed-4": {
+      "id": "ci-tp-child-001-seed-4",
+      "family_id": "family-primary-low-001",
+      "plan_id": "tp-child-001-seed",
+      "child_id": "child-001",
+      "day": 4,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-001-seed-5": {
+      "id": "ci-tp-child-001-seed-5",
+      "family_id": "family-primary-low-001",
+      "plan_id": "tp-child-001-seed",
+      "child_id": "child-001",
+      "day": 5,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-001-seed-6": {
+      "id": "ci-tp-child-001-seed-6",
+      "family_id": "family-primary-low-001",
+      "plan_id": "tp-child-001-seed",
+      "child_id": "child-001",
+      "day": 6,
+      "status": "partial",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-001-seed-7": {
+      "id": "ci-tp-child-001-seed-7",
+      "family_id": "family-primary-low-001",
+      "plan_id": "tp-child-001-seed",
+      "child_id": "child-001",
+      "day": 7,
+      "status": "skipped",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-001-seed-8": {
+      "id": "ci-tp-child-001-seed-8",
+      "family_id": "family-primary-low-001",
+      "plan_id": "tp-child-001-seed",
+      "child_id": "child-001",
+      "day": 8,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-001-seed-9": {
+      "id": "ci-tp-child-001-seed-9",
+      "family_id": "family-primary-low-001",
+      "plan_id": "tp-child-001-seed",
+      "child_id": "child-001",
+      "day": 9,
+      "status": "partial",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-001-seed-10": {
+      "id": "ci-tp-child-001-seed-10",
+      "family_id": "family-primary-low-001",
+      "plan_id": "tp-child-001-seed",
+      "child_id": "child-001",
+      "day": 10,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-001-seed-11": {
+      "id": "ci-tp-child-001-seed-11",
+      "family_id": "family-primary-low-001",
+      "plan_id": "tp-child-001-seed",
+      "child_id": "child-001",
+      "day": 11,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-001-seed-12": {
+      "id": "ci-tp-child-001-seed-12",
+      "family_id": "family-primary-low-001",
+      "plan_id": "tp-child-001-seed",
+      "child_id": "child-001",
+      "day": 12,
+      "status": "partial",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-001-seed-13": {
+      "id": "ci-tp-child-001-seed-13",
+      "family_id": "family-primary-low-001",
+      "plan_id": "tp-child-001-seed",
+      "child_id": "child-001",
+      "day": 13,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-001-seed-14": {
+      "id": "ci-tp-child-001-seed-14",
+      "family_id": "family-primary-low-001",
+      "plan_id": "tp-child-001-seed",
+      "child_id": "child-001",
+      "day": 14,
+      "status": "skipped",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-002-seed-1": {
+      "id": "ci-tp-child-002-seed-1",
+      "family_id": "family-primary-high-002",
+      "plan_id": "tp-child-002-seed",
+      "child_id": "child-002",
+      "day": 1,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-002-seed-2": {
+      "id": "ci-tp-child-002-seed-2",
+      "family_id": "family-primary-high-002",
+      "plan_id": "tp-child-002-seed",
+      "child_id": "child-002",
+      "day": 2,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-002-seed-3": {
+      "id": "ci-tp-child-002-seed-3",
+      "family_id": "family-primary-high-002",
+      "plan_id": "tp-child-002-seed",
+      "child_id": "child-002",
+      "day": 3,
+      "status": "partial",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-002-seed-4": {
+      "id": "ci-tp-child-002-seed-4",
+      "family_id": "family-primary-high-002",
+      "plan_id": "tp-child-002-seed",
+      "child_id": "child-002",
+      "day": 4,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-002-seed-5": {
+      "id": "ci-tp-child-002-seed-5",
+      "family_id": "family-primary-high-002",
+      "plan_id": "tp-child-002-seed",
+      "child_id": "child-002",
+      "day": 5,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-002-seed-6": {
+      "id": "ci-tp-child-002-seed-6",
+      "family_id": "family-primary-high-002",
+      "plan_id": "tp-child-002-seed",
+      "child_id": "child-002",
+      "day": 6,
+      "status": "partial",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-002-seed-7": {
+      "id": "ci-tp-child-002-seed-7",
+      "family_id": "family-primary-high-002",
+      "plan_id": "tp-child-002-seed",
+      "child_id": "child-002",
+      "day": 7,
+      "status": "skipped",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-002-seed-8": {
+      "id": "ci-tp-child-002-seed-8",
+      "family_id": "family-primary-high-002",
+      "plan_id": "tp-child-002-seed",
+      "child_id": "child-002",
+      "day": 8,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-002-seed-9": {
+      "id": "ci-tp-child-002-seed-9",
+      "family_id": "family-primary-high-002",
+      "plan_id": "tp-child-002-seed",
+      "child_id": "child-002",
+      "day": 9,
+      "status": "partial",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-002-seed-10": {
+      "id": "ci-tp-child-002-seed-10",
+      "family_id": "family-primary-high-002",
+      "plan_id": "tp-child-002-seed",
+      "child_id": "child-002",
+      "day": 10,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-002-seed-11": {
+      "id": "ci-tp-child-002-seed-11",
+      "family_id": "family-primary-high-002",
+      "plan_id": "tp-child-002-seed",
+      "child_id": "child-002",
+      "day": 11,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-002-seed-12": {
+      "id": "ci-tp-child-002-seed-12",
+      "family_id": "family-primary-high-002",
+      "plan_id": "tp-child-002-seed",
+      "child_id": "child-002",
+      "day": 12,
+      "status": "partial",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-002-seed-13": {
+      "id": "ci-tp-child-002-seed-13",
+      "family_id": "family-primary-high-002",
+      "plan_id": "tp-child-002-seed",
+      "child_id": "child-002",
+      "day": 13,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-002-seed-14": {
+      "id": "ci-tp-child-002-seed-14",
+      "family_id": "family-primary-high-002",
+      "plan_id": "tp-child-002-seed",
+      "child_id": "child-002",
+      "day": 14,
+      "status": "skipped",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-003-seed-1": {
+      "id": "ci-tp-child-003-seed-1",
+      "family_id": "family-junior-003",
+      "plan_id": "tp-child-003-seed",
+      "child_id": "child-003",
+      "day": 1,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-003-seed-2": {
+      "id": "ci-tp-child-003-seed-2",
+      "family_id": "family-junior-003",
+      "plan_id": "tp-child-003-seed",
+      "child_id": "child-003",
+      "day": 2,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-003-seed-3": {
+      "id": "ci-tp-child-003-seed-3",
+      "family_id": "family-junior-003",
+      "plan_id": "tp-child-003-seed",
+      "child_id": "child-003",
+      "day": 3,
+      "status": "partial",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-003-seed-4": {
+      "id": "ci-tp-child-003-seed-4",
+      "family_id": "family-junior-003",
+      "plan_id": "tp-child-003-seed",
+      "child_id": "child-003",
+      "day": 4,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-003-seed-5": {
+      "id": "ci-tp-child-003-seed-5",
+      "family_id": "family-junior-003",
+      "plan_id": "tp-child-003-seed",
+      "child_id": "child-003",
+      "day": 5,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-003-seed-6": {
+      "id": "ci-tp-child-003-seed-6",
+      "family_id": "family-junior-003",
+      "plan_id": "tp-child-003-seed",
+      "child_id": "child-003",
+      "day": 6,
+      "status": "partial",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-003-seed-7": {
+      "id": "ci-tp-child-003-seed-7",
+      "family_id": "family-junior-003",
+      "plan_id": "tp-child-003-seed",
+      "child_id": "child-003",
+      "day": 7,
+      "status": "skipped",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-003-seed-8": {
+      "id": "ci-tp-child-003-seed-8",
+      "family_id": "family-junior-003",
+      "plan_id": "tp-child-003-seed",
+      "child_id": "child-003",
+      "day": 8,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-003-seed-9": {
+      "id": "ci-tp-child-003-seed-9",
+      "family_id": "family-junior-003",
+      "plan_id": "tp-child-003-seed",
+      "child_id": "child-003",
+      "day": 9,
+      "status": "partial",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-003-seed-10": {
+      "id": "ci-tp-child-003-seed-10",
+      "family_id": "family-junior-003",
+      "plan_id": "tp-child-003-seed",
+      "child_id": "child-003",
+      "day": 10,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-003-seed-11": {
+      "id": "ci-tp-child-003-seed-11",
+      "family_id": "family-junior-003",
+      "plan_id": "tp-child-003-seed",
+      "child_id": "child-003",
+      "day": 11,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-003-seed-12": {
+      "id": "ci-tp-child-003-seed-12",
+      "family_id": "family-junior-003",
+      "plan_id": "tp-child-003-seed",
+      "child_id": "child-003",
+      "day": 12,
+      "status": "partial",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-003-seed-13": {
+      "id": "ci-tp-child-003-seed-13",
+      "family_id": "family-junior-003",
+      "plan_id": "tp-child-003-seed",
+      "child_id": "child-003",
+      "day": 13,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-003-seed-14": {
+      "id": "ci-tp-child-003-seed-14",
+      "family_id": "family-junior-003",
+      "plan_id": "tp-child-003-seed",
+      "child_id": "child-003",
+      "day": 14,
+      "status": "skipped",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-004-seed-1": {
+      "id": "ci-tp-child-004-seed-1",
+      "family_id": "family-senior-004",
+      "plan_id": "tp-child-004-seed",
+      "child_id": "child-004",
+      "day": 1,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-004-seed-2": {
+      "id": "ci-tp-child-004-seed-2",
+      "family_id": "family-senior-004",
+      "plan_id": "tp-child-004-seed",
+      "child_id": "child-004",
+      "day": 2,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-004-seed-3": {
+      "id": "ci-tp-child-004-seed-3",
+      "family_id": "family-senior-004",
+      "plan_id": "tp-child-004-seed",
+      "child_id": "child-004",
+      "day": 3,
+      "status": "partial",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-004-seed-4": {
+      "id": "ci-tp-child-004-seed-4",
+      "family_id": "family-senior-004",
+      "plan_id": "tp-child-004-seed",
+      "child_id": "child-004",
+      "day": 4,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-004-seed-5": {
+      "id": "ci-tp-child-004-seed-5",
+      "family_id": "family-senior-004",
+      "plan_id": "tp-child-004-seed",
+      "child_id": "child-004",
+      "day": 5,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-004-seed-6": {
+      "id": "ci-tp-child-004-seed-6",
+      "family_id": "family-senior-004",
+      "plan_id": "tp-child-004-seed",
+      "child_id": "child-004",
+      "day": 6,
+      "status": "partial",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-004-seed-7": {
+      "id": "ci-tp-child-004-seed-7",
+      "family_id": "family-senior-004",
+      "plan_id": "tp-child-004-seed",
+      "child_id": "child-004",
+      "day": 7,
+      "status": "skipped",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-004-seed-8": {
+      "id": "ci-tp-child-004-seed-8",
+      "family_id": "family-senior-004",
+      "plan_id": "tp-child-004-seed",
+      "child_id": "child-004",
+      "day": 8,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-004-seed-9": {
+      "id": "ci-tp-child-004-seed-9",
+      "family_id": "family-senior-004",
+      "plan_id": "tp-child-004-seed",
+      "child_id": "child-004",
+      "day": 9,
+      "status": "partial",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-004-seed-10": {
+      "id": "ci-tp-child-004-seed-10",
+      "family_id": "family-senior-004",
+      "plan_id": "tp-child-004-seed",
+      "child_id": "child-004",
+      "day": 10,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-004-seed-11": {
+      "id": "ci-tp-child-004-seed-11",
+      "family_id": "family-senior-004",
+      "plan_id": "tp-child-004-seed",
+      "child_id": "child-004",
+      "day": 11,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-004-seed-12": {
+      "id": "ci-tp-child-004-seed-12",
+      "family_id": "family-senior-004",
+      "plan_id": "tp-child-004-seed",
+      "child_id": "child-004",
+      "day": 12,
+      "status": "partial",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-004-seed-13": {
+      "id": "ci-tp-child-004-seed-13",
+      "family_id": "family-senior-004",
+      "plan_id": "tp-child-004-seed",
+      "child_id": "child-004",
+      "day": 13,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-004-seed-14": {
+      "id": "ci-tp-child-004-seed-14",
+      "family_id": "family-senior-004",
+      "plan_id": "tp-child-004-seed",
+      "child_id": "child-004",
+      "day": 14,
+      "status": "skipped",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-006-seed-1": {
+      "id": "ci-tp-child-006-seed-1",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-006-seed",
+      "child_id": "child-006",
+      "day": 1,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-006-seed-2": {
+      "id": "ci-tp-child-006-seed-2",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-006-seed",
+      "child_id": "child-006",
+      "day": 2,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-006-seed-3": {
+      "id": "ci-tp-child-006-seed-3",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-006-seed",
+      "child_id": "child-006",
+      "day": 3,
+      "status": "partial",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-006-seed-4": {
+      "id": "ci-tp-child-006-seed-4",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-006-seed",
+      "child_id": "child-006",
+      "day": 4,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-006-seed-5": {
+      "id": "ci-tp-child-006-seed-5",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-006-seed",
+      "child_id": "child-006",
+      "day": 5,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-006-seed-6": {
+      "id": "ci-tp-child-006-seed-6",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-006-seed",
+      "child_id": "child-006",
+      "day": 6,
+      "status": "partial",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-006-seed-7": {
+      "id": "ci-tp-child-006-seed-7",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-006-seed",
+      "child_id": "child-006",
+      "day": 7,
+      "status": "skipped",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-006-seed-8": {
+      "id": "ci-tp-child-006-seed-8",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-006-seed",
+      "child_id": "child-006",
+      "day": 8,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-006-seed-9": {
+      "id": "ci-tp-child-006-seed-9",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-006-seed",
+      "child_id": "child-006",
+      "day": 9,
+      "status": "partial",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-006-seed-10": {
+      "id": "ci-tp-child-006-seed-10",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-006-seed",
+      "child_id": "child-006",
+      "day": 10,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-006-seed-11": {
+      "id": "ci-tp-child-006-seed-11",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-006-seed",
+      "child_id": "child-006",
+      "day": 11,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-006-seed-12": {
+      "id": "ci-tp-child-006-seed-12",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-006-seed",
+      "child_id": "child-006",
+      "day": 12,
+      "status": "partial",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-006-seed-13": {
+      "id": "ci-tp-child-006-seed-13",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-006-seed",
+      "child_id": "child-006",
+      "day": 13,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-006-seed-14": {
+      "id": "ci-tp-child-006-seed-14",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-006-seed",
+      "child_id": "child-006",
+      "day": 14,
+      "status": "skipped",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-007-seed-1": {
+      "id": "ci-tp-child-007-seed-1",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-007-seed",
+      "child_id": "child-007",
+      "day": 1,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-007-seed-2": {
+      "id": "ci-tp-child-007-seed-2",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-007-seed",
+      "child_id": "child-007",
+      "day": 2,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-007-seed-3": {
+      "id": "ci-tp-child-007-seed-3",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-007-seed",
+      "child_id": "child-007",
+      "day": 3,
+      "status": "partial",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-007-seed-4": {
+      "id": "ci-tp-child-007-seed-4",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-007-seed",
+      "child_id": "child-007",
+      "day": 4,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-007-seed-5": {
+      "id": "ci-tp-child-007-seed-5",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-007-seed",
+      "child_id": "child-007",
+      "day": 5,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-007-seed-6": {
+      "id": "ci-tp-child-007-seed-6",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-007-seed",
+      "child_id": "child-007",
+      "day": 6,
+      "status": "partial",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-007-seed-7": {
+      "id": "ci-tp-child-007-seed-7",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-007-seed",
+      "child_id": "child-007",
+      "day": 7,
+      "status": "skipped",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-007-seed-8": {
+      "id": "ci-tp-child-007-seed-8",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-007-seed",
+      "child_id": "child-007",
+      "day": 8,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-007-seed-9": {
+      "id": "ci-tp-child-007-seed-9",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-007-seed",
+      "child_id": "child-007",
+      "day": 9,
+      "status": "partial",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-007-seed-10": {
+      "id": "ci-tp-child-007-seed-10",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-007-seed",
+      "child_id": "child-007",
+      "day": 10,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-007-seed-11": {
+      "id": "ci-tp-child-007-seed-11",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-007-seed",
+      "child_id": "child-007",
+      "day": 11,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-007-seed-12": {
+      "id": "ci-tp-child-007-seed-12",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-007-seed",
+      "child_id": "child-007",
+      "day": 12,
+      "status": "partial",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-007-seed-13": {
+      "id": "ci-tp-child-007-seed-13",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-007-seed",
+      "child_id": "child-007",
+      "day": 13,
+      "status": "done",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    },
+    "ci-tp-child-007-seed-14": {
+      "id": "ci-tp-child-007-seed-14",
+      "family_id": "family-multi-006",
+      "plan_id": "tp-child-007-seed",
+      "child_id": "child-007",
+      "day": 14,
+      "status": "skipped",
+      "created_at": "2026-08-02T10:39:33.965Z"
+    }
+  },
+  "conversations": {
+    "cv-child-001-seed": {
+      "id": "cv-child-001-seed",
+      "family_id": "family-primary-low-001",
+      "child_id": "child-001",
+      "context_report_id": "ar-child-001-seed",
+      "context_plan_id": "tp-child-001-seed",
+      "title": "如何提升跳绳成绩？",
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z",
+      "messages": [
+        {
+          "id": "086ac3a7-343d-4903-ae1d-f7154019f0dc",
+          "role": "user",
+          "content": "我家孩子 1 分钟跳绳只能跳 80 个，怎么训练？",
+          "citations": [],
+          "created_at": "2026-08-02T10:39:33.965Z"
+        },
+        {
+          "id": "691d398b-d9d5-4c34-8565-1772640dee53",
+          "role": "assistant",
+          "content": "1 分钟跳绳 80 个属于中等水平，建议先以 5 天为一周期训练协调性和耐力：BOKS 平台已根据该年龄评分表给出参考。训练动作包含双脚交替跳、开合跳、节奏控制练习。如出现膝关节或脚踝不适请暂停训练并咨询专业人员。",
+          "citations": [
+            {
+              "source_id": "src-national-2014-standard",
+              "title": "国家学生体质健康标准（2014）",
+              "version": "2014修订"
+            },
+            {
+              "source_id": "src-training-safety",
+              "title": "儿童体测训练安全",
+              "version": "1.0"
+            }
+          ],
+          "created_at": "2026-08-02T10:39:33.965Z"
+        }
+      ]
+    },
+    "cv-child-002-seed": {
+      "id": "cv-child-002-seed",
+      "family_id": "family-primary-high-002",
+      "child_id": "child-002",
+      "context_report_id": "ar-child-002-seed",
+      "context_plan_id": "tp-child-002-seed",
+      "title": "如何提升跳绳成绩？",
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z",
+      "messages": [
+        {
+          "id": "73465943-2aff-4d25-811e-37c2f9718491",
+          "role": "user",
+          "content": "我家孩子 1 分钟跳绳只能跳 80 个，怎么训练？",
+          "citations": [],
+          "created_at": "2026-08-02T10:39:33.965Z"
+        },
+        {
+          "id": "c637a32d-5524-46dc-8a93-0547b9c68436",
+          "role": "assistant",
+          "content": "1 分钟跳绳 80 个属于中等水平，建议先以 5 天为一周期训练协调性和耐力：BOKS 平台已根据该年龄评分表给出参考。训练动作包含双脚交替跳、开合跳、节奏控制练习。如出现膝关节或脚踝不适请暂停训练并咨询专业人员。",
+          "citations": [
+            {
+              "source_id": "src-national-2014-standard",
+              "title": "国家学生体质健康标准（2014）",
+              "version": "2014修订"
+            },
+            {
+              "source_id": "src-training-safety",
+              "title": "儿童体测训练安全",
+              "version": "1.0"
+            }
+          ],
+          "created_at": "2026-08-02T10:39:33.965Z"
+        }
+      ]
+    },
+    "cv-child-003-seed": {
+      "id": "cv-child-003-seed",
+      "family_id": "family-junior-003",
+      "child_id": "child-003",
+      "context_report_id": "ar-child-003-seed",
+      "context_plan_id": "tp-child-003-seed",
+      "title": "如何提升跳绳成绩？",
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z",
+      "messages": [
+        {
+          "id": "a9c8bcf1-bec6-4e98-abdc-637b6578f14b",
+          "role": "user",
+          "content": "我家孩子 1 分钟跳绳只能跳 80 个，怎么训练？",
+          "citations": [],
+          "created_at": "2026-08-02T10:39:33.965Z"
+        },
+        {
+          "id": "4d3e4ed8-8b09-41d3-8892-7470c0c72583",
+          "role": "assistant",
+          "content": "1 分钟跳绳 80 个属于中等水平，建议先以 5 天为一周期训练协调性和耐力：BOKS 平台已根据该年龄评分表给出参考。训练动作包含双脚交替跳、开合跳、节奏控制练习。如出现膝关节或脚踝不适请暂停训练并咨询专业人员。",
+          "citations": [
+            {
+              "source_id": "src-national-2014-standard",
+              "title": "国家学生体质健康标准（2014）",
+              "version": "2014修订"
+            },
+            {
+              "source_id": "src-training-safety",
+              "title": "儿童体测训练安全",
+              "version": "1.0"
+            }
+          ],
+          "created_at": "2026-08-02T10:39:33.965Z"
+        }
+      ]
+    },
+    "cv-child-004-seed": {
+      "id": "cv-child-004-seed",
+      "family_id": "family-senior-004",
+      "child_id": "child-004",
+      "context_report_id": "ar-child-004-seed",
+      "context_plan_id": "tp-child-004-seed",
+      "title": "如何提升跳绳成绩？",
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z",
+      "messages": [
+        {
+          "id": "7eaf8ea7-e2c5-4ff8-a8d1-f2b06867295a",
+          "role": "user",
+          "content": "我家孩子 1 分钟跳绳只能跳 80 个，怎么训练？",
+          "citations": [],
+          "created_at": "2026-08-02T10:39:33.965Z"
+        },
+        {
+          "id": "e8f0a472-0ada-40b4-bd38-96950aba94e8",
+          "role": "assistant",
+          "content": "1 分钟跳绳 80 个属于中等水平，建议先以 5 天为一周期训练协调性和耐力：BOKS 平台已根据该年龄评分表给出参考。训练动作包含双脚交替跳、开合跳、节奏控制练习。如出现膝关节或脚踝不适请暂停训练并咨询专业人员。",
+          "citations": [
+            {
+              "source_id": "src-national-2014-standard",
+              "title": "国家学生体质健康标准（2014）",
+              "version": "2014修订"
+            },
+            {
+              "source_id": "src-training-safety",
+              "title": "儿童体测训练安全",
+              "version": "1.0"
+            }
+          ],
+          "created_at": "2026-08-02T10:39:33.965Z"
+        }
+      ]
+    },
+    "cv-child-006-seed": {
+      "id": "cv-child-006-seed",
+      "family_id": "family-multi-006",
+      "child_id": "child-006",
+      "context_report_id": "ar-child-006-seed",
+      "context_plan_id": "tp-child-006-seed",
+      "title": "如何提升跳绳成绩？",
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z",
+      "messages": [
+        {
+          "id": "261079a7-b8e4-47fd-8500-65b499751e96",
+          "role": "user",
+          "content": "我家孩子 1 分钟跳绳只能跳 80 个，怎么训练？",
+          "citations": [],
+          "created_at": "2026-08-02T10:39:33.965Z"
+        },
+        {
+          "id": "b85fb9dc-c04f-4bea-8dad-7494ecff4e61",
+          "role": "assistant",
+          "content": "1 分钟跳绳 80 个属于中等水平，建议先以 5 天为一周期训练协调性和耐力：BOKS 平台已根据该年龄评分表给出参考。训练动作包含双脚交替跳、开合跳、节奏控制练习。如出现膝关节或脚踝不适请暂停训练并咨询专业人员。",
+          "citations": [
+            {
+              "source_id": "src-national-2014-standard",
+              "title": "国家学生体质健康标准（2014）",
+              "version": "2014修订"
+            },
+            {
+              "source_id": "src-training-safety",
+              "title": "儿童体测训练安全",
+              "version": "1.0"
+            }
+          ],
+          "created_at": "2026-08-02T10:39:33.965Z"
+        }
+      ]
+    },
+    "cv-child-007-seed": {
+      "id": "cv-child-007-seed",
+      "family_id": "family-multi-006",
+      "child_id": "child-007",
+      "context_report_id": "ar-child-007-seed",
+      "context_plan_id": "tp-child-007-seed",
+      "title": "如何提升跳绳成绩？",
+      "created_at": "2026-08-02T10:39:33.965Z",
+      "updated_at": "2026-08-02T10:39:33.965Z",
+      "messages": [
+        {
+          "id": "9c1f3193-fa45-4109-a8cd-27736cf2166b",
+          "role": "user",
+          "content": "我家孩子 1 分钟跳绳只能跳 80 个，怎么训练？",
+          "citations": [],
+          "created_at": "2026-08-02T10:39:33.965Z"
+        },
+        {
+          "id": "29ced5d2-fa0b-4b53-a75d-82b116aad988",
+          "role": "assistant",
+          "content": "1 分钟跳绳 80 个属于中等水平，建议先以 5 天为一周期训练协调性和耐力：BOKS 平台已根据该年龄评分表给出参考。训练动作包含双脚交替跳、开合跳、节奏控制练习。如出现膝关节或脚踝不适请暂停训练并咨询专业人员。",
+          "citations": [
+            {
+              "source_id": "src-national-2014-standard",
+              "title": "国家学生体质健康标准（2014）",
+              "version": "2014修订"
+            },
+            {
+              "source_id": "src-training-safety",
+              "title": "儿童体测训练安全",
+              "version": "1.0"
+            }
+          ],
+          "created_at": "2026-08-02T10:39:33.965Z"
+        }
+      ]
+    }
+  },
+  "knowledgeSources": {
+    "src-national-2014-standard": {
+      "id": "src-national-2014-standard",
+      "title": "《国家学生体质健康标准（2014年修订）》项目与评分说明",
+      "owner": "中华人民共和国教育部",
+      "fetch_url": "https://www.moe.gov.cn/",
+      "content_hash": "864a86154885c26b02d458f833f326a466c857b0d5e8eaa3e21e1087cd78b089",
+      "created_at": "2026-08-02T10:39:33.967Z"
+    },
+    "src-training-safety": {
+      "id": "src-training-safety",
+      "title": "儿童体测训练安全与停止条件",
+      "owner": "BOKS 内容团队",
+      "fetch_url": null,
+      "content_hash": "51a55e6e029fd5ca9236d51fc17ef13062f21e1fe556aa79e41f4c97246ea210",
+      "created_at": "2026-08-02T10:39:33.968Z"
+    },
+    "src-posture-protocol": {
+      "id": "src-posture-protocol",
+      "title": "儿童体态评估四视角拍摄流程",
+      "owner": "BOKS 内容团队",
+      "fetch_url": null,
+      "content_hash": "13fb2c83ba0249a89a82dffed70ae0635da1eecdd982f6bd53a4bb23bb573287",
+      "created_at": "2026-08-02T10:39:33.968Z"
+    },
+    "src-privacy-control": {
+      "id": "src-privacy-control",
+      "title": "BOKS 数据与隐私控制",
+      "owner": "BOKS 内容团队",
+      "fetch_url": null,
+      "content_hash": "f17cf5e8afd7e162b99c8bc0d918a658065c9594a261829447aa29fcb5e6a95e",
+      "created_at": "2026-08-02T10:39:33.968Z"
+    }
+  },
+  "knowledgeVersions": {
+    "a102c74d-f794-4c38-9c22-a2ae2b9acc96": {
+      "id": "a102c74d-f794-4c38-9c22-a2ae2b9acc96",
+      "source_id": "src-national-2014-standard",
+      "version": "2014修订",
+      "title": "《国家学生体质健康标准（2014年修订）》项目与评分说明",
+      "content": "《国家学生体质健康标准（2014年修订）》规定小学至大学体质测试项目：小学一、二年级测体重指数（BMI）、肺活量、50米跑、坐位体前屈、1分钟跳绳；三、四年级增加1分钟仰卧起坐；五、六年级增加50米×8往返跑；初中及以上增加立定跳远、引体向上（男）/1分钟仰卧起坐（女）、1000米（男）/800米（女）跑。总评分为100分制，附加分另计；学生按年级对应评分表计分，缺测项目按0分处理。BOKS 平台按此标准内置评分表，用于儿童体测成绩计算与报告生成。",
+      "content_hash": "864a86154885c26b02d458f833f326a466c857b0d5e8eaa3e21e1087cd78b089",
+      "status": "published",
+      "reviewers": [
+        "reviewer-one",
+        "reviewer-two"
+      ],
+      "published_at": "2026-08-02T10:39:33.968Z",
+      "created_at": "2026-08-02T10:39:33.968Z"
+    },
+    "65bdb1b2-33b4-4835-9508-af7eb72f1541": {
+      "id": "65bdb1b2-33b4-4835-9508-af7eb72f1541",
+      "source_id": "src-training-safety",
+      "version": "1.0",
+      "title": "儿童体测训练安全与停止条件",
+      "content": "儿童参与体测或体能训练前应确认身体健康状况，存在急性伤病、发热或医嘱静养时应暂停训练。训练中出现胸痛、头晕、恶心、面色苍白、关节疼痛或麻木等症状，应立即停止并休息，必要时就医。训练强度应循序渐进，训练前后做好热身与放松，保证充足睡眠与水分。BOKS 生成的训练计划仅作健康教育参考，不替代医疗诊断，涉及疼痛、麻木等不适请停止训练并咨询专业人员。",
+      "content_hash": "51a55e6e029fd5ca9236d51fc17ef13062f21e1fe556aa79e41f4c97246ea210",
+      "status": "published",
+      "reviewers": [
+        "reviewer-one",
+        "reviewer-two"
+      ],
+      "published_at": "2026-08-02T10:39:33.968Z",
+      "created_at": "2026-08-02T10:39:33.968Z"
+    },
+    "31b4b1a8-0502-4578-8ad9-bc988a1337ca": {
+      "id": "31b4b1a8-0502-4578-8ad9-bc988a1337ca",
+      "source_id": "src-posture-protocol",
+      "version": "1.0",
+      "title": "儿童体态评估四视角拍摄流程",
+      "content": "BOKS 体态评估需要拍摄儿童正面、背面、左侧、右侧四个视角的站立全身照片。拍摄要求：儿童自然站立，双脚与肩同宽，双臂自然下垂，穿贴身浅色衣物，背景简洁光线均匀，相机与儿童视线高度一致，取景包含全身。照片仅用于体态对称性等健康教育分析，不用于医疗诊断，不能据此判断 Cobb 角。照片上传后仅监护人可查看，存储受隐私保护控制。",
+      "content_hash": "13fb2c83ba0249a89a82dffed70ae0635da1eecdd982f6bd53a4bb23bb573287",
+      "status": "published",
+      "reviewers": [
+        "reviewer-one",
+        "reviewer-two"
+      ],
+      "published_at": "2026-08-02T10:39:33.968Z",
+      "created_at": "2026-08-02T10:39:33.968Z"
+    },
+    "2a723fe9-dbff-4847-b6ac-33ff3fe70ec2": {
+      "id": "2a723fe9-dbff-4847-b6ac-33ff3fe70ec2",
+      "source_id": "src-privacy-control",
+      "version": "1.0",
+      "title": "BOKS 数据与隐私控制",
+      "content": "BOKS 平台遵循最小必要原则收集儿童体测与体态数据。所有体测记录、体态照片、训练计划仅对授权的监护人账户可见。监护人可随时申请删除儿童数据（含导出与删除请求），平台支持账号注销与数据删除。体态照片只用于健康教育分析，不上传给任何第三方用于商业用途。知情同意记录可追溯，涉及儿童隐私的操作均记录审计日志。",
+      "content_hash": "f17cf5e8afd7e162b99c8bc0d918a658065c9594a261829447aa29fcb5e6a95e",
+      "status": "published",
+      "reviewers": [
+        "reviewer-one",
+        "reviewer-two"
+      ],
+      "published_at": "2026-08-02T10:39:33.968Z",
+      "created_at": "2026-08-02T10:39:33.968Z"
+    }
+  },
+  "auditEvents": [],
+  "deletionRequests": [],
+  "configuration": {
+    "active_standard_id": "std-national-primary-2014-v1",
+    "algorithm_version": "national-2014-table-1.0",
+    "knowledge_snapshot_id": "knowledge-demo-pending-review-v0",
+    "standards": [
+      {
+        "id": "std-national-primary-2014-v1",
+        "name": "国家学生体质健康标准（2014年修订）",
+        "status": "approved",
+        "mode": "scored",
+        "indicators": [
+          {
+            "indicator_code": "height",
+            "label": "身高",
+            "unit": "厘米",
+            "input_type": "decimal",
+            "min_value": 80,
+            "max_value": 220,
+            "step": 0.1,
+            "required": true,
+            "help_text": "脱鞋、站直，视线平行。"
+          },
+          {
+            "indicator_code": "weight",
+            "label": "体重",
+            "unit": "千克",
+            "input_type": "decimal",
+            "min_value": 10,
+            "max_value": 160,
+            "step": 0.1,
+            "required": true,
+            "help_text": "穿轻薄衣物测量。"
+          },
+          {
+            "indicator_code": "lung_capacity",
+            "label": "肺活量",
+            "unit": "毫升",
+            "input_type": "integer",
+            "min_value": 300,
+            "max_value": 8000,
+            "step": 1,
+            "required": true,
+            "help_text": "深吸后全力一次呼气总量。"
+          },
+          {
+            "indicator_code": "run_50m",
+            "label": "50 米跑",
+            "unit": "秒",
+            "input_type": "decimal",
+            "min_value": 5,
+            "max_value": 30,
+            "step": 0.1,
+            "required": true,
+            "help_text": "记录最好一次成绩，数值越小越好。"
+          },
+          {
+            "indicator_code": "sit_reach",
+            "label": "坐位体前屈",
+            "unit": "厘米",
+            "input_type": "decimal",
+            "min_value": -30,
+            "max_value": 60,
+            "step": 0.1,
+            "required": true,
+            "help_text": "双腿伸直，缓慢前伸。"
+          },
+          {
+            "indicator_code": "rope_1min",
+            "label": "一分钟跳绳",
+            "unit": "次",
+            "input_type": "integer",
+            "min_value": 0,
+            "max_value": 400,
+            "step": 1,
+            "required": true,
+            "help_text": "连续一分钟内有效次数，超过 100 分标准可获附加分。"
+          },
+          {
+            "indicator_code": "sit_up",
+            "label": "一分钟仰卧起坐",
+            "unit": "次",
+            "input_type": "integer",
+            "min_value": 0,
+            "max_value": 120,
+            "step": 1,
+            "required": true,
+            "help_text": "一分钟内完成的标准仰卧起坐次数。"
+          },
+          {
+            "indicator_code": "shuttle_50x8",
+            "label": "50 米×8 往返跑",
+            "unit": "秒",
+            "input_type": "integer",
+            "min_value": 60,
+            "max_value": 300,
+            "step": 1,
+            "required": true,
+            "help_text": "往返跑总用时（秒），数值越小越好。"
+          }
+        ],
+        "rules": [
+          {
+            "indicator_code": "run_50m",
+            "score_type": "lower_is_better",
+            "baseline": 12.5,
+            "points_per_unit": 13.3333,
+            "weight": 0.35
+          },
+          {
+            "indicator_code": "sit_reach",
+            "score_type": "higher_is_better",
+            "baseline": 5,
+            "points_per_unit": 2.6667,
+            "weight": 0.25
+          },
+          {
+            "indicator_code": "rope_1min",
+            "score_type": "higher_is_better",
+            "baseline": 50,
+            "points_per_unit": 0.8,
+            "weight": 0.4
+          }
+        ],
+        "source_references": [
+          {
+            "title": "国家学生体质健康标准（2014年修订）",
+            "official_url": "https://www.gov.cn/gongbao/content/2014/content_2781929.htm"
+          }
+        ],
+        "reviewers": []
+      },
+      {
+        "id": "ref-demo-preschool-development-v0",
+        "name": "幼儿体能发展目标参考·开发夹具",
+        "status": "demo_pending_review",
+        "mode": "reference_only",
+        "indicators": [
+          {
+            "indicator_code": "balance_single_leg",
+            "label": "单脚站立",
+            "unit": "秒",
+            "input_type": "decimal",
+            "min_value": 0,
+            "max_value": 120,
+            "step": 0.1,
+            "required": true,
+            "help_text": "记录最长稳定时间。"
+          },
+          {
+            "indicator_code": "jump_forward",
+            "label": "立定跳远",
+            "unit": "厘米",
+            "input_type": "decimal",
+            "min_value": 0,
+            "max_value": 300,
+            "step": 0.1,
+            "required": true,
+            "help_text": "记录脚后跟最近落点。"
+          }
+        ],
+        "rules": [],
+        "source_references": [
+          {
+            "title": "国家学生体质健康标准（2014年修订）",
+            "official_url": "https://www.gov.cn/gongbao/content/2014/content_2781929.htm"
+          }
+        ],
+        "reviewers": []
+      }
+    ],
+    "candidates": [],
+    "history": []
+  },
+  "metadata": {
+    "seeded": true,
+    "seeded_at": "2026-08-02T10:39:33.965Z"
+  }
+}

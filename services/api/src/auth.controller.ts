@@ -194,7 +194,7 @@ export class AuthController {
       });
     const input = parseInput(devLoginRequestSchema, body ?? {});
     return success(
-      createSession(input.guardian_id),
+      createSession(input.guardian_id, input.family_id),
       request.headers["x-trace-id"] as string | undefined,
     );
   }

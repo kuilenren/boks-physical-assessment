@@ -1,3 +1,4 @@
+"""Legacy 同步端点（保留，向后兼容）；新版本请使用 streaming.server"""
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
@@ -6,7 +7,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 
 from .audit import append_audit
-from .llm import LlmUnavailableError, complete
+from .llm_router import LlmUnavailableError, stream, LlmRequest, LlmMessage, TASK_DEFAULTS
 from .models import (
     AuditEvent,
     ChatRequest,
@@ -21,7 +22,7 @@ from .safety import classify, refusal_content
 
 load_dotenv(Path(__file__).resolve().parents[4] / ".env")
 
-app = FastAPI(title="BOKS AI Service", version="0.1.0")
+app = FastAPI(title="BOKS AI Service", version="0.2.0")
 
 SYSTEM_PROMPT = (
     "你是 BOKS 儿童体测与体态健康教育的智能助手。你只能根据提供的已发布知识文档回答，"
@@ -88,7 +89,7 @@ def classify_request(request: ClassifyRequest) -> IntentDecision:
 
 
 @app.post("/v1/chat")
-def chat(request: ChatRequest) -> ChatResponse:
+async def chat(request: ChatRequest) -> ChatResponse:
     decision = classify(request.content)
     event_id = str(uuid.uuid4())
     if decision.intercept:
@@ -101,11 +102,24 @@ def chat(request: ChatRequest) -> ChatResponse:
                 f"[{document.title} v{document.version}] {document.content}"
                 for document, _ in hits
             )
-            answer = complete(
-                SYSTEM_PROMPT,
-                f"已发布资料：\n{context}\n\n问题：{request.content}",
+            messages = [
+                LlmMessage(role="system", content=SYSTEM_PROMPT),
+                LlmMessage(role="user", content=f"已发布资料：\n{context}\n\n问题：{request.content}"),
+            ]
+            llm_req = LlmRequest(
+                task="chat",
+                messages=messages,
+                temperature=TASK_DEFAULTS["chat"]["temperature"],
+                max_tokens=TASK_DEFAULTS["chat"]["max_tokens"],
             )
+            collected: list[str] = []
+            import httpx
+            async with httpx.AsyncClient() as client:
+                async for chunk in stream(llm_req, client=client):
+                    if chunk.delta:
+                        collected.append(chunk.delta)
             llm_used = True
+            answer = "".join(collected).strip() or "(empty)"
             response = ChatResponse(
                 content=answer,
                 citations=[
@@ -121,6 +135,7 @@ def chat(request: ChatRequest) -> ChatResponse:
             )
         except LlmUnavailableError:
             response = _template_response(request)
+            llm_used = False
     append_audit(
         AuditEvent(
             event_id=event_id,

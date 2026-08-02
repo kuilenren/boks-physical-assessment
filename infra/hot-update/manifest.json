@@ -1,0 +1,40 @@
+/**
+ * 热更新 manifest（生产由 CI 生成；本文件为开发默认）
+ * 客户端（小程序 / Flutter）启动时拉取，校验签名后下载差分包
+ */
+{
+  "schema_version": 1,
+  "min_native_version": "0.2.0",
+  "platforms": {
+    "miniprogram": {
+      "version": "0.2.0",
+      "url": "https://updates.boks.local/miniprogram-0.2.0.zip",
+      "sha256": "<release-sha>",
+      "mandatory": false
+    },
+    "mobile": {
+      "version": "0.2.0",
+      "url": "https://updates.boks.local/mobile-0.2.0.zip",
+      "sha256": "<release-sha>",
+      "mandatory": false
+    },
+    "admin": {
+      "version": "0.1.0",
+      "url": "https://updates.boks.local/admin-0.1.0.zip",
+      "sha256": "<release-sha>",
+      "mandatory": false
+    }
+  },
+  "rollback": {
+    "enabled": true,
+    "previous_version": "0.1.0",
+    "url": "https://updates.boks.local/rollback-0.1.0.zip"
+  },
+  "ab_test": {
+    "buckets": {
+      "0.2.0-a": 50,
+      "0.2.0-b": 50
+    }
+  },
+  "ttl_seconds": 300
+}

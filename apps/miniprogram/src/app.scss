@@ -1,9 +1,9 @@
-﻿@use "./styles/tokens.scss" as *;
+@use "./styles/tokens.scss" as *;
 
 page {
   background:
-    radial-gradient(circle at top right, rgba(169, 226, 141, 0.18), transparent 28%),
-    linear-gradient(180deg, #f5faf3 0%, $color-canvas 42%, #eaf4e8 100%);
+    radial-gradient(circle at top right, $alpha-tint-brand-light, transparent 28%),
+    linear-gradient(180deg, $color-surface-canvas 0%, $color-canvas 42%, $color-surface-soft 100%);
   color: $color-ink-900;
   font-family: "PingFang SC", "SF Pro Text", "Microsoft YaHei", sans-serif;
   font-size: $font-body;
@@ -106,7 +106,7 @@ button:active {
 }
 
 .card {
-  background: rgba(255, 255, 255, 0.96);
+  background: $alpha-overlay-light;
   border: 1px solid $color-border-soft;
   border-radius: $radius-xl;
   box-shadow: $shadow-card;
@@ -126,7 +126,7 @@ button:active {
   align-items: center;
   background: linear-gradient(180deg, $color-forest-800 0%, $color-forest-900 100%);
   box-shadow: $shadow-button;
-  color: #ffffff;
+  color: $color-surface-white;
   display: flex;
   font-weight: 700;
   justify-content: center;
@@ -216,22 +216,22 @@ button:active {
 }
 
 .icon-badge-brand {
-  background: linear-gradient(180deg, #f3fbf1 0%, $color-brand-100 100%);
-  box-shadow: inset 0 0 0 1px rgba(46, 139, 87, 0.08);
+  background: linear-gradient(180deg, $color-surface-soft 0%, $color-brand-100 100%);
+  box-shadow: inset 0 0 0 1px $alpha-tint-brand;
 }
 
 .icon-badge-forest {
-  background: linear-gradient(180deg, #1a5743 0%, $color-forest-900 100%);
+  background: linear-gradient(180deg, $color-brand-800 0%, $color-forest-900 100%);
 }
 
 .icon-badge-sky {
-  background: linear-gradient(180deg, #f4fbfd 0%, $color-sky-100 100%);
-  box-shadow: inset 0 0 0 1px rgba(43, 111, 134, 0.08);
+  background: linear-gradient(180deg, $color-sky-50 0%, $color-sky-100 100%);
+  box-shadow: inset 0 0 0 1px $alpha-tint-sky;
 }
 
 .icon-badge-amber {
-  background: linear-gradient(180deg, #fffaf0 0%, $color-amber-100 100%);
-  box-shadow: inset 0 0 0 1px rgba(138, 90, 0, 0.08);
+  background: linear-gradient(180deg, $color-amber-50 0%, $color-amber-100 100%);
+  box-shadow: inset 0 0 0 1px $alpha-tint-amber;
 }
 
 .icon-badge-ink {
@@ -239,7 +239,7 @@ button:active {
 }
 
 .icon-badge-white {
-  background: rgba(255, 255, 255, 0.16);
+  background: $alpha-overlay-soft;
 }
 
 .icon-badge-danger {
@@ -254,7 +254,7 @@ button:active {
 }
 
 .entry-card {
-  background: rgba(255, 255, 255, 0.98);
+  background: $alpha-overlay-light;
   border: 1px solid $color-border-soft;
   border-radius: $radius-xl;
   box-shadow: $shadow-sm;
@@ -269,14 +269,14 @@ button:active {
 }
 
 .entry-card:active {
-  border-color: rgba(46, 139, 87, 0.35);
+  border-color: $alpha-tint-brand-strong;
   box-shadow: $shadow-card;
   transform: translateY(1px);
 }
 
 .entry-card-posture {
-  background: linear-gradient(180deg, #f8fcfd 0%, $color-sky-50 100%);
-  border-color: rgba(43, 111, 134, 0.12);
+  background: linear-gradient(180deg, $color-sky-50 0%, $color-sky-50 100%);
+  border-color: $alpha-tint-sky;
 }
 
 .entry-title,
@@ -359,9 +359,9 @@ button:active {
 .field-input:focus,
 .picker-field:focus,
 .metric-input:focus {
-  background: #ffffff;
-  border-color: rgba(46, 139, 87, 0.55);
-  box-shadow: 0 0 0 4px rgba(46, 139, 87, 0.12);
+  background: $color-surface-white;
+  border-color: $alpha-tint-brand-xstrong;
+  box-shadow: 0 0 0 4px $alpha-tint-brand-soft;
 }
 
 .picker-field {
@@ -385,7 +385,7 @@ button:active {
 .list-row,
 .result-row,
 .training-row {
-  border-bottom: 1px solid rgba(215, 230, 219, 0.9);
+  border-bottom: 1px solid $alpha-border-soft;
   gap: $space-3;
   padding: $space-4 0;
 }
@@ -417,10 +417,10 @@ button:active {
 }
 
 .score-card {
-  background: linear-gradient(145deg, $color-forest-900 0%, #1b6b49 58%, $color-brand-600 100%);
+  background: linear-gradient(145deg, $color-forest-900 0%, $color-brand-700 58%, $color-brand-600 100%);
   border-radius: $radius-xl;
   box-shadow: $shadow-hero;
-  color: #ffffff;
+  color: $color-surface-white;
   margin-bottom: $space-4;
   overflow: hidden;
   padding: $space-6 $space-5;
@@ -429,7 +429,7 @@ button:active {
 }
 
 .score-card::after {
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.18), transparent 65%);
+  background: radial-gradient(circle, $alpha-overlay-mid, transparent 65%);
   content: "";
   height: 140px;
   position: absolute;
@@ -513,16 +513,16 @@ button:active {
 
 .consent-checked {
   background: $color-brand-50;
-  border-color: rgba(46, 139, 87, 0.35);
+  border-color: $alpha-tint-brand-strong;
   color: $color-brand-700;
 }
 
 .capture-frame {
   align-items: center;
   background:
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.9), transparent 62%),
-    linear-gradient(180deg, #f8fcfd 0%, $color-sky-100 100%);
-  border: 1px solid rgba(43, 111, 134, 0.14);
+    radial-gradient(circle at center, $alpha-overlay-light, transparent 62%),
+    linear-gradient(180deg, $color-sky-50 0%, $color-sky-100 100%);
+  border: 1px solid $alpha-tint-sky;
   border-radius: $radius-xl;
   box-shadow: $shadow-sm;
   display: flex;
@@ -535,7 +535,7 @@ button:active {
 }
 
 .capture-outline {
-  border: 2px dashed rgba(43, 111, 134, 0.35);
+  border: 2px dashed $alpha-tint-sky-strong;
   border-radius: 48% 48% 28% 28%;
   color: $color-sky-600;
   display: block;
@@ -553,7 +553,7 @@ button:active {
 }
 
 .view-dot {
-  background: rgba(255, 255, 255, 0.92);
+  background: $alpha-overlay-light;
   border: 1px solid $color-border;
   border-radius: $radius-pill;
   color: $color-ink-600;
@@ -570,7 +570,7 @@ button:active {
 
 .view-dot-done {
   background: $color-brand-100;
-  border-color: rgba(46, 139, 87, 0.28);
+  border-color: $alpha-border-input;
   color: $color-brand-700;
 }
 
@@ -590,13 +590,13 @@ button:active {
 }
 
 .chat-user {
-  background: linear-gradient(180deg, #eef8ec 0%, $color-brand-100 100%);
+  background: linear-gradient(180deg, $color-brand-100 0%, $color-brand-100 100%);
   border-bottom-right-radius: 8px;
   margin-left: 18%;
 }
 
 .chat-assistant {
-  background: rgba(255, 255, 255, 0.96);
+  background: $alpha-overlay-light;
   border: 1px solid $color-border-soft;
   border-bottom-left-radius: 8px;
   margin-right: 10%;
@@ -624,11 +624,11 @@ button:active {
 
 .home-hero {
   background:
-    radial-gradient(circle at 88% 12%, rgba(164, 223, 154, 0.28), transparent 28%),
-    linear-gradient(145deg, $color-forest-950 0%, $color-forest-900 48%, #1b6848 100%);
+    radial-gradient(circle at 88% 12%, $alpha-tint-brand-light, transparent 28%),
+    linear-gradient(145deg, $color-forest-950 0%, $color-forest-900 48%, $color-brand-700 100%);
   border-radius: $radius-xl;
   box-shadow: $shadow-hero;
-  color: #ffffff;
+  color: $color-surface-white;
   margin-bottom: $space-5;
   overflow: hidden;
   padding: $space-5;
@@ -636,7 +636,7 @@ button:active {
 }
 
 .home-hero::before {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 45%);
+  background: linear-gradient(135deg, $alpha-overlay-soft, transparent 45%);
   content: "";
   inset: 0;
   position: absolute;
@@ -662,7 +662,7 @@ button:active {
   align-items: center;
   background: linear-gradient(180deg, $color-brand-300 0%, $color-brand-500 100%);
   border-radius: 16px;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 18px $alpha-scrim-mid;
   color: $color-forest-950;
   display: flex;
   font-size: 20px;
@@ -673,7 +673,7 @@ button:active {
 }
 
 .hero-eyebrow {
-  color: rgba(232, 246, 230, 0.82);
+  color: $alpha-text-on-primary;
   display: block;
   font-size: 11px;
   font-weight: 700;
@@ -681,7 +681,7 @@ button:active {
 }
 
 .hero-title {
-  color: #ffffff;
+  color: $color-surface-white;
   display: block;
   font-size: 16px;
   font-weight: 760;
@@ -702,9 +702,9 @@ button:active {
 }
 
 .privacy-status-safe {
-  background: rgba(255, 255, 255, 0.14);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
-  color: #ffffff;
+  background: $alpha-overlay-soft;
+  box-shadow: inset 0 0 0 1px $alpha-overlay-soft;
+  color: $color-surface-white;
 }
 
 .privacy-status-pending {
@@ -713,7 +713,7 @@ button:active {
 }
 
 .home-profile {
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 1px solid $alpha-overlay-soft;
   margin-top: $space-5;
   padding-top: $space-4;
   position: relative;
@@ -721,7 +721,7 @@ button:active {
 }
 
 .hero-child-name {
-  color: #ffffff;
+  color: $color-surface-white;
   display: block;
   font-size: 28px;
   font-weight: 800;
@@ -730,7 +730,7 @@ button:active {
 }
 
 .hero-child-meta {
-  color: rgba(232, 246, 230, 0.84);
+  color: $alpha-text-on-primary-2;
   display: block;
   font-size: $font-caption;
   margin-top: $space-1;
@@ -741,19 +741,19 @@ button:active {
 }
 
 .home-child-picker .field-label {
-  color: rgba(232, 246, 230, 0.78);
+  color: $alpha-text-on-primary-3;
   font-size: 11px;
   margin: 0 0 $space-1;
 }
 
 .home-child-picker .picker-field {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
+  background: $alpha-overlay-soft;
+  border-color: $alpha-overlay-mid;
+  color: $color-surface-white;
 }
 
 .insight-card {
-  background: rgba(255, 255, 255, 0.98);
+  background: $alpha-overlay-light;
   border: 1px solid $color-border-soft;
   border-radius: $radius-xl;
   box-shadow: $shadow-card;
@@ -826,7 +826,7 @@ button:active {
 
 .insight-breakdown {
   background: $color-brand-50;
-  border: 1px solid rgba(215, 230, 219, 0.9);
+  border: 1px solid $alpha-border-soft;
   border-radius: $radius-md;
   display: flex;
   gap: $space-3;
@@ -882,7 +882,7 @@ button:active {
 }
 
 .next-action {
-  background: rgba(255, 255, 255, 0.98);
+  background: $alpha-overlay-light;
   border: 1px solid $color-border-soft;
   border-radius: $radius-md;
   box-shadow: $shadow-sm;
@@ -894,7 +894,7 @@ button:active {
 }
 
 .next-action:active {
-  border-color: rgba(46, 139, 87, 0.35);
+  border-color: $alpha-tint-brand-strong;
   transform: translateY(1px);
 }
 
@@ -930,7 +930,7 @@ button:active {
 
 .empty-insight {
   background: $color-surface-soft;
-  border: 1px dashed rgba(46, 139, 87, 0.22);
+  border: 1px dashed $alpha-tint-brand-mid;
   border-radius: $radius-md;
   color: $color-ink-600;
   display: block;
@@ -941,7 +941,7 @@ button:active {
 }
 
 .home-training {
-  background: rgba(255, 255, 255, 0.98);
+  background: $alpha-overlay-light;
   border: 1px solid $color-border-soft;
   border-radius: $radius-xl;
   box-shadow: $shadow-card;
@@ -1032,7 +1032,7 @@ button:active {
   background: $color-forest-900;
   border-radius: 14px;
   box-shadow: $shadow-xs;
-  color: #ffffff;
+  color: $color-surface-white;
   flex-shrink: 0;
   font-size: $font-caption;
   font-weight: 760;
@@ -1042,7 +1042,7 @@ button:active {
 .home-safety {
   align-items: flex-start;
   background: $color-amber-50;
-  border: 1px solid rgba(240, 216, 157, 0.9);
+  border: 1px solid $alpha-tint-amber-soft;
   border-radius: $radius-md;
   box-shadow: $shadow-xs;
   color: $color-amber-700;

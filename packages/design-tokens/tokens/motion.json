@@ -1,0 +1,30 @@
+{
+  "font": {
+    "display": { "value": "28px" },
+    "title":   { "value": "22px" },
+    "section": { "value": "17px" },
+    "body":    { "value": "15px" },
+    "meta":    { "value": "13px" },
+    "caption": { "value": "12px" }
+  },
+  "duration": {
+    "instant":   { "value": "80ms" },
+    "fast":      { "value": "160ms" },
+    "base":      { "value": "240ms" },
+    "slow":      { "value": "360ms" },
+    "deliberate":{ "value": "480ms" }
+  },
+  "easing": {
+    "out":    { "value": "cubic-bezier(0.22, 1, 0.36, 1)" },
+    "in":     { "value": "cubic-bezier(0.64, 0, 0.78, 0)" },
+    "in-out": { "value": "cubic-bezier(0.83, 0, 0.17, 1)" },
+    "spring": { "value": "cubic-bezier(0.34, 1.56, 0.64, 1)" }
+  },
+  "zIndex": {
+    "base":   { "value": 1 },
+    "sticky": { "value": 100 },
+    "modal":  { "value": 1000 },
+    "toast":  { "value": 1100 },
+    "tooltip":{ "value": 1200 }
+  }
+}

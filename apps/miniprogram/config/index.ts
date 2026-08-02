@@ -17,6 +17,12 @@ const config: UserConfigExport = {
     "@tarojs/plugin-platform-weapp",
     "@tarojs/plugin-platform-h5",
   ],
+  copy: {
+    patterns: [
+      { from: "src/assets/icons/", to: "assets/icons/" },
+      { from: "src/assets/tab/", to: "assets/tab/" },
+    ],
+  },
   mini: {
     postcss: {
       pxtransform: {

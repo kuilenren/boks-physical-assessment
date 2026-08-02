@@ -451,6 +451,7 @@ export type SetAccountStatusRequest = z.infer<
 >;
 export const devLoginRequestSchema = z.object({
   guardian_id: z.string().min(1).default("guardian-demo-001"),
+  family_id: z.string().min(1).optional(),
 });
 export type DevLoginRequest = z.infer<typeof devLoginRequestSchema>;
 export const refreshSessionRequestSchema = z.object({

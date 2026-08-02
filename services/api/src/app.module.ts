@@ -8,6 +8,7 @@ import { AuthController } from "./auth.controller.js";
 import { ConfigurationController } from "./configuration.controller.js";
 import { ChatController } from "./chat.controller.js";
 import { KnowledgeController } from "./knowledge.controller.js";
+import { StreamController } from "./stream.controller.js";
 
 @Module({
   controllers: [
@@ -20,6 +21,7 @@ import { KnowledgeController } from "./knowledge.controller.js";
     ConfigurationController,
     ChatController,
     KnowledgeController,
+    StreamController,
   ],
 })
 export class AppModule {}
