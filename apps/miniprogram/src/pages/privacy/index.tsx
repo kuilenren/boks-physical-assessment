@@ -1,5 +1,10 @@
 import { Button, Text, View } from "@tarojs/components";
-import Taro, { useLoad } from "@tarojs/taro";
+import {
+  setClipboardData,
+  showModal,
+  showToast,
+  useLoad,
+} from "@tarojs/taro";
 import { useState } from "react";
 import type { ChildProfile } from "../../models";
 import {
@@ -24,15 +29,15 @@ export default function PrivacyPage() {
   const exportData = async () => {
     try {
       const result = await exportFamily();
-      await Taro.setClipboardData({ data: JSON.stringify(result, null, 2) });
-      void Taro.showToast({ title: "数据已复制，可保存备份", icon: "success" });
+      await setClipboardData({ data: JSON.stringify(result, null, 2) });
+      void showToast({ title: "数据已复制，可保存备份", icon: "success" });
     } catch (error) {
       showError(error, "数据导出失败。");
     }
   };
 
   const requestDeletion = async (child: ChildProfile) => {
-    const confirmation = await Taro.showModal({
+    const confirmation = await showModal({
       title: "申请删除儿童数据",
       content: `将为${child.display_name}提交删除申请，报告、训练和体态任务会进入清理流程。`,
       confirmText: "提交申请",
@@ -40,7 +45,7 @@ export default function PrivacyPage() {
     if (!confirmation.confirm) return;
     try {
       await requestChildDeletion(child.child_id);
-      void Taro.showToast({ title: "删除申请已提交", icon: "success" });
+      void showToast({ title: "删除申请已提交", icon: "success" });
     } catch (error) {
       showError(error, "删除申请提交失败。");
     }
@@ -56,8 +61,11 @@ export default function PrivacyPage() {
 
   return (
     <View className="page">
-      <Text className="page-title">隐私与数据说明</Text>
-      <Text className="page-subtitle">BOKS 自有学生和家长专用</Text>
+      <View className="page-header">
+        <Text className="page-kicker">PRIVACY & CONTROL</Text>
+        <Text className="page-title">隐私与数据说明</Text>
+        <Text className="page-subtitle">BOKS 自有学生和家长专用</Text>
+      </View>
       <View className="card">
         <Text className="section-title">我们收集什么</Text>
         <Text className="muted">

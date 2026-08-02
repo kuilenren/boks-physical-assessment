@@ -21,6 +21,10 @@ import {
 import { success } from "./http.js";
 import { parseInput } from "./validation.js";
 import { adminReviewer, resourceNotFound } from "./auth.js";
+import {
+  contentHash,
+  syncAllKnowledgeSources,
+} from "./knowledge-sync.js";
 @Controller("knowledge")
 export class KnowledgeController {
   @Get() async list(@Req() request: Request) {
@@ -47,6 +51,7 @@ export class KnowledgeController {
     const item = {
       id: randomUUID(),
       ...input,
+      content_hash: null,
       created_at: new Date().toISOString(),
     };
     await updatePlatformStore((platform) => {
@@ -59,6 +64,12 @@ export class KnowledgeController {
       });
     });
     return success(item);
+  }
+  @Post("sync")
+  async sync(@Req() request: Request) {
+    adminReviewer(request);
+    const results = await syncAllKnowledgeSources();
+    return success(results);
   }
   @Post("versions") async version(
     @Body() body: unknown,
@@ -73,9 +84,11 @@ export class KnowledgeController {
       item = {
         id: randomUUID(),
         ...input,
+        content_hash: contentHash(input.content),
         status: "candidate" as const,
         reviewers: [actor],
         published_at: null,
+        created_at: new Date().toISOString(),
       };
       platform.knowledgeVersions[item.id] = item;
     });

@@ -1,9 +1,9 @@
 {
-  "description": "BOKS 儿童体测与体态观察小程序",
+  "description": "BOKS智能体测体态分析",
   "compileType": "miniprogram",
   "libVersion": "3.8.0",
   "appid": "touristappid",
-  "projectname": "boks-miniprogram",
+  "projectname": "BOKS智能体测体态分析",
   "miniprogramRoot": "./dist",
   "setting": {
     "urlCheck": false,

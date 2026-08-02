@@ -30,6 +30,7 @@ import {
 } from "./auth.js";
 import { parseInput } from "./validation.js";
 import { deletePostureAsset } from "./asset-storage.js";
+import { buildFamilyNextActions } from "./learning-loop.js";
 
 @Controller()
 export class FamilyController {
@@ -320,6 +321,45 @@ export class FamilyController {
           proof_hash: proofHash,
         },
       },
+      traceId,
+    );
+  }
+
+  @Get("families/me/next-actions")
+  async nextActions(
+    @Req() request: Request,
+    @Headers("x-trace-id") traceId?: string,
+  ) {
+    const context = guardianContext(request);
+    const family = await loadFamilyStore(context.family_id);
+    const children = family.children.filter(
+      (child) =>
+        child.family_id === context.family_id &&
+        child.profile_status === "active",
+    );
+    const actions = buildFamilyNextActions(
+      children.map((child) => ({
+        child,
+        reports: Object.values(family.reports).filter(
+          (item) => item.child_id === child.id,
+        ),
+        plans: Object.values(family.trainingPlans).filter(
+          (item) => item.child_id === child.id,
+        ),
+        checkIns: Object.values(family.checkIns).filter(
+          (item) => item.child_id === child.id,
+        ),
+        consents: Object.values(family.consents).filter(
+          (item) =>
+            item.family_id === context.family_id && item.child_id === child.id,
+        ),
+        hasPostureReport: Object.values(family.postureReports).some(
+          (item) => item.child_id === child.id,
+        ),
+      })),
+    );
+    return success(
+      { generated_at: new Date().toISOString(), actions },
       traceId,
     );
   }

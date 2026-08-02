@@ -10,11 +10,17 @@ import {
 import type { Request } from "express";
 import { randomUUID } from "node:crypto";
 import { chatRequestSchema } from "@boks/contracts";
+import { requestAiChat, type AiKnowledgeDocument } from "./ai-client.js";
 import {
   guardianContext,
   resourceForbidden,
   resourceNotFound,
 } from "./auth.js";
+import {
+  classifySafety,
+  refusalContent,
+  toChatCitations,
+} from "./chat-safety.js";
 import {
   loadFamilyStore,
   updateFamilyStore,
@@ -23,11 +29,24 @@ import {
 import { success } from "./http.js";
 import { parseInput } from "./validation.js";
 
-const safetyPattern = /疼痛|麻木|无力|夜间疼痛|呼吸困难|急症|诊断|Cobb|cobb角/i;
-function citations(family: Awaited<ReturnType<typeof loadFamilyStore>>) {
-  const published = Object.values(family.knowledgeVersions).filter(
-    (item) => item.status === "published",
-  );
+function publishedKnowledge(
+  family: Awaited<ReturnType<typeof loadFamilyStore>>,
+): AiKnowledgeDocument[] {
+  return Object.values(family.knowledgeVersions)
+    .filter((item) => item.status === "published")
+    .slice(0, 48)
+    .map((item) => ({
+      source_id: item.source_id,
+      version: item.version,
+      title: item.title,
+      content: item.content,
+    }));
+}
+
+function citations(
+  family: Awaited<ReturnType<typeof loadFamilyStore>>,
+) {
+  const published = publishedKnowledge(family);
   return published.length > 0
     ? published.slice(0, 3).map((item) => ({
         source_id: item.source_id,
@@ -134,14 +153,31 @@ export class ChatController {
       citations: [],
       created_at: new Date().toISOString(),
     };
-    const content = safetyPattern.test(input.content)
-      ? "我不能根据文字或照片做诊断，也不能判断 Cobb 角。请立即停止训练；如有呼吸困难、急症或明显无力，请及时就医。其他持续疼痛、麻木或夜间疼痛，请联系专业人员人工评估。"
-      : "我可以介绍 BOKS 体测、训练、体态拍摄流程和隐私控制。这里的内容仅用于健康教育，不替代医疗诊断。请告诉我你想了解体测、训练、体态还是隐私。";
+    const decision = classifySafety(input.content);
+    let content: string;
+    let cited = citations(family);
+    if (decision.intercept) {
+      content = refusalContent(input.content);
+    } else {
+      const aiResult = await requestAiChat(
+        input.content,
+        publishedKnowledge(family),
+        family.children.find((item) => item.id === contextChildId)?.grade_code ??
+          null,
+      );
+      if (aiResult) {
+        content = aiResult.content;
+        if (aiResult.citations.length > 0) cited = aiResult.citations;
+      } else {
+        content =
+          "我可以介绍 BOKS 体测、训练、体态拍摄流程和隐私控制。这里的内容仅用于健康教育，不替代医疗诊断。请告诉我你想了解体测、训练、体态还是隐私。";
+      }
+    }
     const assistant = {
       id: randomUUID(),
       role: "assistant" as const,
       content,
-      citations: citations(family),
+      citations: toChatCitations(cited),
       created_at: new Date().toISOString(),
     };
     await updateFamilyStore(context.family_id, (next) => {

@@ -1,5 +1,11 @@
 import { Button, Text, View } from "@tarojs/components";
-import Taro, { useLoad } from "@tarojs/taro";
+import {
+  chooseImage,
+  redirectTo,
+  showModal,
+  showToast,
+  useLoad,
+} from "@tarojs/taro";
 import { useState } from "react";
 import type { PostureSession, PostureView } from "../../models";
 import {
@@ -27,7 +33,7 @@ export default function PostureCapturePage() {
   useLoad((params) => {
     const sessionId = params?.sessionId;
     if (!sessionId) {
-      void Taro.showToast({ title: "缺少体态任务编号", icon: "none" });
+      void showToast({ title: "缺少体态任务编号", icon: "none" });
       setLoading(false);
       return;
     }
@@ -49,7 +55,7 @@ export default function PostureCapturePage() {
     if (!session || !current) return;
     setCapturing(true);
     try {
-      const result = await Taro.chooseImage({
+      const result = await chooseImage({
         count: 1,
         sizeType: ["compressed"],
         sourceType: ["camera", "album"],
@@ -66,7 +72,7 @@ export default function PostureCapturePage() {
           !updated.views.find((view) => view.view === item.key)?.asset_id,
       );
       if (nextIndex >= 0) setCurrentIndex(nextIndex);
-      void Taro.showToast({
+      void showToast({
         title: result.tempFilePaths[0] ? "照片已上传" : "上传完成",
         icon: "success",
       });
@@ -84,7 +90,7 @@ export default function PostureCapturePage() {
       const updated = await submitPostureSession(session.session_id);
       setSession(updated);
       const reportId = updated.analysis?.report_id;
-      void Taro.showModal({
+      void showModal({
         title: "已完成拍摄",
         content:
           updated.quality_status === "ready_for_review"
@@ -93,7 +99,7 @@ export default function PostureCapturePage() {
         showCancel: false,
       }).then(() => {
         if (reportId) {
-          void Taro.redirectTo({
+          void redirectTo({
             url: `/pages/posture/report?reportId=${reportId}`,
           });
         }

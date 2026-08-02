@@ -122,6 +122,8 @@ export type ReportListItem = Pick<
 >;
 
 export interface TrainingSession {
+  week: number;
+  day: number;
   day_label: string;
   focus: string;
   exercises: string[];
@@ -208,4 +210,14 @@ export interface ChatConversation {
   context_plan_id: string | null;
   messages: ChatMessage[];
   created_at: string;
+}
+
+export interface NextAction {
+  id: string;
+  child_id: string;
+  priority: number;
+  category: "consent" | "assessment" | "training" | "posture" | "consult";
+  title: string;
+  description: string;
+  reason: string;
 }

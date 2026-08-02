@@ -1,7 +1,11 @@
 import { Button, Text, View } from "@tarojs/components";
-import Taro, { useLoad } from "@tarojs/taro";
+import { showToast, useLoad } from "@tarojs/taro";
 import { useState } from "react";
-import type { ChildProfile, TrainingPlan } from "../../models";
+import type {
+  ChildProfile,
+  TrainingPlan,
+  TrainingProgress,
+} from "../../models";
 import { listChildren } from "../../services/family";
 import {
   checkInTraining,
@@ -12,13 +16,14 @@ import {
   resumeTraining,
 } from "../../services/training";
 import { ChildPicker } from "../../components/ChildPicker";
+import { IconBadge } from "../../components/Icon";
 import { ErrorState, LoadingState } from "../../components/PageState";
 import { showError } from "../../utils/error";
-import type { TrainingProgress } from "../../models";
 import {
   selectChild,
   setSelectedChildId,
 } from "../../services/child-selection";
+import { readTabParams } from "../../services/navigation";
 
 export default function TrainingDetailPage() {
   const [children, setChildren] = useState<ChildProfile[]>([]);
@@ -60,13 +65,16 @@ export default function TrainingDetailPage() {
   };
 
   useLoad((params) => {
-    setReportId(params?.reportId);
-    void load(params?.childId);
+    const tabParams = readTabParams()["/pages/training/detail"];
+    const childIdParam = params?.childId ?? tabParams?.childId;
+    const reportIdParam = params?.reportId ?? tabParams?.reportId;
+    setReportId(reportIdParam);
+    void load(childIdParam);
   });
 
   const generate = async () => {
     if (!childId) {
-      void Taro.showToast({ title: "请先添加儿童档案", icon: "none" });
+      void showToast({ title: "请先添加儿童档案", icon: "none" });
       return;
     }
     setGenerating(true);
@@ -83,6 +91,7 @@ export default function TrainingDetailPage() {
 
   const checkIn = async (day: number) => {
     if (!plan) return;
+    if (workingDay !== null) return;
     setWorkingDay(day);
     try {
       await checkInTraining(plan.plan_id, {
@@ -91,7 +100,7 @@ export default function TrainingDetailPage() {
         note: null,
       });
       setProgress(await getTrainingProgress(plan.plan_id));
-      void Taro.showToast({ title: "训练已打卡", icon: "success" });
+      void showToast({ title: "训练已打卡", icon: "success" });
     } catch (checkInError) {
       showError(checkInError, "训练打卡失败。");
     } finally {
@@ -136,11 +145,20 @@ export default function TrainingDetailPage() {
 
   return (
     <View className="page">
-      <Text className="page-title">训练计划</Text>
-      <Text className="page-subtitle">
-        按孩子当前表现生成家庭可执行的训练建议。
-      </Text>
+      <View className="page-header">
+        <Text className="page-kicker">FAMILY TRAINING</Text>
+        <Text className="page-title">训练计划</Text>
+        <Text className="page-subtitle">
+          按孩子当前表现生成家庭可执行的训练建议。
+        </Text>
+      </View>
       <View className="card">
+        <View className="child-row" style={{ marginBottom: "8px" }}>
+          <Text className="section-title" style={{ marginBottom: 0 }}>
+            计划设置
+          </Text>
+          <IconBadge name="training" tone="brand" size={36} />
+        </View>
         <ChildPicker
           children={children}
           value={childId}
@@ -187,27 +205,45 @@ export default function TrainingDetailPage() {
             </Button>
           </View>
           <View className="card">
-            <Text className="section-title">本周安排</Text>
-            {plan.weekly_schedule.map((session, index) => (
-              <View className="training-row" key={session.day_label}>
-                <View>
-                  <Text className="result-label">
-                    {session.day_label} · {session.focus}
+            <Text className="section-title">每周安排</Text>
+            {Array.from({ length: plan.duration_weeks }, (_, weekIndex) => {
+              const week = weekIndex + 1;
+              const sessions = plan.weekly_schedule.filter(
+                (session) => session.week === week,
+              );
+              return (
+                <View key={week}>
+                  <Text className="muted" style={{ margin: "12px 0 4px" }}>
+                    第 {week} 周
                   </Text>
-                  <Text className="muted">{session.exercises.join("、")}</Text>
+                  {sessions.map((session) => (
+                    <View
+                      className="training-row"
+                      key={`${session.week}-${session.day}`}
+                    >
+                      <View>
+                        <Text className="result-label">
+                          {session.day_label} · {session.focus}
+                        </Text>
+                        <Text className="muted">
+                          {session.exercises.join("、")}
+                        </Text>
+                      </View>
+                      <View>
+                        <Text className="unit">{session.minutes} 分钟</Text>
+                        <Button
+                          className="secondary-button"
+                          loading={workingDay === session.day}
+                          onClick={() => void checkIn(session.day)}
+                        >
+                          打卡
+                        </Button>
+                      </View>
+                    </View>
+                  ))}
                 </View>
-                <View>
-                  <Text className="unit">{session.minutes} 分钟</Text>
-                  <Button
-                    className="secondary-button"
-                    loading={workingDay === index + 1}
-                    onClick={() => void checkIn(index + 1)}
-                  >
-                    打卡
-                  </Button>
-                </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
           <View className="card">
             <Text className="section-title">安全提醒</Text>

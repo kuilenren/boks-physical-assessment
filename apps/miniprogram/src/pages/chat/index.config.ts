@@ -1,3 +1,3 @@
 export default definePageConfig({
-  navigationBarTitleText: "BOKS 专业咨询",
+  navigationBarTitleText: "专业咨询",
 });

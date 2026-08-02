@@ -7,6 +7,7 @@ import { RequestExceptionFilter } from "./request.filter.js";
 import type { Request, Response, NextFunction } from "express";
 import { initializeStore } from "./demo-store.js";
 import { isValidSessionToken } from "./auth.js";
+import { startKnowledgeSyncScheduler } from "./knowledge-sync.js";
 import {
   assertRuntimeConfig,
   isDevAuthEnabled,
@@ -16,6 +17,7 @@ import {
 async function bootstrap() {
   assertRuntimeConfig();
   await initializeStore();
+  startKnowledgeSyncScheduler();
   const app = await NestFactory.create(AppModule, { bodyParser: false });
   app.use(json({ limit: "12mb" }));
   app.setGlobalPrefix("v1");

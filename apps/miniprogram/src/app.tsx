@@ -1,12 +1,13 @@
 import { PropsWithChildren, useEffect } from "react";
-import Taro from "@tarojs/taro";
+import { onNeedPrivacyAuthorization, showModal } from "@tarojs/taro";
 import "./app.scss";
 
 function registerPrivacyPrompt() {
-  if (typeof Taro.onNeedPrivacyAuthorization !== "function") return;
-  Taro.onNeedPrivacyAuthorization((resolve) => {
+  if (process.env.TARO_ENV !== "weapp") return;
+  if (typeof onNeedPrivacyAuthorization !== "function") return;
+  onNeedPrivacyAuthorization((resolve) => {
     resolve({ event: "exposureAuthorization" });
-    void Taro.showModal({
+    void showModal({
       title: "需要监护人确认",
       content: "拍摄和上传照片前，需要先阅读并同意 BOKS 隐私说明。",
       confirmText: "同意并继续",

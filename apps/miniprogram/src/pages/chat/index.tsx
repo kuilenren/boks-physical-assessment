@@ -1,10 +1,11 @@
 import { Button, Text, Textarea, View } from "@tarojs/components";
-import Taro, { useLoad } from "@tarojs/taro";
+import { showToast, useLoad } from "@tarojs/taro";
 import { useState } from "react";
 import type { ChatMessage, ChildProfile } from "../../models";
 import { createConversation, sendMessage } from "../../services/chat";
 import { listChildren } from "../../services/family";
 import { ChildPicker } from "../../components/ChildPicker";
+import { IconBadge } from "../../components/Icon";
 import { LoadingState } from "../../components/PageState";
 import { showError } from "../../utils/error";
 import {
@@ -35,7 +36,7 @@ export default function ChatPage() {
   const send = async () => {
     const text = content.trim();
     if (!text || !conversationId) {
-      void Taro.showToast({ title: "请输入想咨询的内容", icon: "none" });
+      void showToast({ title: "请输入想咨询的内容", icon: "none" });
       return;
     }
     setSending(true);
@@ -73,14 +74,28 @@ export default function ChatPage() {
 
   return (
     <View className="page">
-      <Text className="page-title">专业咨询</Text>
-      <Text className="page-subtitle">
-        只回答 BOKS 体测、训练、体态观察和隐私流程；不提供诊断或处方。
-      </Text>
-      <View className="danger-note">
-        如有疼痛、麻木、无力、呼吸困难或其他急症，请停止训练并及时就医。
+      <View className="page-header">
+        <Text className="page-kicker">GUIDED CONSULTING</Text>
+        <Text className="page-title">专业咨询</Text>
+        <Text className="page-subtitle">
+          只回答 BOKS 体测、训练、体态观察和隐私流程；不提供诊断或处方。
+        </Text>
       </View>
+
+      <View className="danger-note">
+        <IconBadge name="alert" tone="danger" size={28} />
+        <Text>
+          如有疼痛、麻木、无力、呼吸困难或其他急症，请停止训练并及时就医。
+        </Text>
+      </View>
+
       <View className="card">
+        <View className="child-row" style={{ marginBottom: "8px" }}>
+          <Text className="section-title" style={{ marginBottom: 0 }}>
+            关联儿童
+          </Text>
+          <IconBadge name="chat" tone="sky" size={36} />
+        </View>
         <ChildPicker
           children={children}
           value={childId}
@@ -90,6 +105,7 @@ export default function ChatPage() {
           }}
         />
       </View>
+
       <View className="card chat-list">
         {messages.length === 0 ? (
           <Text className="muted">
@@ -110,6 +126,7 @@ export default function ChatPage() {
           </View>
         ))}
       </View>
+
       <Textarea
         className="chat-input"
         value={content}

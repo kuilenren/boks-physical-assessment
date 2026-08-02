@@ -26,8 +26,9 @@ void main() {
     await tester.pumpWidget(BoksApp(client: FakeBoksApiClient()));
     await tester.pumpAndSettle();
 
-    expect(find.text('你好，BOKS 家庭'), findsOneWidget);
-    expect(find.text('开始体测'), findsOneWidget);
-    expect(find.text('体态观察'), findsOneWidget);
+    expect(find.text('添加孩子档案'), findsOneWidget);
+    expect(find.text('国家标准体测'), findsOneWidget);
+    expect(find.text('四视角体态'), findsOneWidget);
+    expect(find.text('还没有体测记录'), findsOneWidget);
   });
 }

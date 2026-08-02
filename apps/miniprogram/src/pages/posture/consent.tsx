@@ -1,10 +1,11 @@
 import { Button, Checkbox, Text, View } from "@tarojs/components";
-import Taro, { useLoad } from "@tarojs/taro";
+import { navigateTo, redirectTo, showToast, useLoad } from "@tarojs/taro";
 import { useState } from "react";
 import type { ChildProfile } from "../../models";
 import { listChildren } from "../../services/family";
 import { createPostureSession } from "../../services/posture";
 import { ChildPicker } from "../../components/ChildPicker";
+import { IconBadge } from "../../components/Icon";
 import { LoadingState } from "../../components/PageState";
 import { showError } from "../../utils/error";
 import {
@@ -33,7 +34,7 @@ export default function PostureConsentPage() {
 
   const start = async () => {
     if (!childId || !checked) {
-      void Taro.showToast({
+      void showToast({
         title: "请选择孩子并完成监护人确认",
         icon: "none",
       });
@@ -42,7 +43,7 @@ export default function PostureConsentPage() {
     setStarting(true);
     try {
       const session = await createPostureSession(childId, CONSENT_VERSION);
-      void Taro.redirectTo({
+      void redirectTo({
         url: `/pages/posture/capture?sessionId=${session.session_id}`,
       });
     } catch (error) {
@@ -52,21 +53,36 @@ export default function PostureConsentPage() {
     }
   };
 
-  if (loading)
+  if (loading) {
     return (
       <View className="page">
         <LoadingState />
       </View>
     );
+  }
 
   return (
     <View className="page">
-      <Text className="page-title">体态观察</Text>
-      <Text className="page-subtitle">拍摄前请由监护人阅读并确认用途。</Text>
-      <View className="danger-note">
-        这是非诊断性的姿态观察流程，不替代医生、影像检查或医疗诊断。照片质量不足时不会生成风险结论。
+      <View className="page-header">
+        <Text className="page-kicker">POSTURE OBSERVATION</Text>
+        <Text className="page-title">体态观察</Text>
+        <Text className="page-subtitle">拍摄前请由监护人阅读并确认用途。</Text>
       </View>
+
+      <View className="danger-note">
+        <IconBadge name="alert" tone="danger" size={28} />
+        <Text>
+          这是非诊断性的姿态观察流程，不替代医生、影像检查或医疗诊断。照片质量不足时不会生成风险结论。
+        </Text>
+      </View>
+
       <View className="card">
+        <View className="child-row" style={{ marginBottom: "8px" }}>
+          <Text className="section-title" style={{ marginBottom: 0 }}>
+            选择儿童
+          </Text>
+          <IconBadge name="camera" tone="sky" size={36} />
+        </View>
         <ChildPicker
           children={children}
           value={childId}
@@ -76,6 +92,7 @@ export default function PostureConsentPage() {
           }}
         />
       </View>
+
       <View className="card">
         <Text className="section-title">拍摄和数据用途</Text>
         <Text className="muted">
@@ -85,6 +102,7 @@ export default function PostureConsentPage() {
           请让孩子穿着贴身但舒适的服装，在光线均匀、背景简单的位置完成正面、左侧、右侧、背面拍摄。
         </Text>
       </View>
+
       <View className={`consent-checkbox ${checked ? "consent-checked" : ""}`}>
         <Checkbox
           value="consent"
@@ -95,6 +113,7 @@ export default function PostureConsentPage() {
           我确认已阅读说明，并有权代表孩子作出本次授权。
         </Text>
       </View>
+
       <Button
         className="primary-button"
         loading={starting}
@@ -104,7 +123,7 @@ export default function PostureConsentPage() {
       </Button>
       <Text
         className="privacy-link"
-        onClick={() => void Taro.navigateTo({ url: "/pages/privacy/index" })}
+        onClick={() => void navigateTo({ url: "/pages/privacy/index" })}
       >
         查看完整隐私说明
       </Text>

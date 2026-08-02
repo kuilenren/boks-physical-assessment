@@ -13,7 +13,10 @@ const config: UserConfigExport = {
   outputRoot: "dist",
   framework: "react",
   compiler: "webpack5",
-  plugins: ["@tarojs/plugin-platform-weapp"],
+  plugins: [
+    "@tarojs/plugin-platform-weapp",
+    "@tarojs/plugin-platform-h5",
+  ],
   mini: {
     postcss: {
       pxtransform: {
@@ -25,6 +28,14 @@ const config: UserConfigExport = {
     },
   },
   h5: {},
+  defineConstants: {
+    "process.env.TARO_APP_API_BASE_URL": JSON.stringify(
+      process.env.TARO_APP_API_BASE_URL ?? "",
+    ),
+    "process.env.TARO_APP_API_TOKEN": JSON.stringify(
+      process.env.TARO_APP_API_TOKEN ?? "",
+    ),
+  },
 };
 
 export default defineConfig(config);

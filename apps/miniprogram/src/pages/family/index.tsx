@@ -1,9 +1,10 @@
 import { Button, Input, Picker, Text, View } from "@tarojs/components";
-import Taro, { useLoad } from "@tarojs/taro";
+import { showToast, useLoad } from "@tarojs/taro";
 import { useState } from "react";
 import type { ChildProfile } from "../../models";
 import { createChild, listChildren } from "../../services/family";
-import { ErrorState, LoadingState } from "../../components/PageState";
+import { EmptyState, ErrorState, LoadingState } from "../../components/PageState";
+import { IconBadge } from "../../components/Icon";
 import { formatDate } from "../../utils/format";
 import { showError } from "../../utils/error";
 
@@ -42,7 +43,7 @@ export default function FamilyPage() {
 
   const save = async () => {
     if (!name.trim() || !birthDate) {
-      void Taro.showToast({ title: "请完整填写姓名和出生日期", icon: "none" });
+      void showToast({ title: "请完整填写姓名和出生日期", icon: "none" });
       return;
     }
     setSaving(true);
@@ -56,7 +57,7 @@ export default function FamilyPage() {
       setBirthDate("");
       setSexIndex(0);
       await load();
-      void Taro.showToast({ title: "档案已保存", icon: "success" });
+      void showToast({ title: "档案已保存", icon: "success" });
     } catch (saveError) {
       showError(saveError, "档案保存失败。");
     } finally {
@@ -66,10 +67,13 @@ export default function FamilyPage() {
 
   return (
     <View className="page">
-      <Text className="page-title">儿童档案</Text>
-      <Text className="page-subtitle">
-        只为 BOKS 自有学生家庭服务，信息由监护人维护。
-      </Text>
+      <View className="page-header">
+        <Text className="page-kicker">FAMILY PROFILE</Text>
+        <Text className="page-title">儿童档案</Text>
+        <Text className="page-subtitle">
+          只为 BOKS 自有学生家庭服务，信息由监护人维护。
+        </Text>
+      </View>
 
       {loading ? <LoadingState /> : null}
       {error ? (
@@ -77,9 +81,17 @@ export default function FamilyPage() {
       ) : null}
       {!loading && !error ? (
         <View className="card">
-          <Text className="section-title">已有档案</Text>
+          <View className="child-row" style={{ marginBottom: "12px" }}>
+            <Text className="section-title" style={{ marginBottom: 0 }}>
+              已有档案
+            </Text>
+            <IconBadge name="family" tone="brand" size={36} />
+          </View>
           {children.length === 0 ? (
-            <Text className="muted">还没有儿童档案。</Text>
+            <EmptyState
+              title="还没有儿童档案"
+              message="先添加一位孩子，再开始体测、训练和体态观察。"
+            />
           ) : null}
           {children.map((child) => (
             <View className="list-row" key={child.child_id}>
@@ -98,7 +110,12 @@ export default function FamilyPage() {
       ) : null}
 
       <View className="card">
-        <Text className="section-title">添加儿童</Text>
+        <View className="child-row" style={{ marginBottom: "8px" }}>
+          <Text className="section-title" style={{ marginBottom: 0 }}>
+            添加儿童
+          </Text>
+          <IconBadge name="plus" tone="brand" size={36} />
+        </View>
         <Text className="field-label">称呼</Text>
         <Input
           className="field-input"
