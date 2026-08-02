@@ -82,16 +82,39 @@ export type GuardianSession = {
   refresh_token: string;
   guardian_id: string;
   family_id: string;
+  account_id?: string | null;
+  role?: string | null;
+  org_id?: string | null;
   created_at: string;
   expires_at: string;
   refresh_expires_at: string;
   revoked_at: string | null;
 };
+export type Account = {
+  id: string;
+  org_id: string | null;
+  role: "super_admin" | "staff" | "parent";
+  display_name: string;
+  username: string | null;
+  password_hash: string | null;
+  phone: string | null;
+  status: "active" | "disabled";
+  family_id: string | null;
+  created_by: string | null;
+  created_at: string;
+};
+export type Organization = {
+  id: string;
+  name: string;
+  status: "active" | "archived";
+  created_at: string;
+};
 export type IdentityBinding = {
-  provider: "wechat";
+  provider: "wechat" | "password" | "phone";
   subject: string;
   guardian_id: string;
   family_id: string;
+  account_id?: string | null;
   created_at: string;
 };
 export type Consent = {
@@ -219,6 +242,8 @@ export type AssessmentSession = {
 export type BoksStore = {
   family_id: string;
   families: Record<string, FamilyRecord>;
+  organizations: Record<string, Organization>;
+  accounts: Record<string, Account>;
   children: Child[];
   assessmentSessions: Record<string, AssessmentSession>;
   reports: Record<string, AssessmentReport>;
@@ -382,6 +407,8 @@ function emptyStore(): BoksStore {
         status: "active",
       },
     },
+    organizations: {},
+    accounts: {},
     children: [structuredClone(demoChild)],
     assessmentSessions: {},
     reports: {},
@@ -684,6 +711,7 @@ export async function updateFamilyStore(
 ): Promise<BoksStore> {
   if (!isPostgresStorage()) {
     updater(store);
+    syncCollections();
     await persistStore();
     return store;
   }
@@ -755,6 +783,27 @@ export function getChild(
       child.id === childId &&
       child.profile_status === "active" &&
       (familyId === undefined || child.family_id === familyId),
+  );
+}
+export function getAccount(accountId: string): Account | undefined {
+  return store.accounts[accountId];
+}
+export function getAccountByUsername(username: string): Account | undefined {
+  return Object.values(store.accounts).find(
+    (account) => account.username === username,
+  );
+}
+export function getAccountByPhone(phone: string): Account | undefined {
+  return Object.values(store.accounts).find(
+    (account) => account.phone === phone,
+  );
+}
+export function getOrganization(orgId: string): Organization | undefined {
+  return store.organizations[orgId];
+}
+export function hasSuperAdmin(): boolean {
+  return Object.values(store.accounts).some(
+    (account) => account.role === "super_admin" && account.status === "active",
   );
 }
 export function familyExists(familyId: string): boolean {
@@ -1075,8 +1124,12 @@ export function createAssessmentReport(
       .source_references,
     generated_at: iso(),
   };
-  if (target === store) reports.set(report.id, report);
-  else target.reports[report.id] = report;
+  if (target === store) {
+    reports.set(report.id, report);
+    store.reports[report.id] = report;
+  } else {
+    target.reports[report.id] = report;
+  }
   const session =
     target === store
       ? assessmentSessions.get(sessionId)
@@ -1146,7 +1199,7 @@ export function createTrainingPlan(
   };
   if (target === store) {
     trainingPlans.set(plan.id, plan);
-    void persistStore();
+    store.trainingPlans[plan.id] = plan;
   } else {
     target.trainingPlans[plan.id] = plan;
   }
@@ -1182,6 +1235,7 @@ export function createPostureSession(
   };
   if (target === store) {
     postureSessions.set(session.id, session);
+    store.postureSessions[session.id] = session;
     void persistStore();
   } else {
     target.postureSessions[session.id] = session;

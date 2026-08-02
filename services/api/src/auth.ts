@@ -1,7 +1,9 @@
 import {
   createHash,
   createHmac,
+  randomBytes,
   randomUUID,
+  scryptSync,
   timingSafeEqual,
 } from "node:crypto";
 import {
@@ -12,13 +14,20 @@ import {
 } from "@nestjs/common";
 import type { Request } from "express";
 import {
+  getAccount,
+  getAccountByPhone,
+  getAccountByUsername,
+  getOrganization,
   getChild,
+  hasSuperAdmin,
   loadFamilyStore,
   persistStore,
   store,
   familyExists,
+  type Account,
   type Consent,
   type GuardianSession,
+  type Organization,
 } from "./demo-store.js";
 import { isDevAuthEnabled } from "./runtime-config.js";
 import {
@@ -33,6 +42,9 @@ export type GuardianContext = {
   guardian_id: string;
   family_id: string;
   token: string | null;
+  account_id?: string | null;
+  role?: string | null;
+  org_id?: string | null;
 };
 
 type StableError = {
@@ -51,6 +63,65 @@ const persistedBindings = new Map<string, PersistedBinding>();
 
 function hashSecret(value: string): string {
   return createHash("sha256").update(value).digest("hex");
+}
+
+function hashPassword(password: string): string {
+  const salt = randomBytes(16).toString("hex");
+  const derived = scryptSync(password, salt, 64).toString("hex");
+  return `${salt}:${derived}`;
+}
+
+function verifyPassword(password: string, stored: string): boolean {
+  const [salt, expectedHex] = stored.split(":");
+  if (!salt || !expectedHex) return false;
+  const derived = scryptSync(password, salt, 64);
+  return constantTimeEqual(derived.toString("hex"), expectedHex);
+}
+
+function publicAccount(account: Account): {
+  id: string;
+  role: string;
+  org_id: string | null;
+  display_name: string;
+  username: string | null;
+  phone: string | null;
+  status: string;
+  family_id: string | null;
+  created_at: string;
+} {
+  return {
+    id: account.id,
+    role: account.role,
+    org_id: account.org_id,
+    display_name: account.display_name,
+    username: account.username,
+    phone: account.phone,
+    status: account.status,
+    family_id: account.family_id,
+    created_at: account.created_at,
+  };
+}
+
+function assertAccountActive(account: Account | undefined): Account {
+  if (!account)
+    throw new UnauthorizedException({
+      error: {
+        code: "ACCOUNT_NOT_FOUND",
+        message: "账号不存在或已被停用。",
+        details: [],
+        retryable: false,
+      },
+    });
+  if (account.status !== "active")
+    throw new UnauthorizedException({
+      error: {
+        code: "ACCOUNT_DISABLED",
+        message: "账号已被停用，请联系管理员。",
+        details: [],
+        retryable: false,
+      },
+    });
+  return account;
 }
 
 function headerValue(request: Request, name: string): string | undefined {
@@ -192,6 +263,9 @@ export function guardianContext(request: Request): GuardianContext {
       return {
         guardian_id: session.guardian_id,
         family_id: session.family_id,
+        account_id: session.account_id ?? null,
+        role: session.role ?? null,
+        org_id: session.org_id ?? null,
         token,
       };
     }
@@ -208,16 +282,72 @@ export function guardianContext(request: Request): GuardianContext {
     return {
       guardian_id: "guardian-demo-001",
       family_id: store.family_id,
+      account_id: null,
+      role: null,
+      org_id: null,
       token: null,
     };
   throw new UnauthorizedException({
     error: {
       code: "AUTH_REQUIRED",
-      message: "需要监护人登录。",
+      message: "需要登录。",
       details: [],
       retryable: false,
     },
   });
+}
+
+export function requireRole(
+  request: Request,
+  roles: Array<"super_admin" | "staff" | "parent">,
+): GuardianContext {
+  const context = guardianContext(request);
+  if (!context.role || !roles.includes(context.role as never))
+    throw new ForbiddenException({
+      error: {
+        code: "ROLE_REQUIRED",
+        message: `当前账号无权执行此操作，需要角色：${roles.join("、")}。`,
+        details: [],
+        retryable: false,
+      },
+    });
+  return context;
+}
+
+export function requireAccountContext(request: Request): GuardianContext {
+  const context = guardianContext(request);
+  if (context.account_id) {
+    const account = assertAccountActive(getAccount(context.account_id));
+    return { ...context, role: account.role, org_id: account.org_id };
+  }
+  if (isDevAuthEnabled()) return context;
+  throw new UnauthorizedException({
+    error: {
+      code: "ACCOUNT_REQUIRED",
+      message: "需要已开通的账号会话。",
+      details: [],
+      retryable: false,
+    },
+  });
+}
+
+export function accountContext(request: Request): GuardianContext {
+  const context = guardianContext(request);
+  if (!context.account_id)
+    throw new UnauthorizedException({
+      error: {
+        code: "ACCOUNT_REQUIRED",
+        message: "需要已开通的账号会话。",
+        details: [],
+        retryable: false,
+      },
+    });
+  const account = assertAccountActive(getAccount(context.account_id));
+  return {
+    ...context,
+    role: account.role,
+    org_id: account.org_id,
+  };
 }
 
 export function assertChildAccess(
@@ -312,6 +442,9 @@ export function requireConsentRecord(
 export function createSession(
   guardianId: string,
   familyId = store.family_id,
+  accountId?: string | null,
+  role?: string | null,
+  orgId?: string | null,
 ): GuardianSession {
   if (!familyExists(familyId))
     throw new ForbiddenException({
@@ -327,6 +460,9 @@ export function createSession(
     refresh_token: randomUUID(),
     guardian_id: guardianId,
     family_id: familyId,
+    account_id: accountId ?? null,
+    role: role ?? null,
+    org_id: orgId ?? null,
     created_at: new Date().toISOString(),
     expires_at: new Date(Date.now() + 7 * 86400000).toISOString(),
     refresh_expires_at: new Date(Date.now() + 30 * 86400000).toISOString(),
@@ -339,6 +475,194 @@ export function createSession(
     void persistStore();
   }
   return session;
+}
+
+function createAccountSession(account: Account): GuardianSession {
+  const familyId = account.family_id ?? store.family_id;
+  return createSession(
+    `account:${account.id}`,
+    familyId,
+    account.id,
+    account.role,
+    account.org_id,
+  );
+}
+
+export function bootstrapSuperAdmin(input: {
+  org_name: string;
+  display_name: string;
+  username: string;
+  password: string;
+}): { account: ReturnType<typeof publicAccount>; organization: Organization } {
+  if (hasSuperAdmin())
+    throw new ForbiddenException({
+      error: {
+        code: "SUPER_ADMIN_EXISTS",
+        message: "系统超级管理员已开通，请使用现有账号登录。",
+        details: [],
+        retryable: false,
+      },
+    });
+  if (getAccountByUsername(input.username))
+    throw new ForbiddenException({
+      error: {
+        code: "ACCOUNT_USERNAME_TAKEN",
+        message: "用户名已被占用。",
+        details: [],
+        retryable: false,
+      },
+    });
+  const organization: Organization = {
+    id: randomUUID(),
+    name: input.org_name.trim(),
+    status: "active",
+    created_at: new Date().toISOString(),
+  };
+  const account: Account = {
+    id: randomUUID(),
+    org_id: organization.id,
+    role: "super_admin",
+    display_name: input.display_name.trim(),
+    username: input.username.trim(),
+    password_hash: hashPassword(input.password),
+    phone: null,
+    status: "active",
+    family_id: store.family_id,
+    created_by: null,
+    created_at: new Date().toISOString(),
+  };
+  store.organizations[organization.id] = organization;
+  store.accounts[account.id] = account;
+  store.auditEvents.push({
+    id: randomUUID(),
+    action: "account.bootstrap_super_admin",
+    actor: account.id,
+    created_at: new Date().toISOString(),
+  });
+  void persistStore();
+  return { account: publicAccount(account), organization };
+}
+
+export async function loginWithPassword(
+  username: string,
+  password: string,
+): Promise<GuardianSession> {
+  const account = assertAccountActive(getAccountByUsername(username.trim()));
+  if (!account.password_hash || !verifyPassword(password, account.password_hash))
+    throw new UnauthorizedException({
+      error: {
+        code: "ACCOUNT_PASSWORD_INVALID",
+        message: "用户名或密码不正确。",
+        details: [],
+        retryable: false,
+      },
+    });
+  return createAccountSession(account);
+}
+
+export function createAccount(input: {
+  role: "staff" | "parent";
+  display_name: string;
+  username?: string;
+  password?: string;
+  phone?: string;
+  family_id?: string;
+  created_by: string;
+  org_id: string | null;
+}): Account {
+  if (input.username && getAccountByUsername(input.username))
+    throw new ForbiddenException({
+      error: {
+        code: "ACCOUNT_USERNAME_TAKEN",
+        message: "用户名已被占用。",
+        details: [],
+        retryable: false,
+      },
+    });
+  if (input.phone && getAccountByPhone(input.phone))
+    throw new ForbiddenException({
+      error: {
+        code: "ACCOUNT_PHONE_TAKEN",
+        message: "该手机号已被其他账号使用。",
+        details: [],
+        retryable: false,
+      },
+    });
+  const hasCredentials = Boolean(input.username && input.password);
+  if (!hasCredentials && !input.phone)
+    throw new ForbiddenException({
+      error: {
+        code: "ACCOUNT_CREDENTIAL_REQUIRED",
+        message: "员工账号必须提供用户名+密码或手机号之一。",
+        details: [],
+        retryable: false,
+      },
+    });
+  if (input.family_id && !familyExists(input.family_id))
+    throw new ForbiddenException({
+      error: {
+        code: "FAMILY_NOT_FOUND",
+        message: "绑定家庭不存在。",
+        details: [],
+        retryable: false,
+      },
+    });
+  const account: Account = {
+    id: randomUUID(),
+    org_id: input.org_id,
+    role: input.role,
+    display_name: input.display_name.trim(),
+    username: input.username?.trim() ?? null,
+    password_hash: input.password ? hashPassword(input.password) : null,
+    phone: input.phone ?? null,
+    status: "active",
+    family_id: input.family_id ?? null,
+    created_by: input.created_by,
+    created_at: new Date().toISOString(),
+  };
+  store.accounts[account.id] = account;
+  store.auditEvents.push({
+    id: randomUUID(),
+    action: "account.create",
+    actor: input.created_by,
+    created_at: new Date().toISOString(),
+  });
+  void persistStore();
+  return account;
+}
+
+export function publicAccountView(
+  account: Account | null | undefined,
+): ReturnType<typeof publicAccount> | null {
+  return account ? publicAccount(account) : null;
+}
+
+export function listAccounts(): Array<ReturnType<typeof publicAccount>> {
+  return Object.values(store.accounts).map(publicAccount);
+}
+
+export function setAccountStatus(
+  accountId: string,
+  status: "active" | "disabled",
+  actor: string,
+): ReturnType<typeof publicAccount> {
+  const account = store.accounts[accountId];
+  if (!account) resourceNotFound("ACCOUNT_NOT_FOUND", "账号不存在。");
+  account.status = status;
+  store.auditEvents.push({
+    id: randomUUID(),
+    action: status === "active" ? "account.enable" : "account.disable",
+    actor,
+    created_at: new Date().toISOString(),
+  });
+  void persistStore();
+  return publicAccount(account);
+}
+
+export function organizationOf(context: {
+  org_id: string | null;
+}): Organization | undefined {
+  return context.org_id ? getOrganization(context.org_id) : undefined;
 }
 
 export async function loginWithWechat(code: string): Promise<GuardianSession> {
@@ -391,11 +715,15 @@ export async function loginWithWechat(code: string): Promise<GuardianSession> {
     throw new ForbiddenException({
       error: {
         code: "FAMILY_BINDING_REQUIRED",
-        message: "该微信账号尚未绑定 BOKS 家庭，请联系 BOKS 完成绑定。",
+        message: "该微信账号尚未绑定 BOKS 账号，请联系管理员完成绑定。",
         details: [],
         retryable: false,
       },
     });
+  const account = binding.account_id
+    ? assertAccountActive(getAccount(binding.account_id))
+    : undefined;
+  if (account) return createAccountSession(account);
   return createSession(binding.guardian_id, binding.family_id);
 }
 
@@ -447,6 +775,10 @@ export async function loginWithPhone(
   phone: string,
   code: string,
 ): Promise<GuardianSession> {
+  const account = getAccountByPhone(phone);
+  if (account && isDevAuthEnabled() && code === "000000") {
+    return createAccountSession(assertAccountActive(account));
+  }
   const payload = await phoneProviderRequest("/verify", { phone, code });
   const guardianId = payload.guardian_id;
   const familyId = payload.family_id;
@@ -458,11 +790,15 @@ export async function loginWithPhone(
     throw new ForbiddenException({
       error: {
         code: "FAMILY_BINDING_REQUIRED",
-        message: "该手机号尚未绑定 BOKS 家庭，请联系 BOKS 完成绑定。",
+        message: "该手机号尚未绑定 BOKS 账号，请联系管理员完成绑定。",
         details: [],
         retryable: false,
       },
     });
+  const accountByGuardian = Object.values(store.accounts).find(
+    (item) => item.phone === phone && item.status === "active",
+  );
+  if (accountByGuardian) return createAccountSession(accountByGuardian);
   return createSession(guardianId, familyId);
 }
 
@@ -497,7 +833,13 @@ export function refreshSession(refreshToken: string): GuardianSession {
   } else {
     void persistStore();
   }
-  return createSession(existing.guardian_id, existing.family_id);
+  return createSession(
+    existing.guardian_id,
+    existing.family_id,
+    existing.account_id,
+    existing.role,
+    existing.org_id,
+  );
 }
 
 export function revokeSession(request: Request): void {

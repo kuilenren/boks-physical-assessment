@@ -25,7 +25,7 @@ import {
 } from "./demo-store.js";
 import {
   assertChildAccessAsync,
-  guardianContext,
+  requireAccountContext,
   resourceNotFound,
 } from "./auth.js";
 import { parseInput } from "./validation.js";
@@ -39,7 +39,7 @@ export class FamilyController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireAccountContext(request);
     const family = await loadFamilyStore(context.family_id);
     return success(
       {
@@ -61,7 +61,7 @@ export class FamilyController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireAccountContext(request);
     const family = await loadFamilyStore(context.family_id);
     return success(
       family.children.filter(
@@ -79,7 +79,7 @@ export class FamilyController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireAccountContext(request);
     const input = parseInput(createChildRequestSchema, body);
     const child = buildChild(input, context.family_id);
     await updateFamilyStore(context.family_id, (family) => {
@@ -158,7 +158,7 @@ export class FamilyController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireAccountContext(request);
     const family = await loadFamilyStore(context.family_id);
     return success(
       Object.values(family.consents).filter(
@@ -174,7 +174,7 @@ export class FamilyController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireAccountContext(request);
     const family = await loadFamilyStore(context.family_id);
     const consent = family.consents[consentId];
     if (!consent || consent.family_id !== context.family_id)
@@ -330,7 +330,7 @@ export class FamilyController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireAccountContext(request);
     const family = await loadFamilyStore(context.family_id);
     const children = family.children.filter(
       (child) =>
@@ -369,7 +369,7 @@ export class FamilyController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireAccountContext(request);
     const family = await loadFamilyStore(context.family_id);
     const childIds = family.children
       .filter(

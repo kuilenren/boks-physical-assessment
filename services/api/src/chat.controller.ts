@@ -12,7 +12,7 @@ import { randomUUID } from "node:crypto";
 import { chatRequestSchema } from "@boks/contracts";
 import { requestAiChat, type AiKnowledgeDocument } from "./ai-client.js";
 import {
-  guardianContext,
+  requireAccountContext,
   resourceForbidden,
   resourceNotFound,
 } from "./auth.js";
@@ -65,7 +65,7 @@ function citations(
 export class ChatController {
   @Post("conversations")
   async create(@Req() request: Request) {
-    const context = guardianContext(request);
+    const context = requireAccountContext(request);
     const conversation: ChatConversation = {
       id: randomUUID(),
       family_id: context.family_id,
@@ -82,7 +82,7 @@ export class ChatController {
   }
   @Get("conversations/:id")
   async get(@Param("id") id: string, @Req() request: Request) {
-    const context = guardianContext(request);
+    const context = requireAccountContext(request);
     const family = await loadFamilyStore(context.family_id);
     const conversation = family.conversations[id];
     if (!conversation || conversation.family_id !== context.family_id)
@@ -95,7 +95,7 @@ export class ChatController {
     @Body() body: unknown,
     @Req() request: Request,
   ) {
-    const context = guardianContext(request);
+    const context = requireAccountContext(request);
     const family = await loadFamilyStore(context.family_id);
     const conversation = family.conversations[id];
     if (!conversation || conversation.family_id !== context.family_id)

@@ -23,6 +23,9 @@ export type PersistedAuthState = {
     refresh_token_hash: string;
     guardian_id: string;
     family_id: string;
+    account_id?: string | null;
+    role?: string | null;
+    org_id?: string | null;
     expires_at: string;
     refresh_expires_at: string;
     revoked_at: string | null;
@@ -32,6 +35,7 @@ export type PersistedAuthState = {
     subject_hash: string;
     guardian_id: string;
     family_id: string;
+    account_id?: string | null;
   }>;
 };
 
@@ -352,6 +356,8 @@ function mergePersistedDocuments(
   const merged: Record<string, unknown> = { ...seed };
   const mapKeys = new Set([
     "families",
+    "organizations",
+    "accounts",
     "assessmentSessions",
     "reports",
     "trainingPlans",

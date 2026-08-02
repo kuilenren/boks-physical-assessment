@@ -1,6 +1,8 @@
 import uuid
 from datetime import UTC, datetime
+from pathlib import Path
 
+from dotenv import load_dotenv
 from fastapi import FastAPI
 
 from .audit import append_audit
@@ -16,6 +18,8 @@ from .models import (
 )
 from .rag import retrieve
 from .safety import classify, refusal_content
+
+load_dotenv(Path(__file__).resolve().parents[4] / ".env")
 
 app = FastAPI(title="BOKS AI Service", version="0.1.0")
 

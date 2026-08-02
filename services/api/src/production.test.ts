@@ -9,6 +9,7 @@ import * as training from "./training.controller.js";
 import * as configuration from "./configuration.controller.js";
 import * as posture from "./posture.controller.js";
 import { FamilyController } from "./family.controller.js";
+import { AssessmentController } from "./assessment.controller.js";
 import { assertRuntimeConfig } from "./runtime-config.js";
 import { createPostureUploadUrl } from "./asset-storage.js";
 
@@ -111,6 +112,58 @@ describe("production safety boundaries", () => {
     ).toBe(true);
     expect(result.results.find((item) => item.indicator_code === "bmi"))
       .toMatchObject({ score: 100, band_label: expect.stringContaining("正常") });
+  });
+
+  it("keeps an assessment session submitted through the controller available for follow-up reads", async () => {
+    auth.bootstrapSuperAdmin({
+      org_name: "示例学校",
+      display_name: "校长",
+      username: "principal",
+      password: "Password123",
+    });
+    auth.createAccount({
+      role: "staff",
+      display_name: "体育老师",
+      username: "teacher-01",
+      password: "Teacher123",
+      created_by: "principal",
+      org_id: null,
+    });
+    const session = await auth.loginWithPassword("teacher-01", "Teacher123");
+    const request = {
+      headers: { authorization: `Bearer ${session.token}` },
+    } as unknown as import("express").Request;
+    const controller = new AssessmentController();
+    const created = (await controller.createSession(
+      {
+        child_id: "child-demo-001",
+        measurement_date: "2026-08-02",
+        standard_version_id: "std-national-primary-2014-v1",
+      },
+      request,
+    )) as { data: { id: string } };
+    const values = [
+      { indicator_code: "height", raw_value: "128", unit: "厘米" },
+      { indicator_code: "weight", raw_value: "27", unit: "千克" },
+      { indicator_code: "lung_capacity", raw_value: "1800", unit: "毫升" },
+      { indicator_code: "run_50m", raw_value: "9.5", unit: "秒" },
+      { indicator_code: "sit_reach", raw_value: "8", unit: "厘米" },
+      { indicator_code: "rope_1min", raw_value: "120", unit: "次" },
+    ];
+    const submitted = (await controller.submitSession(
+      created.data.id,
+      { values, test_status: "completed" },
+      request,
+    )) as { data: { id: string; total_score: number } };
+    expect(submitted.data.total_score).toBeGreaterThan(0);
+    const persisted = db.store.assessmentSessions[created.data.id];
+    expect(persisted).toBeDefined();
+    expect(persisted.status).toBe("reported");
+    expect(persisted.report_id).toBe(submitted.data.id);
+    const list = (await controller.getReports("child-demo-001", request)) as {
+      data: Array<{ id: string }>;
+    };
+    expect(list.data.map((report) => report.id)).toContain(submitted.data.id);
   });
 
   it("rejects photo use without an active consent", () => {

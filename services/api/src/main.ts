@@ -13,10 +13,20 @@ import {
   isDevAuthEnabled,
   isProductionRuntime,
 } from "./runtime-config.js";
+import { seedPublishedKnowledge } from "./seed-knowledge.js";
 
 async function bootstrap() {
   assertRuntimeConfig();
   await initializeStore();
+  if (!isProductionRuntime()) {
+    const seedResult = seedPublishedKnowledge();
+    process.stdout.write(
+      `${JSON.stringify({
+        event: "knowledge.seed",
+        ...seedResult,
+      })}\n`,
+    );
+  }
   startKnowledgeSyncScheduler();
   const app = await NestFactory.create(AppModule, { bodyParser: false });
   app.use(json({ limit: "12mb" }));

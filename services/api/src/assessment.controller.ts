@@ -25,7 +25,11 @@ import {
 } from "./demo-store.js";
 import { success } from "./http.js";
 import { parseInput } from "./validation.js";
-import { guardianContext, resourceNotFound } from "./auth.js";
+import {
+  requireAccountContext,
+  requireRole,
+  resourceNotFound,
+} from "./auth.js";
 
 function requireFamilyChild(
   family: Awaited<ReturnType<typeof loadFamilyStore>>,
@@ -48,7 +52,7 @@ export class AssessmentController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireAccountContext(request);
     const family = await loadFamilyStore(context.family_id);
     const child = requireFamilyChild(family, childId);
     return success(
@@ -64,7 +68,7 @@ export class AssessmentController {
     @Headers("x-trace-id") traceId?: string,
   ) {
     const input = parseInput(createAssessmentSessionRequestSchema, body);
-    const context = guardianContext(request);
+    const context = requireRole(request, ["staff", "super_admin"]);
     const family = await loadFamilyStore(context.family_id);
     const child = requireFamilyChild(family, input.child_id);
     const schema = getAssessmentSchema(child, input.measurement_date, family);
@@ -97,7 +101,7 @@ export class AssessmentController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireAccountContext(request);
     const family = await loadFamilyStore(context.family_id);
     const session = family.assessmentSessions[sessionId];
     if (!session)
@@ -113,7 +117,7 @@ export class AssessmentController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireRole(request, ["staff", "super_admin"]);
     const family = await loadFamilyStore(context.family_id);
     const session = family.assessmentSessions[sessionId];
     if (!session)
@@ -137,7 +141,7 @@ export class AssessmentController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireRole(request, ["staff", "super_admin"]);
     const family = await loadFamilyStore(context.family_id);
     const session = family.assessmentSessions[sessionId];
     if (!session)
@@ -181,7 +185,7 @@ export class AssessmentController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireAccountContext(request);
     const family = await loadFamilyStore(context.family_id);
     requireFamilyChild(family, childId);
     return success(
@@ -198,7 +202,7 @@ export class AssessmentController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireAccountContext(request);
     const family = await loadFamilyStore(context.family_id);
     requireFamilyChild(family, childId);
     return success(
@@ -222,7 +226,7 @@ export class AssessmentController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireAccountContext(request);
     const family = await loadFamilyStore(context.family_id);
     const session = family.assessmentSessions[sessionId];
     if (!session)
@@ -255,7 +259,7 @@ export class AssessmentController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireAccountContext(request);
     const family = await loadFamilyStore(context.family_id);
     requireFamilyChild(family, childId);
     return success(
@@ -272,7 +276,7 @@ export class AssessmentController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireAccountContext(request);
     const family = await loadFamilyStore(context.family_id);
     const report = family.reports[reportId];
     if (!report)
