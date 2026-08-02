@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'models.dart';
 
@@ -16,22 +17,32 @@ class ApiException implements Exception {
 }
 
 class BoksApiClient {
-  BoksApiClient({http.Client? client, String? baseUrl})
-    : _client = client ?? http.Client(),
-      baseUrl =
-          (baseUrl ??
-                  const String.fromEnvironment(
-                    'BOKS_API_BASE_URL',
-                    defaultValue: kDebugMode
-                        ? 'http://10.0.2.2:3000/v1'
-                        : 'https://api.example.invalid/v1',
-                  ))
-              .replaceFirst(RegExp(r'/$'), '');
+  BoksApiClient({
+    http.Client? client,
+    String? baseUrl,
+    FlutterSecureStorage? secureStorage,
+  }) : _client = client ?? http.Client(),
+       _secureStorage = secureStorage ?? FlutterSecureStorage(),
+       baseUrl =
+           (baseUrl ??
+                   const String.fromEnvironment(
+                     'BOKS_API_BASE_URL',
+                     defaultValue: kDebugMode
+                         ? 'http://10.0.2.2:3000/v1'
+                         : 'https://api.example.invalid/v1',
+                   ))
+               .replaceFirst(RegExp(r'/$'), '');
 
   final http.Client _client;
+  final FlutterSecureStorage _secureStorage;
   final String baseUrl;
   String? _guardianToken;
+  String? _refreshToken;
   Future<void>? _authFuture;
+
+  static const _accessTokenKey = 'boks.guardian.access-token';
+  static const _refreshTokenKey = 'boks.guardian.refresh-token';
+  static const _selectedChildKey = 'boks.guardian.selected-child-id';
 
   Future<dynamic> _request(
     String method,
@@ -39,7 +50,7 @@ class BoksApiClient {
     Map<String, dynamic>? body,
     bool retryAuth = true,
   }) async {
-    if (path != '/auth/dev-login') {
+    if (!path.startsWith('/auth/')) {
       await _ensureAuth();
     }
     final uri = Uri.parse('$baseUrl$path');
@@ -80,7 +91,7 @@ class BoksApiClient {
         code: error is Map<String, dynamic> ? error['code']?.toString() : null,
       );
       if (retryAuth &&
-          path != '/auth/dev-login' &&
+          !path.startsWith('/auth/') &&
           (exception.code == 'AUTH_REQUIRED' ||
               exception.code == 'AUTH_INVALID_TOKEN')) {
         _guardianToken = null;
@@ -96,12 +107,68 @@ class BoksApiClient {
     if (!force && _guardianToken != null) return;
     if (_authFuture != null) return _authFuture;
     const configuredToken = String.fromEnvironment('BOKS_API_TOKEN');
-    if (!force && configuredToken.isNotEmpty) {
+    if (!force && !kReleaseMode && configuredToken.isNotEmpty) {
       _guardianToken = configuredToken;
       return;
     }
-    _authFuture = _login().whenComplete(() => _authFuture = null);
+    _authFuture = _restoreOrLogin(
+      force: force,
+    ).whenComplete(() => _authFuture = null);
     return _authFuture;
+  }
+
+  Future<void> _restoreOrLogin({required bool force}) async {
+    if (!force) {
+      _guardianToken ??= await _secureStorage.read(key: _accessTokenKey);
+      if (_guardianToken != null &&
+          await _secureStorage.read(key: _refreshTokenKey) == null) {
+        return;
+      }
+    }
+    _refreshToken ??= await _secureStorage.read(key: _refreshTokenKey);
+    if (_refreshToken != null) {
+      try {
+        final data =
+            await _request(
+                  'POST',
+                  '/auth/refresh',
+                  body: {'refresh_token': _refreshToken},
+                  retryAuth: false,
+                )
+                as Map<String, dynamic>;
+        final refreshedToken = data['token'];
+        final refreshedRefreshToken = data['refresh_token'];
+        if (refreshedToken is String &&
+            refreshedToken.isNotEmpty &&
+            refreshedRefreshToken is String &&
+            refreshedRefreshToken.isNotEmpty) {
+          await _setTokens(refreshedToken, refreshedRefreshToken);
+          return;
+        }
+      } on ApiException {
+        // A rejected refresh token is replaced by the formal login flow.
+      }
+      await _clearTokens();
+    }
+    if (!kDebugMode) {
+      throw const ApiException('请使用手机号验证码登录。', code: 'AUTH_REQUIRED');
+    }
+    await _login();
+  }
+
+  Future<void> _setTokens(String token, String refreshToken) async {
+    _guardianToken = token;
+    _refreshToken = refreshToken;
+    await _secureStorage.write(key: _accessTokenKey, value: token);
+    await _secureStorage.write(key: _refreshTokenKey, value: refreshToken);
+  }
+
+  Future<void> _clearTokens() async {
+    _guardianToken = null;
+    _refreshToken = null;
+    await _secureStorage.delete(key: _accessTokenKey);
+    await _secureStorage.delete(key: _refreshTokenKey);
+    await _secureStorage.delete(key: _selectedChildKey);
   }
 
   Future<void> _login() async {
@@ -114,10 +181,51 @@ class BoksApiClient {
             )
             as Map<String, dynamic>;
     final token = data['token'];
+    final refreshToken = data['refresh_token'];
     if (token is! String || token.isEmpty) {
       throw const ApiException('监护人登录响应无效。', code: 'AUTH_FAILED');
     }
-    _guardianToken = token;
+    if (refreshToken is! String || refreshToken.isEmpty) {
+      throw const ApiException('登录响应缺少刷新令牌。', code: 'AUTH_FAILED');
+    }
+    await _setTokens(token, refreshToken);
+  }
+
+  Future<void> requestPhoneCode(String phone) async {
+    await _request(
+      'POST',
+      '/auth/phone/request-code',
+      body: {'phone': phone},
+      retryAuth: false,
+    );
+  }
+
+  Future<void> loginWithPhone(String phone, String code) async {
+    final data =
+        await _request(
+              'POST',
+              '/auth/phone/login',
+              body: {'phone': phone, 'code': code},
+              retryAuth: false,
+            )
+            as Map<String, dynamic>;
+    final token = data['token'];
+    final refreshToken = data['refresh_token'];
+    if (token is! String ||
+        token.isEmpty ||
+        refreshToken is! String ||
+        refreshToken.isEmpty) {
+      throw const ApiException('登录响应无效。', code: 'AUTH_FAILED');
+    }
+    await _setTokens(token, refreshToken);
+  }
+
+  Future<void> logout() async {
+    try {
+      await _request('POST', '/auth/logout', retryAuth: false);
+    } finally {
+      await _clearTokens();
+    }
   }
 
   Future<Family> getFamily() async {
@@ -132,6 +240,31 @@ class BoksApiClient {
     return data
         .map((item) => Child.fromJson(item as Map<String, dynamic>))
         .toList();
+  }
+
+  Future<String?> resolveSelectedChildId(
+    List<Child> children, {
+    String? preferredChildId,
+  }) async {
+    final storedChildId = await _secureStorage.read(key: _selectedChildKey);
+    final candidate = preferredChildId ?? storedChildId;
+    String? selected;
+    for (final child in children) {
+      if (child.id == candidate) {
+        selected = child.id;
+        break;
+      }
+    }
+    final resolved = selected ?? (children.isEmpty ? null : children.first.id);
+    if (resolved != null) {
+      await _secureStorage.write(key: _selectedChildKey, value: resolved);
+    }
+    return resolved;
+  }
+
+  Future<void> setSelectedChildId(String? childId) async {
+    if (childId == null || childId.isEmpty) return;
+    await _secureStorage.write(key: _selectedChildKey, value: childId);
   }
 
   Future<Child> createChild({
@@ -389,6 +522,28 @@ class BoksApiClient {
               'POST',
               '/posture/sessions/$sessionId/views/$view/attach',
               body: {'asset_id': assetId},
+            )
+            as Map<String, dynamic>;
+    return PostureSession.fromJson(data);
+  }
+
+  Future<PostureSession> uploadPostureView(
+    String sessionId,
+    String view, {
+    required List<int> bytes,
+    required String fileName,
+    String mimeType = 'image/jpeg',
+  }) async {
+    final data =
+        await _request(
+              'POST',
+              '/posture/sessions/$sessionId/views/$view/upload',
+              body: {
+                'file_name': fileName,
+                'mime_type': mimeType,
+                'size_bytes': bytes.length,
+                'content_base64': base64Encode(bytes),
+              },
             )
             as Map<String, dynamic>;
     return PostureSession.fromJson(data);

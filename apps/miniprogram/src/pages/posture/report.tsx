@@ -6,13 +6,6 @@ import { getPostureReport } from "../../services/posture";
 import { ErrorState, LoadingState } from "../../components/PageState";
 import { showError } from "../../utils/error";
 
-const riskLabels: Record<PostureReport["risk_level"], string> = {
-  A: "未发现明显照片层面差异",
-  B: "需要改善拍摄条件或人工复核",
-  C: "建议家长安排专业人工复核",
-  D: "请停止训练并及时就医",
-};
-
 export default function PostureReportPage() {
   const [report, setReport] = useState<PostureReport | null>(null);
   const [loading, setLoading] = useState(true);
@@ -64,9 +57,11 @@ export default function PostureReportPage() {
         角。当前报告明确标记了数据不足和模型限制。
       </View>
       <View className="score-card">
-        <Text className="score-label">行动层级</Text>
-        <Text className="score-value">{report.risk_level}</Text>
-        <Text className="score-caption">{riskLabels[report.risk_level]}</Text>
+        <Text className="score-label">当前能力</Text>
+        <Text className="score-value">未分级</Text>
+        <Text className="score-caption">
+          当前仅完成照片任务质量检查，不输出姿态风险等级。
+        </Text>
       </View>
       <View className="card">
         <Text className="section-title">观察结果</Text>

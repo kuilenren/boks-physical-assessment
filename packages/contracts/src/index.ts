@@ -32,6 +32,7 @@ export type SexCode = z.infer<typeof sexCodeSchema>;
 
 export const childSchema = z.object({
   id: z.string(),
+  family_id: z.string(),
   display_name: z.string().min(1),
   birth_date: z.string().date(),
   age_in_months: z.number().int().nonnegative(),
@@ -260,7 +261,7 @@ export const postureSessionSchema = z.object({
   analysis: z
     .object({
       report_id: z.string(),
-      risk_level: z.enum(["A", "B", "C", "D"]),
+      risk_level: z.literal("not_scored"),
       observation_status: z.enum(["insufficient_data", "observed"]),
       confidence: z.enum(["low", "medium", "high"]),
     })
@@ -293,6 +294,49 @@ export const attachPostureViewRequestSchema = z.object({
 export type AttachPostureViewRequest = z.infer<
   typeof attachPostureViewRequestSchema
 >;
+export const uploadPostureViewRequestSchema = z.object({
+  file_name: z.string().trim().min(1).max(128),
+  mime_type: z.enum(["image/jpeg", "image/png"]),
+  size_bytes: z
+    .number()
+    .int()
+    .positive()
+    .max(8 * 1024 * 1024),
+  content_base64: z
+    .string()
+    .regex(/^[A-Za-z0-9+/]*={0,2}$/, "图片内容必须是合法的 Base64。")
+    .max(12 * 1024 * 1024),
+});
+export type UploadPostureViewRequest = z.infer<
+  typeof uploadPostureViewRequestSchema
+>;
+
+export const createPostureUploadUrlRequestSchema = z.object({
+  file_name: z.string().trim().min(1).max(128),
+  mime_type: z.enum(["image/jpeg", "image/png"]),
+  size_bytes: z
+    .number()
+    .int()
+    .positive()
+    .max(8 * 1024 * 1024),
+});
+export type CreatePostureUploadUrlRequest = z.infer<
+  typeof createPostureUploadUrlRequestSchema
+>;
+
+export const completePostureUploadRequestSchema = z.object({
+  asset_id: z.string().min(1),
+  mime_type: z.enum(["image/jpeg", "image/png"]),
+  size_bytes: z
+    .number()
+    .int()
+    .positive()
+    .max(8 * 1024 * 1024),
+  checksum_sha256: z.string().regex(/^[a-f0-9]{64}$/),
+});
+export type CompletePostureUploadRequest = z.infer<
+  typeof completePostureUploadRequestSchema
+>;
 
 export const apiErrorSchema = z.object({
   error: z.object({
@@ -310,6 +354,7 @@ export type ApiError = z.infer<typeof apiErrorSchema>;
 
 export const authSessionSchema = z.object({
   token: z.string().min(1),
+  refresh_token: z.string().min(1),
   guardian_id: z.string().min(1),
   family_id: z.string().min(1),
   expires_at: z.string().datetime(),
@@ -319,6 +364,31 @@ export const devLoginRequestSchema = z.object({
   guardian_id: z.string().min(1).default("guardian-demo-001"),
 });
 export type DevLoginRequest = z.infer<typeof devLoginRequestSchema>;
+export const refreshSessionRequestSchema = z.object({
+  refresh_token: z.string().min(1),
+});
+export type RefreshSessionRequest = z.infer<typeof refreshSessionRequestSchema>;
+export const wechatLoginRequestSchema = z.object({
+  code: z.string().trim().min(1).max(512),
+});
+export type WechatLoginRequest = z.infer<typeof wechatLoginRequestSchema>;
+export const wechatBindingRequestSchema = z.object({
+  openid: z.string().trim().min(1).max(128),
+  guardian_id: z.string().trim().min(1).max(128),
+  family_id: z.string().trim().min(1).max(128),
+});
+export type WechatBindingRequest = z.infer<typeof wechatBindingRequestSchema>;
+export const phoneRequestCodeSchema = z.object({
+  phone: z
+    .string()
+    .trim()
+    .regex(/^\+?[1-9]\d{6,14}$/, "手机号格式不正确。"),
+});
+export type PhoneRequestCode = z.infer<typeof phoneRequestCodeSchema>;
+export const phoneLoginRequestSchema = phoneRequestCodeSchema.extend({
+  code: z.string().trim().min(4).max(12),
+});
+export type PhoneLoginRequest = z.infer<typeof phoneLoginRequestSchema>;
 export const consentPurposeSchema = z.enum([
   "privacy",
   "assessment",
@@ -385,7 +455,7 @@ export const postureReportSchema = z.object({
   report_type: z.literal("posture"),
   child_id: z.string(),
   session_id: z.string(),
-  risk_level: z.enum(["A", "B", "C", "D"]),
+  risk_level: z.literal("not_scored"),
   observation_status: z.enum(["insufficient_data", "observed"]),
   confidence: z.enum(["low", "medium", "high"]),
   observations: z.array(z.string()),

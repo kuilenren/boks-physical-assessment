@@ -2,6 +2,7 @@ import type {
   PostureSession as ContractPostureSession,
   PostureView as ContractPostureView,
 } from "@boks/contracts";
+import Taro from "@tarojs/taro";
 import type { PostureSession } from "../models";
 import type { PostureReport } from "../models";
 import { request } from "./http";
@@ -38,6 +39,30 @@ export function attachPostureView(
     {
       method: "POST",
       data: { asset_id: assetId },
+    },
+  ).then(mapSession);
+}
+
+export async function uploadPostureView(
+  sessionId: string,
+  view: ContractPostureView,
+  filePath: string,
+) {
+  const [contentBase64, fileInfoResult] = await Promise.all([
+    readFileAsBase64(filePath),
+    Taro.getFileInfo({ filePath }),
+  ]);
+  if (!("size" in fileInfoResult)) throw new Error("照片大小读取失败。");
+  return request<ContractPostureSession>(
+    `/posture/sessions/${sessionId}/views/${view}/upload`,
+    {
+      method: "POST",
+      data: {
+        file_name: filePath.split("/").pop() ?? `${view}.jpg`,
+        mime_type: "image/jpeg",
+        size_bytes: fileInfoResult.size,
+        content_base64: contentBase64,
+      },
     },
   ).then(mapSession);
 }
@@ -90,4 +115,21 @@ function mapSession(session: ContractPostureSession): PostureSession {
     analysis: session.analysis,
     limitations: session.limitations,
   };
+}
+
+function readFileAsBase64(filePath: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    Taro.getFileSystemManager().readFile({
+      filePath,
+      encoding: "base64",
+      success: (result) => {
+        if (typeof result.data !== "string") {
+          reject(new Error("照片读取失败。"));
+          return;
+        }
+        resolve(result.data);
+      },
+      fail: reject,
+    });
+  });
 }

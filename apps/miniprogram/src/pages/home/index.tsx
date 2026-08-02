@@ -3,6 +3,11 @@ import Taro, { useDidShow, useLoad } from "@tarojs/taro";
 import { useState } from "react";
 import type { FamilySummary } from "../../models";
 import { getFamilySummary } from "../../services/family";
+import {
+  selectChild,
+  setSelectedChildId,
+} from "../../services/child-selection";
+import { ChildPicker } from "../../components/ChildPicker";
 import { ErrorState, LoadingState } from "../../components/PageState";
 import { showError } from "../../utils/error";
 
@@ -12,6 +17,7 @@ function open(path: string) {
 
 export default function HomePage() {
   const [summary, setSummary] = useState<FamilySummary | null>(null);
+  const [selectedChildId, setSelectedChildIdState] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -19,7 +25,9 @@ export default function HomePage() {
     setLoading(true);
     setError("");
     try {
-      setSummary(await getFamilySummary());
+      const nextSummary = await getFamilySummary();
+      setSummary(nextSummary);
+      setSelectedChildIdState(selectChild(nextSummary.children));
     } catch (loadError) {
       setError(
         loadError instanceof Error ? loadError.message : "家庭信息加载失败。",
@@ -55,7 +63,9 @@ export default function HomePage() {
     );
   }
 
-  const child = summary.children[0];
+  const child =
+    summary.children.find((item) => item.child_id === selectedChildId) ??
+    summary.children[0];
 
   return (
     <View className="page">
@@ -66,6 +76,16 @@ export default function HomePage() {
 
       <View className="card">
         <Text className="section-title">本周概览</Text>
+        {summary.children.length > 0 ? (
+          <ChildPicker
+            children={summary.children}
+            value={child?.child_id ?? ""}
+            onChange={(nextChildId) => {
+              setSelectedChildIdState(nextChildId);
+              setSelectedChildId(nextChildId);
+            }}
+          />
+        ) : null}
         <Text className="muted">
           {child
             ? `已为 ${child.display_name} 建立成长档案`

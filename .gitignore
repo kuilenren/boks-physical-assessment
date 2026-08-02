@@ -50,5 +50,6 @@ Thumbs.db
 # Local runtime data
 tmp/
 runtime/
+services/api/data/
 *.log
 inst_user_settings.tmp

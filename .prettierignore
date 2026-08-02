@@ -9,3 +9,5 @@ build/
 docs/
 *.md
 *.lock
+pnpm-lock.yaml
+services/api/data/

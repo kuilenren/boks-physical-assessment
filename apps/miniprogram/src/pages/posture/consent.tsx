@@ -7,6 +7,10 @@ import { createPostureSession } from "../../services/posture";
 import { ChildPicker } from "../../components/ChildPicker";
 import { LoadingState } from "../../components/PageState";
 import { showError } from "../../utils/error";
+import {
+  selectChild,
+  setSelectedChildId,
+} from "../../services/child-selection";
 
 const CONSENT_VERSION = "posture-observation-v1";
 
@@ -21,7 +25,7 @@ export default function PostureConsentPage() {
     void listChildren()
       .then((items) => {
         setChildren(items);
-        setChildId(items[0]?.child_id ?? "");
+        setChildId(selectChild(items));
       })
       .catch((error) => showError(error, "儿童档案加载失败。"))
       .finally(() => setLoading(false));
@@ -66,7 +70,10 @@ export default function PostureConsentPage() {
         <ChildPicker
           children={children}
           value={childId}
-          onChange={setChildId}
+          onChange={(nextChildId) => {
+            setChildId(nextChildId);
+            setSelectedChildId(nextChildId);
+          }}
         />
       </View>
       <View className="card">

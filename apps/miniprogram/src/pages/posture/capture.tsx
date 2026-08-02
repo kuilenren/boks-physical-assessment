@@ -3,9 +3,9 @@ import Taro, { useLoad } from "@tarojs/taro";
 import { useState } from "react";
 import type { PostureSession, PostureView } from "../../models";
 import {
-  attachPostureView,
   getPostureSession,
   submitPostureSession,
+  uploadPostureView,
 } from "../../services/posture";
 import { LoadingState } from "../../components/PageState";
 import { showError } from "../../utils/error";
@@ -54,11 +54,10 @@ export default function PostureCapturePage() {
         sizeType: ["compressed"],
         sourceType: ["camera", "album"],
       });
-      const assetId = `demo-asset-${current.key}-${Date.now()}`;
-      const updated = await attachPostureView(
+      const updated = await uploadPostureView(
         session.session_id,
         current.key,
-        assetId,
+        result.tempFilePaths[0],
       );
       setSession(updated);
       const nextIndex = views.findIndex(
@@ -68,7 +67,7 @@ export default function PostureCapturePage() {
       );
       if (nextIndex >= 0) setCurrentIndex(nextIndex);
       void Taro.showToast({
-        title: result.tempFilePaths[0] ? "照片已登记" : "已登记",
+        title: result.tempFilePaths[0] ? "照片已上传" : "上传完成",
         icon: "success",
       });
     } catch (error) {
@@ -153,7 +152,7 @@ export default function PostureCapturePage() {
       </Button>
       <Text className="muted capture-footnote">
         已登记 {completed} / {views.length}{" "}
-        个视角。开发版使用照片登记占位，真实对象存储上传将在服务端接入。
+        个视角。照片仅用于本次体态观察任务，上传后会进行安全校验。
       </Text>
       <Button
         className="secondary-button"

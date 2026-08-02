@@ -1,8 +1,20 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+val releaseKeyPropertiesFile = rootProject.file("key.properties")
+val releaseKeyProperties = Properties()
+if (releaseKeyPropertiesFile.exists()) {
+    releaseKeyPropertiesFile.inputStream().use(releaseKeyProperties::load)
+}
+val releaseSigningReady =
+    listOf("storeFile", "storePassword", "keyAlias", "keyPassword").all {
+        releaseKeyProperties.getProperty(it).orEmpty().isNotBlank()
+    }
 
 android {
     namespace = "com.boks.boks_mobile"
@@ -25,11 +37,34 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            if (releaseSigningReady) {
+                storeFile = rootProject.file(releaseKeyProperties.getProperty("storeFile"))
+                storePassword = releaseKeyProperties.getProperty("storePassword")
+                keyAlias = releaseKeyProperties.getProperty("keyAlias")
+                keyPassword = releaseKeyProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            if (releaseSigningReady) {
+                signingConfig = signingConfigs.getByName("release")
+            } else {
+                signingConfig = null
+            }
+        }
+    }
+}
+
+tasks.configureEach {
+    if (name == "assembleRelease" || name == "bundleRelease") {
+        doFirst {
+            check(releaseSigningReady) {
+                "Release builds require android/key.properties with a private signing key."
+            }
         }
     }
 }

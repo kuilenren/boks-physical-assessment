@@ -6,6 +6,10 @@ import { listChildren } from "../../services/family";
 import { ChildPicker } from "../../components/ChildPicker";
 import { LoadingState } from "../../components/PageState";
 import { showError } from "../../utils/error";
+import {
+  selectChild,
+  setSelectedChildId,
+} from "../../services/child-selection";
 
 export default function AssessmentStartPage() {
   const [children, setChildren] = useState<ChildProfile[]>([]);
@@ -16,7 +20,7 @@ export default function AssessmentStartPage() {
     void listChildren()
       .then((items) => {
         setChildren(items);
-        setChildId(items[0]?.child_id ?? "");
+        setChildId(selectChild(items));
       })
       .catch((error) => showError(error, "儿童档案加载失败。"))
       .finally(() => setLoading(false));
@@ -48,7 +52,10 @@ export default function AssessmentStartPage() {
           <ChildPicker
             children={children}
             value={childId}
-            onChange={setChildId}
+            onChange={(nextChildId) => {
+              setChildId(nextChildId);
+              setSelectedChildId(nextChildId);
+            }}
           />
         ) : (
           <Text className="danger-note">

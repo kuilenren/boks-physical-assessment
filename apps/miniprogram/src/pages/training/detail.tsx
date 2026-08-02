@@ -15,6 +15,10 @@ import { ChildPicker } from "../../components/ChildPicker";
 import { ErrorState, LoadingState } from "../../components/PageState";
 import { showError } from "../../utils/error";
 import type { TrainingProgress } from "../../models";
+import {
+  selectChild,
+  setSelectedChildId,
+} from "../../services/child-selection";
 
 export default function TrainingDetailPage() {
   const [children, setChildren] = useState<ChildProfile[]>([]);
@@ -35,7 +39,7 @@ export default function TrainingDetailPage() {
         listChildren(),
         listTrainingPlans(preferredChildId),
       ]);
-      const selectedChildId = preferredChildId ?? childItems[0]?.child_id ?? "";
+      const selectedChildId = selectChild(childItems, preferredChildId);
       setChildren(childItems);
       setChildId(selectedChildId);
       const selectedPlan =
@@ -142,6 +146,7 @@ export default function TrainingDetailPage() {
           value={childId}
           onChange={(nextChildId) => {
             setChildId(nextChildId);
+            setSelectedChildId(nextChildId);
             void load(nextChildId);
           }}
         />

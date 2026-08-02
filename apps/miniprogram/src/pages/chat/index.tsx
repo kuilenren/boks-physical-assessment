@@ -7,6 +7,10 @@ import { listChildren } from "../../services/family";
 import { ChildPicker } from "../../components/ChildPicker";
 import { LoadingState } from "../../components/PageState";
 import { showError } from "../../utils/error";
+import {
+  selectChild,
+  setSelectedChildId,
+} from "../../services/child-selection";
 
 export default function ChatPage() {
   const [children, setChildren] = useState<ChildProfile[]>([]);
@@ -21,7 +25,7 @@ export default function ChatPage() {
     void Promise.all([listChildren(), createConversation()])
       .then(([childItems, conversation]) => {
         setChildren(childItems);
-        setChildId(childItems[0]?.child_id ?? "");
+        setChildId(selectChild(childItems));
         setConversationId(conversation.id);
       })
       .catch((error) => showError(error, "咨询服务加载失败。"))
@@ -80,7 +84,10 @@ export default function ChatPage() {
         <ChildPicker
           children={children}
           value={childId}
-          onChange={setChildId}
+          onChange={(nextChildId) => {
+            setChildId(nextChildId);
+            setSelectedChildId(nextChildId);
+          }}
         />
       </View>
       <View className="card chat-list">

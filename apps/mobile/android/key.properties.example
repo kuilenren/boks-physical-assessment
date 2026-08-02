@@ -1,0 +1,4 @@
+storeFile=path/to/boks-upload-keystore.jks
+storePassword=replace-with-keystore-password
+keyAlias=boks-release
+keyPassword=replace-with-key-password

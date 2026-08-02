@@ -26,6 +26,7 @@ const API_BASE_URL =
     ? "https://api.example.invalid/v1"
     : "http://127.0.0.1:3000/v1");
 const AUTH_TOKEN_KEY = "boks.guardian.token";
+const AUTH_REFRESH_TOKEN_KEY = "boks.guardian.refresh-token";
 let authPromise: Promise<void> | null = null;
 
 export class ApiRequestError extends Error {
@@ -48,9 +49,7 @@ export async function request<T>(
     retryAuth?: boolean;
   } = {},
 ): Promise<T> {
-  if (path !== "/auth/dev-login") {
-    await ensureAuth();
-  }
+  if (!path.startsWith("/auth/")) await ensureAuth();
 
   const token = Taro.getStorageSync<string>(AUTH_TOKEN_KEY);
   const response = await Taro.request<ApiSuccess<T> | ApiFailure>({
@@ -86,7 +85,7 @@ export async function request<T>(
     });
     if (
       options.retryAuth !== false &&
-      path !== "/auth/dev-login" &&
+      !path.startsWith("/auth/") &&
       (error.code === "AUTH_REQUIRED" || error.code === "AUTH_INVALID_TOKEN")
     ) {
       Taro.removeStorageSync(AUTH_TOKEN_KEY);
@@ -104,40 +103,101 @@ async function ensureAuth(force = false): Promise<void> {
   if (authPromise) return authPromise;
 
   const configuredToken = process.env.TARO_APP_API_TOKEN;
-  if (!force && configuredToken) {
+  if (!force && process.env.NODE_ENV !== "production" && configuredToken) {
     Taro.setStorageSync(AUTH_TOKEN_KEY, configuredToken);
     return;
   }
 
-  authPromise = Taro.request<ApiSuccess<{ token: string }> | ApiFailure>({
-    url: `${API_BASE_URL}/auth/dev-login`,
-    method: "POST",
-    data: { guardian_id: "guardian-demo-001" },
-    header: {
-      "Content-Type": "application/json",
-      "X-Client-Platform": "miniprogram",
-      "X-Client-Version": "0.2.0",
-    },
-  })
-    .then((response) => {
-      const body = response.data;
+  authPromise = (async () => {
+    const refreshToken = Taro.getStorageSync<string>(AUTH_REFRESH_TOKEN_KEY);
+    if (refreshToken) {
+      const refreshed = await Taro.request<
+        ApiSuccess<{ token: string; refresh_token: string }> | ApiFailure
+      >({
+        url: `${API_BASE_URL}/auth/refresh`,
+        method: "POST",
+        data: { refresh_token: refreshToken },
+        header: {
+          "Content-Type": "application/json",
+          "X-Client-Platform": "miniprogram",
+          "X-Client-Version": "0.2.0",
+        },
+      });
       if (
-        response.statusCode < 200 ||
-        response.statusCode >= 300 ||
-        !("data" in body) ||
-        typeof body.data !== "object" ||
-        body.data === null ||
-        typeof body.data.token !== "string"
+        refreshed.statusCode >= 200 &&
+        refreshed.statusCode < 300 &&
+        "data" in refreshed.data &&
+        typeof refreshed.data.data.token === "string" &&
+        typeof refreshed.data.data.refresh_token === "string"
       ) {
-        throw new ApiRequestError({
-          code: "AUTH_FAILED",
-          message: "监护人登录失败，请稍后重试。",
-        });
+        Taro.setStorageSync(AUTH_TOKEN_KEY, refreshed.data.data.token);
+        Taro.setStorageSync(
+          AUTH_REFRESH_TOKEN_KEY,
+          refreshed.data.data.refresh_token,
+        );
+        return;
       }
-      Taro.setStorageSync(AUTH_TOKEN_KEY, body.data.token);
-    })
-    .finally(() => {
-      authPromise = null;
-    });
+      Taro.removeStorageSync(AUTH_REFRESH_TOKEN_KEY);
+    }
+
+    const response =
+      process.env.NODE_ENV === "production"
+        ? await (async () => {
+            const login = await Taro.login();
+            return Taro.request<
+              ApiSuccess<{ token: string; refresh_token: string }> | ApiFailure
+            >({
+              url: `${API_BASE_URL}/auth/wechat-login`,
+              method: "POST",
+              data: { code: login.code },
+              header: {
+                "Content-Type": "application/json",
+                "X-Client-Platform": "miniprogram",
+                "X-Client-Version": "0.2.0",
+              },
+            });
+          })()
+        : await Taro.request<
+            ApiSuccess<{ token: string; refresh_token: string }> | ApiFailure
+          >({
+            url: `${API_BASE_URL}/auth/dev-login`,
+            method: "POST",
+            data: { guardian_id: "guardian-demo-001" },
+            header: {
+              "Content-Type": "application/json",
+              "X-Client-Platform": "miniprogram",
+              "X-Client-Version": "0.2.0",
+            },
+          });
+    const body = response.data;
+    if (
+      response.statusCode < 200 ||
+      response.statusCode >= 300 ||
+      !("data" in body) ||
+      typeof body.data !== "object" ||
+      body.data === null ||
+      typeof body.data.token !== "string" ||
+      typeof body.data.refresh_token !== "string"
+    ) {
+      const failure = body as ApiFailure;
+      throw new ApiRequestError({
+        code: failure.error?.code ?? "AUTH_FAILED",
+        message: failure.error?.message ?? "监护人登录失败，请稍后重试。",
+      });
+    }
+    Taro.setStorageSync(AUTH_TOKEN_KEY, body.data.token);
+    Taro.setStorageSync(AUTH_REFRESH_TOKEN_KEY, body.data.refresh_token);
+  })().finally(() => {
+    authPromise = null;
+  });
   return authPromise;
+}
+
+export async function logout(): Promise<void> {
+  try {
+    await request("/auth/logout", { method: "POST", retryAuth: false });
+  } finally {
+    Taro.removeStorageSync(AUTH_TOKEN_KEY);
+    Taro.removeStorageSync(AUTH_REFRESH_TOKEN_KEY);
+  }
 }

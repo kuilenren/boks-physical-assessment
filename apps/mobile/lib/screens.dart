@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -7,6 +8,133 @@ import 'package:flutter/services.dart';
 import 'api_client.dart';
 import 'models.dart';
 import 'theme.dart';
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({
+    required this.client,
+    required this.onLoggedIn,
+    super.key,
+  });
+
+  final BoksApiClient client;
+  final VoidCallback onLoggedIn;
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _phoneController = TextEditingController();
+  final _codeController = TextEditingController();
+  var _sendingCode = false;
+  var _loggingIn = false;
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    _codeController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _requestCode() async {
+    final phone = _phoneController.text.trim();
+    if (phone.isEmpty) {
+      _showMessage('请输入手机号。');
+      return;
+    }
+    setState(() => _sendingCode = true);
+    try {
+      await widget.client.requestPhoneCode(phone);
+      _showMessage('验证码已发送，请注意查收。');
+    } on ApiException catch (error) {
+      _showMessage(error.message);
+    } finally {
+      if (mounted) setState(() => _sendingCode = false);
+    }
+  }
+
+  Future<void> _login() async {
+    final phone = _phoneController.text.trim();
+    final code = _codeController.text.trim();
+    if (phone.isEmpty || code.isEmpty) {
+      _showMessage('请输入手机号和验证码。');
+      return;
+    }
+    setState(() => _loggingIn = true);
+    try {
+      await widget.client.loginWithPhone(phone, code);
+      if (mounted) widget.onLoggedIn();
+    } on ApiException catch (error) {
+      _showMessage(error.message);
+    } finally {
+      if (mounted) setState(() => _loggingIn = false);
+    }
+  }
+
+  void _showMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('BOKS 家长登录')),
+      body: ListView(
+        padding: const EdgeInsets.all(24),
+        children: [
+          const Text(
+            '登录后管理孩子的体测记录、训练计划和体态观察。',
+            style: TextStyle(color: boksMuted),
+          ),
+          const SizedBox(height: 24),
+          TextField(
+            controller: _phoneController,
+            keyboardType: TextInputType.phone,
+            decoration: const InputDecoration(labelText: '手机号'),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _codeController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: '验证码'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              TextButton(
+                onPressed: _sendingCode ? null : _requestCode,
+                child: _sendingCode
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('获取验证码'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: _loggingIn ? null : _login,
+            child: _loggingIn
+                ? const CircularProgressIndicator(color: Colors.white)
+                : const Text('登录'),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            '手机号仅用于身份验证。若账号尚未绑定 BOKS 家庭，请联系 BOKS 工作人员。',
+            style: TextStyle(color: boksMuted, fontSize: 12),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({required this.client, super.key});
@@ -19,15 +147,25 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late Future<Family> _family;
+  String? _selectedChildId;
 
   @override
   void initState() {
     super.initState();
-    _family = widget.client.getFamily();
+    _family = _loadFamily();
   }
 
   void _reload() {
-    setState(() => _family = widget.client.getFamily());
+    setState(() => _family = _loadFamily());
+  }
+
+  Future<Family> _loadFamily() async {
+    final family = await widget.client.getFamily();
+    final selected = await widget.client.resolveSelectedChildId(
+      family.children,
+    );
+    if (mounted) _selectedChildId = selected;
+    return family;
   }
 
   void _open(Widget page) {
@@ -51,7 +189,12 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           }
           final family = snapshot.data!;
-          final child = family.children.isEmpty ? null : family.children.first;
+          final child = family.children.isEmpty
+              ? null
+              : family.children.firstWhere(
+                  (item) => item.id == _selectedChildId,
+                  orElse: () => family.children.first,
+                );
           return RefreshIndicator(
             onRefresh: () async => _reload(),
             child: ListView(
@@ -85,6 +228,30 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: const TextStyle(color: boksMuted),
                         ),
                         const SizedBox(height: 12),
+                        if (family.children.isNotEmpty)
+                          DropdownButtonFormField<String>(
+                            initialValue: child?.id,
+                            decoration: const InputDecoration(
+                              labelText: '当前孩子',
+                            ),
+                            items: family.children
+                                .map(
+                                  (item) => DropdownMenuItem(
+                                    value: item.id,
+                                    child: Text(item.displayName),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (value) {
+                              if (value == null) return;
+                              setState(() => _selectedChildId = value);
+                              unawaited(
+                                widget.client.setSelectedChildId(value),
+                              );
+                            },
+                          ),
+                        if (family.children.isNotEmpty)
+                          const SizedBox(height: 12),
                         const StatusPill(label: '家庭数据由监护人维护'),
                       ],
                     ),
@@ -320,8 +487,10 @@ class _AssessmentStartScreenState extends State<AssessmentStartScreen> {
   void initState() {
     super.initState();
     _children = widget.client.listChildren().then((items) {
-      _childId = items.isEmpty ? null : items.first.id;
-      return items;
+      return widget.client.resolveSelectedChildId(items).then((selected) {
+        _childId = selected;
+        return items;
+      });
     });
   }
 
@@ -361,7 +530,10 @@ class _AssessmentStartScreenState extends State<AssessmentStartScreen> {
                         ),
                       )
                       .toList(),
-                  onChanged: (value) => setState(() => _childId = value),
+                  onChanged: (value) {
+                    setState(() => _childId = value);
+                    unawaited(widget.client.setSelectedChildId(value));
+                  },
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
@@ -805,15 +977,21 @@ class _TrainingScreenState extends State<TrainingScreen> {
   void initState() {
     super.initState();
     _children = widget.client.listChildren().then((items) {
-      _childId =
-          widget.initialChildId ?? (items.isEmpty ? null : items.first.id);
-      return items;
+      return widget.client
+          .resolveSelectedChildId(
+            items,
+            preferredChildId: widget.initialChildId,
+          )
+          .then((selected) {
+            _childId = selected;
+            return items;
+          });
     });
-    _loadPlans();
+    _children.then((_) => _loadPlans());
   }
 
   Future<void> _loadPlans() async {
-    final childId = widget.initialChildId ?? _childId;
+    final childId = _childId;
     if (childId == null) return;
     final plans = await widget.client.listTrainingPlans(childId);
     final progress = plans.isEmpty
@@ -927,6 +1105,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
                     .toList(),
                 onChanged: (value) async {
                   setState(() => _childId = value);
+                  await widget.client.setSelectedChildId(value);
                   if (value != null) {
                     final plans = await widget.client.listTrainingPlans(value);
                     final progress = plans.isEmpty
@@ -1078,8 +1257,10 @@ class _PostureConsentScreenState extends State<PostureConsentScreen> {
   void initState() {
     super.initState();
     _children = widget.client.listChildren().then((items) {
-      _childId = items.isEmpty ? null : items.first.id;
-      return items;
+      return widget.client.resolveSelectedChildId(items).then((selected) {
+        _childId = selected;
+        return items;
+      });
     });
   }
 
@@ -1145,7 +1326,10 @@ class _PostureConsentScreenState extends State<PostureConsentScreen> {
                         ),
                       )
                       .toList(),
-                  onChanged: (value) => setState(() => _childId = value),
+                  onChanged: (value) {
+                    setState(() => _childId = value);
+                    unawaited(widget.client.setSelectedChildId(value));
+                  },
                 ),
                 const SizedBox(height: 16),
                 const SectionCard(
@@ -1226,10 +1410,11 @@ class _PostureCaptureScreenState extends State<PostureCaptureScreen> {
         imageQuality: 80,
       );
       if (file == null) return;
-      final updated = await widget.client.attachPostureView(
+      final updated = await widget.client.uploadPostureView(
         _session.id,
         view,
-        'android-$view-${DateTime.now().millisecondsSinceEpoch}',
+        bytes: await file.readAsBytes(),
+        fileName: file.name,
       );
       if (!mounted) return;
       setState(() {
@@ -1238,7 +1423,7 @@ class _PostureCaptureScreenState extends State<PostureCaptureScreen> {
       });
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('${_labels[view]}照片已登记。')));
+      ).showSnackBar(SnackBar(content: Text('${_labels[view]}照片已上传。')));
     } on ApiException catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -1350,7 +1535,7 @@ class _PostureCaptureScreenState extends State<PostureCaptureScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            '已登记 ${_session.attachedViews.length} / ${_session.requiredViews.length} 个视角。开发版仅登记任务，不上传真实对象存储。',
+            '已上传 ${_session.attachedViews.length} / ${_session.requiredViews.length} 个视角。照片仅用于本次体态观察任务。',
             textAlign: TextAlign.center,
             style: const TextStyle(color: boksMuted, fontSize: 12),
           ),
@@ -1384,12 +1569,6 @@ class PostureReportScreen extends StatelessWidget {
             return ErrorPanel(message: snapshot.error.toString());
           }
           final report = snapshot.data!;
-          final riskLabel = const {
-            'A': '未发现明显照片层面差异',
-            'B': '需要改善拍摄条件或人工复核',
-            'C': '建议家长安排专业人工复核',
-            'D': '请停止训练并及时就医',
-          }[report.riskLevel];
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
@@ -1402,9 +1581,9 @@ class PostureReportScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(24),
                   child: Column(
                     children: [
-                      const Text('行动层级', style: TextStyle(color: Colors.white)),
+                      const Text('当前能力', style: TextStyle(color: Colors.white)),
                       Text(
-                        report.riskLevel,
+                        '未分级',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 48,
@@ -1412,7 +1591,7 @@ class PostureReportScreen extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        riskLabel ?? '数据不足',
+                        '当前仅完成照片任务质量检查，不输出姿态风险等级。',
                         style: const TextStyle(color: Colors.white),
                       ),
                     ],
@@ -1511,7 +1690,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final conversation = results[1] as ChatConversation;
     _messages = conversation.messages;
     _conversationId = conversation.id;
-    _childId = _children.isEmpty ? null : _children.first.id;
+    _childId = await widget.client.resolveSelectedChildId(_children);
   }
 
   Future<void> _send() async {
@@ -1586,7 +1765,10 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                         )
                         .toList(),
-                    onChanged: (value) => setState(() => _childId = value),
+                    onChanged: (value) {
+                      setState(() => _childId = value);
+                      unawaited(widget.client.setSelectedChildId(value));
+                    },
                   ),
                 ),
               Expanded(

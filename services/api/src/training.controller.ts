@@ -20,56 +20,75 @@ import {
 import { createTrainingPlanRequestSchema } from "@boks/contracts";
 import {
   createTrainingPlan,
-  getChild,
-  trainingPlans,
-  persistStore,
-  store,
-  reports,
+  loadFamilyStore,
+  updateFamilyStore,
 } from "./demo-store.js";
 import { success } from "./http.js";
 import { parseInput } from "./validation.js";
 import {
-  assertChildAccess,
   guardianContext,
   resourceForbidden,
   resourceNotFound,
 } from "./auth.js";
 
+function requireFamilyChild(
+  family: Awaited<ReturnType<typeof loadFamilyStore>>,
+  childId: string,
+) {
+  const child = family.children.find(
+    (item) => item.id === childId && item.profile_status === "active",
+  );
+  if (!child) resourceNotFound("CHILD_NOT_FOUND", "儿童档案不存在。");
+  return child;
+}
+
 @Controller("training")
 export class TrainingController {
   @Get("plans")
-  listPlans(
+  async listPlans(
     @Req() request: Request,
     @Query("child_id") childId?: string,
     @Headers("x-trace-id") traceId?: string,
   ) {
     const context = guardianContext(request);
-    if (childId) assertChildAccess(request, childId);
-    const plans = [...trainingPlans.values()].filter((plan) => {
-      if (childId !== undefined) return plan.child_id === childId;
-      return (
-        context.family_id === store.family_id &&
-        Boolean(getChild(plan.child_id))
+    const family = await loadFamilyStore(context.family_id);
+    const plans = Object.values(family.trainingPlans).filter((plan) => {
+      if (childId !== undefined)
+        return (
+          plan.child_id === childId &&
+          Boolean(
+            family.children.find(
+              (child) =>
+                child.id === childId && child.profile_status === "active",
+            ),
+          )
+        );
+      return Boolean(
+        family.children.find(
+          (child) =>
+            child.id === plan.child_id && child.profile_status === "active",
+        ),
       );
     });
+    if (childId) requireFamilyChild(family, childId);
     return success(plans, traceId);
   }
 
   @Post("plans")
-  createPlan(
+  async createPlan(
     @Body() body: unknown,
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
     const input = parseInput(createTrainingPlanRequestSchema, body);
-    assertChildAccess(request, input.child_id);
-    if (!getChild(input.child_id))
-      resourceNotFound("CHILD_NOT_FOUND", "儿童档案不存在。");
+    const context = guardianContext(request);
+    const family = await loadFamilyStore(context.family_id);
+    requireFamilyChild(family, input.child_id);
     if (input.source_report_id) {
-      const sourceReport = reports.get(input.source_report_id);
+      const sourceReport = family.reports[input.source_report_id];
       if (!sourceReport)
         resourceNotFound("ASSESSMENT_REPORT_NOT_FOUND", "来源报告不存在。");
-      assertChildAccess(request, sourceReport.child_id);
+      requireFamilyChild(family, sourceReport.child_id);
       if (sourceReport.child_id !== input.child_id)
         resourceForbidden("RESOURCE_FORBIDDEN", "来源报告不属于当前儿童。");
     }
@@ -88,49 +107,54 @@ export class TrainingController {
         },
       });
     }
-    return success(
-      createTrainingPlan(
+    let plan: ReturnType<typeof createTrainingPlan> | undefined;
+    await updateFamilyStore(context.family_id, (next) => {
+      plan = createTrainingPlan(
         input.child_id,
         input.source_report_id,
         input.goal,
         input.duration_weeks,
         input.days_per_week,
         input.minutes_per_session,
-      ),
-      traceId,
-    );
+        next,
+      );
+    });
+    if (!plan) throw new Error("训练计划创建失败。");
+    return success(plan, traceId);
   }
 
   @Get("plans/:planId")
-  getPlan(
+  async getPlan(
     @Param("planId") planId: string,
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    guardianContext(request);
-    const plan = trainingPlans.get(planId);
+    const context = guardianContext(request);
+    const family = await loadFamilyStore(context.family_id);
+    const plan = family.trainingPlans[planId];
     if (!plan) resourceNotFound("TRAINING_PLAN_NOT_FOUND", "训练计划不存在。");
-    assertChildAccess(request, plan.child_id);
+    requireFamilyChild(family, plan.child_id);
     return success(plan, traceId);
   }
 
   @Get("plans/:planId/days/:day")
-  getDay(
+  async getDay(
     @Param("planId") planId: string,
     @Param("day") day: string,
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    guardianContext(request);
-    const plan = trainingPlans.get(planId);
+    const context = guardianContext(request);
+    const family = await loadFamilyStore(context.family_id);
+    const plan = family.trainingPlans[planId];
     if (!plan) resourceNotFound("TRAINING_PLAN_NOT_FOUND", "训练计划不存在。");
-    assertChildAccess(request, plan.child_id);
+    requireFamilyChild(family, plan.child_id);
     return success(
       {
         plan_id: planId,
         day: Number(day),
         items: plan.items.filter((item) => item.day === Number(day)),
-        check_ins: Object.values(store.checkIns).filter(
+        check_ins: Object.values(family.checkIns).filter(
           (item) => item.plan_id === planId && item.day === Number(day),
         ),
       },
@@ -139,16 +163,17 @@ export class TrainingController {
   }
 
   @Post("plans/:planId/check-ins")
-  checkIn(
+  async checkIn(
     @Param("planId") planId: string,
     @Body() body: unknown,
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    guardianContext(request);
-    const plan = trainingPlans.get(planId);
+    const context = guardianContext(request);
+    const family = await loadFamilyStore(context.family_id);
+    const plan = family.trainingPlans[planId];
     if (!plan) resourceNotFound("TRAINING_PLAN_NOT_FOUND", "训练计划不存在。");
-    assertChildAccess(request, plan.child_id);
+    requireFamilyChild(family, plan.child_id);
     const input = parseInput(trainingCheckInRequestSchema, body);
     const checkIn = {
       id: randomUUID(),
@@ -159,22 +184,24 @@ export class TrainingController {
       note: input.note,
       created_at: new Date().toISOString(),
     };
-    store.checkIns[checkIn.id] = checkIn;
-    void persistStore();
+    await updateFamilyStore(context.family_id, (next) => {
+      next.checkIns[checkIn.id] = checkIn;
+    });
     return success(checkIn, traceId);
   }
 
   @Get("plans/:planId/progress")
-  progress(
+  async progress(
     @Param("planId") planId: string,
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    guardianContext(request);
-    const plan = trainingPlans.get(planId);
+    const context = guardianContext(request);
+    const family = await loadFamilyStore(context.family_id);
+    const plan = family.trainingPlans[planId];
     if (!plan) resourceNotFound("TRAINING_PLAN_NOT_FOUND", "训练计划不存在。");
-    assertChildAccess(request, plan.child_id);
-    const checks = Object.values(store.checkIns).filter(
+    requireFamilyChild(family, plan.child_id);
+    const checks = Object.values(family.checkIns).filter(
       (item) => item.plan_id === planId,
     );
     return success(
@@ -190,19 +217,25 @@ export class TrainingController {
   }
 
   @Post("plans/:planId/pause")
-  pause(
+  async pause(
     @Param("planId") planId: string,
     @Body() body: unknown,
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    guardianContext(request);
-    const plan = trainingPlans.get(planId);
+    const context = guardianContext(request);
+    const family = await loadFamilyStore(context.family_id);
+    const plan = family.trainingPlans[planId];
     if (!plan) resourceNotFound("TRAINING_PLAN_NOT_FOUND", "训练计划不存在。");
-    assertChildAccess(request, plan.child_id);
+    requireFamilyChild(family, plan.child_id);
     const input = parseInput(trainingPauseRequestSchema, body);
+    await updateFamilyStore(context.family_id, (next) => {
+      const target = next.trainingPlans[planId];
+      if (!target)
+        resourceNotFound("TRAINING_PLAN_NOT_FOUND", "训练计划不存在。");
+      target.status = "paused_safety_review";
+    });
     plan.status = "paused_safety_review";
-    void persistStore();
     return success(
       { plan, reason: input.reason, code: "paused_safety_review" },
       traceId,
@@ -210,19 +243,25 @@ export class TrainingController {
   }
 
   @Post("plans/:planId/resume")
-  resume(
+  async resume(
     @Param("planId") planId: string,
     @Body() body: unknown,
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    guardianContext(request);
-    const plan = trainingPlans.get(planId);
+    const context = guardianContext(request);
+    const family = await loadFamilyStore(context.family_id);
+    const plan = family.trainingPlans[planId];
     if (!plan) resourceNotFound("TRAINING_PLAN_NOT_FOUND", "训练计划不存在。");
-    assertChildAccess(request, plan.child_id);
+    requireFamilyChild(family, plan.child_id);
     parseInput(trainingResumeRequestSchema, body);
+    await updateFamilyStore(context.family_id, (next) => {
+      const target = next.trainingPlans[planId];
+      if (!target)
+        resourceNotFound("TRAINING_PLAN_NOT_FOUND", "训练计划不存在。");
+      target.status = "active";
+    });
     plan.status = "active";
-    void persistStore();
     return success(plan, traceId);
   }
 }

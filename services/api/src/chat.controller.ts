@@ -11,24 +11,21 @@ import type { Request } from "express";
 import { randomUUID } from "node:crypto";
 import { chatRequestSchema } from "@boks/contracts";
 import {
-  assertChildAccess,
   guardianContext,
   resourceForbidden,
   resourceNotFound,
 } from "./auth.js";
 import {
-  persistStore,
-  reports,
-  store,
-  trainingPlans,
+  loadFamilyStore,
+  updateFamilyStore,
   type ChatConversation,
 } from "./demo-store.js";
 import { success } from "./http.js";
 import { parseInput } from "./validation.js";
 
 const safetyPattern = /疼痛|麻木|无力|夜间疼痛|呼吸困难|急症|诊断|Cobb|cobb角/i;
-function citations() {
-  const published = Object.values(store.knowledgeVersions).filter(
+function citations(family: Awaited<ReturnType<typeof loadFamilyStore>>) {
+  const published = Object.values(family.knowledgeVersions).filter(
     (item) => item.status === "published",
   );
   return published.length > 0
@@ -41,14 +38,14 @@ function citations() {
         {
           source_id: "assessment-configuration",
           title: "BOKS 已发布配置（开发中）",
-          version: store.configuration.active_standard_id,
+          version: family.configuration.active_standard_id,
         },
       ];
 }
 @Controller("chat")
 export class ChatController {
   @Post("conversations")
-  create(@Req() request: Request) {
+  async create(@Req() request: Request) {
     const context = guardianContext(request);
     const conversation: ChatConversation = {
       id: randomUUID(),
@@ -59,39 +56,52 @@ export class ChatController {
       messages: [],
       created_at: new Date().toISOString(),
     };
-    store.conversations[conversation.id] = conversation;
-    void persistStore();
+    await updateFamilyStore(context.family_id, (family) => {
+      family.conversations[conversation.id] = conversation;
+    });
     return success(conversation);
   }
   @Get("conversations/:id")
-  get(@Param("id") id: string, @Req() request: Request) {
+  async get(@Param("id") id: string, @Req() request: Request) {
     const context = guardianContext(request);
-    const conversation = store.conversations[id];
+    const family = await loadFamilyStore(context.family_id);
+    const conversation = family.conversations[id];
     if (!conversation || conversation.family_id !== context.family_id)
       throw new NotFoundException("咨询会话不存在。");
     return success(conversation);
   }
   @Post("conversations/:id/messages")
-  message(
+  async message(
     @Param("id") id: string,
     @Body() body: unknown,
     @Req() request: Request,
   ) {
     const context = guardianContext(request);
-    const conversation = store.conversations[id];
+    const family = await loadFamilyStore(context.family_id);
+    const conversation = family.conversations[id];
     if (!conversation || conversation.family_id !== context.family_id)
       throw new NotFoundException("咨询会话不存在。");
     const input = parseInput(chatRequestSchema, body);
     let contextChildId = input.child_id;
-    if (input.child_id) assertChildAccess(request, input.child_id);
+    if (input.child_id) {
+      const child = family.children.find(
+        (item) =>
+          item.id === input.child_id && item.profile_status === "active",
+      );
+      if (!child) resourceNotFound("CHILD_NOT_FOUND", "儿童档案不存在。");
+    }
     if (input.context_report_id) {
-      const report = reports.get(input.context_report_id);
+      const report = family.reports[input.context_report_id];
       if (!report)
         resourceNotFound(
           "ASSESSMENT_REPORT_NOT_FOUND",
           "咨询引用的体测报告不存在。",
         );
-      assertChildAccess(request, report.child_id);
+      const reportChild = family.children.find(
+        (item) =>
+          item.id === report.child_id && item.profile_status === "active",
+      );
+      if (!reportChild) resourceNotFound("CHILD_NOT_FOUND", "儿童档案不存在。");
       if (contextChildId && contextChildId !== report.child_id)
         resourceForbidden(
           "RESOURCE_FORBIDDEN",
@@ -100,13 +110,16 @@ export class ChatController {
       contextChildId = report.child_id;
     }
     if (input.context_plan_id) {
-      const plan = trainingPlans.get(input.context_plan_id);
+      const plan = family.trainingPlans[input.context_plan_id];
       if (!plan)
         resourceNotFound(
           "TRAINING_PLAN_NOT_FOUND",
           "咨询引用的训练计划不存在。",
         );
-      assertChildAccess(request, plan.child_id);
+      const planChild = family.children.find(
+        (item) => item.id === plan.child_id && item.profile_status === "active",
+      );
+      if (!planChild) resourceNotFound("CHILD_NOT_FOUND", "儿童档案不存在。");
       if (contextChildId && contextChildId !== plan.child_id)
         resourceForbidden(
           "RESOURCE_FORBIDDEN",
@@ -128,14 +141,17 @@ export class ChatController {
       id: randomUUID(),
       role: "assistant" as const,
       content,
-      citations: citations(),
+      citations: citations(family),
       created_at: new Date().toISOString(),
     };
-    conversation.child_id = contextChildId;
-    conversation.context_report_id = input.context_report_id;
-    conversation.context_plan_id = input.context_plan_id;
-    conversation.messages.push(user, assistant);
-    void persistStore();
+    await updateFamilyStore(context.family_id, (next) => {
+      const target = next.conversations[id];
+      if (!target) throw new NotFoundException("咨询会话不存在。");
+      target.child_id = contextChildId;
+      target.context_report_id = input.context_report_id;
+      target.context_plan_id = input.context_plan_id;
+      target.messages.push(user, assistant);
+    });
     return success({ message: assistant, conversation_id: id });
   }
 }

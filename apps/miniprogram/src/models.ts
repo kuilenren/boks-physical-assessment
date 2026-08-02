@@ -165,7 +165,7 @@ export interface PostureSession {
   quality_status: "pending" | "ready_for_review" | "needs_retake";
   analysis: {
     report_id: string;
-    risk_level: "A" | "B" | "C" | "D";
+    risk_level: "not_scored";
     observation_status: "insufficient_data" | "observed";
     confidence: "low" | "medium" | "high";
   } | null;
@@ -177,7 +177,7 @@ export interface PostureReport {
   report_type: "posture";
   child_id: string;
   session_id: string;
-  risk_level: "A" | "B" | "C" | "D";
+  risk_level: "not_scored";
   observation_status: "insufficient_data" | "observed";
   confidence: "low" | "medium" | "high";
   observations: string[];

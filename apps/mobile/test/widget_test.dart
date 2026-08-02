@@ -11,6 +11,14 @@ class FakeBoksApiClient extends BoksApiClient {
   Future<Family> getFamily() async {
     return const Family(id: 'family-1', displayName: '测试家庭', children: []);
   }
+
+  @override
+  Future<String?> resolveSelectedChildId(
+    List<Child> children, {
+    String? preferredChildId,
+  }) async {
+    return preferredChildId ?? (children.isEmpty ? null : children.first.id);
+  }
 }
 
 void main() {

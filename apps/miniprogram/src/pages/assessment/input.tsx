@@ -12,6 +12,10 @@ import {
   submitSession,
 } from "../../services/assessment";
 import { showError } from "../../utils/error";
+import {
+  selectChild,
+  setSelectedChildId,
+} from "../../services/child-selection";
 
 function initialValues(schema: AssessmentSchema): Record<string, string> {
   return Object.fromEntries(
@@ -33,11 +37,7 @@ export default function AssessmentInputPage() {
     void listChildren()
       .then(async (childItems) => {
         setChildren(childItems);
-        const selectedChildId =
-          queryChildId &&
-          childItems.some((child) => child.child_id === queryChildId)
-            ? queryChildId
-            : (childItems[0]?.child_id ?? "");
+        const selectedChildId = selectChild(childItems, queryChildId);
         setChildId(selectedChildId);
         if (!selectedChildId) return;
         const schemaValue = await getSchema(selectedChildId);
@@ -109,7 +109,17 @@ export default function AssessmentInputPage() {
         <ChildPicker
           children={children}
           value={childId}
-          onChange={setChildId}
+          onChange={(nextChildId) => {
+            setChildId(nextChildId);
+            setSelectedChildId(nextChildId);
+            setSessionId("");
+            void getSchema(nextChildId)
+              .then((nextSchema) => {
+                setSchema(nextSchema);
+                setValues(initialValues(nextSchema));
+              })
+              .catch((error) => showError(error, "体测项目加载失败。"));
+          }}
         />
       </View>
       <View className="card">
