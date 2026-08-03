@@ -391,9 +391,9 @@ class BoksApiClient {
               'GET',
               '/reports?child_id=${Uri.encodeQueryComponent(childId)}',
             )
-            as List<dynamic>;
-    return data
-        .map((item) => AssessmentReport.fromJson(item as Map<String, dynamic>))
+            as List<dynamic>?;
+    return (data ?? []).map(
+            (item) => AssessmentReport.fromJson(item as Map<String, dynamic>))
         .toList();
   }
 
@@ -403,8 +403,8 @@ class BoksApiClient {
               'GET',
               '/assessment/trends?child_id=${Uri.encodeQueryComponent(childId)}',
             )
-            as Map<String, dynamic>;
-    return (data['points'] as List<dynamic>)
+            as Map<String, dynamic>?;
+    return ((data?['points'] as List<dynamic>?) ?? [])
         .map((item) => TrendPoint.fromJson(item as Map<String, dynamic>))
         .toList();
   }
@@ -443,8 +443,8 @@ class BoksApiClient {
               'GET',
               '/training/plans?child_id=${Uri.encodeQueryComponent(childId)}',
             )
-            as List<dynamic>;
-    return data
+            as List<dynamic>?;
+    return (data ?? [])
         .map((item) => TrainingPlan.fromJson(item as Map<String, dynamic>))
         .toList();
   }

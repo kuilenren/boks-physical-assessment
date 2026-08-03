@@ -95,25 +95,27 @@ export function listPostureReports(childId: string) {
 }
 
 function mapSession(session: ContractPostureSession): PostureSession {
+  const requiredViews = session.required_views ?? [];
+  const attachedViews = session.attached_views ?? [];
   return {
     session_id: session.id,
     child_id: session.child_id,
     status: session.status,
-    required_views: session.required_views,
-    views: session.required_views.map((view) => ({
+    required_views: requiredViews,
+    views: requiredViews.map((view) => ({
       view,
-      asset_id: session.attached_views.includes(view)
-        ? `registered-${view}`
-        : undefined,
+      asset_id: attachedViews.includes(view)
+          ? `registered-${view}`
+          : undefined,
     })),
     quality_status:
-      session.quality.overall === "passed"
-        ? "ready_for_review"
-        : session.quality.overall === "needs_retake"
+      session.quality?.overall === "passed"
+          ? "ready_for_review"
+          : session.quality?.overall === "needs_retake"
           ? "needs_retake"
           : "pending",
     analysis: session.analysis,
-    limitations: session.limitations,
+    limitations: session.limitations ?? [],
   };
 }
 

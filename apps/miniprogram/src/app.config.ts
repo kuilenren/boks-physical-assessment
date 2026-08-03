@@ -43,4 +43,21 @@ export default defineAppConfig({
       },
     ],
   },
+  permission: {
+    "scope.camera": {
+      desc: "用于拍摄孩子四视角体态观察照片，仅用于本次体态任务，不存储原始照片。",
+    },
+    "scope.writePhotosAlbum": {
+      desc: "用于从相册选择体态观察照片，仅用于本次体态任务。",
+    },
+  },
+  requiredPrivateInfos: [
+    "chooseAddress",
+  ],
+  networkTimeout: {
+    request: 15000,
+    connectSocket: 10000,
+    uploadFile: 30000,
+    downloadFile: 30000,
+  },
 });

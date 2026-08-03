@@ -14,14 +14,14 @@ export function getFamilySummary() {
   ).then((family) => ({
     family_id: family.id,
     display_name: family.display_name,
-    children: family.children.map(mapChild),
+    children: family.children?.map(mapChild) ?? [],
     pending_actions: 0,
   }));
 }
 
 export function listChildren() {
   return request<Child[]>("/families/me/children").then((items) =>
-    items.map(mapChild),
+    (items ?? []).map(mapChild),
   );
 }
 

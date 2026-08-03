@@ -151,7 +151,7 @@ export default function AssessmentInputPage() {
         </Button>
       </View>
       <Text className="muted">
-        当前开发环境使用演示评分夹具。正式上线前必须替换为审核发布的标准知识库规则。
+        数据将用于生成体测评分报告，标准知识库由 BOKS 服务端管理。
       </Text>
     </View>
   );
