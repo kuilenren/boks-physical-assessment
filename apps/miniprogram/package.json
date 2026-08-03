@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "dev:weapp": "taro build --type weapp --watch",
-    "build:weapp": "taro build --type weapp",
-    "typecheck": "tsc --noEmit"
+    "build:weapp": "taro build --type weapp && node scripts/copy-sitemap.js",
+    "typecheck": "tsc --noEmit",
+    "build": "taro build --type weapp && copy sitemap.json dist/sitemap.json"
   },
   "dependencies": {
     "@boks/contracts": "workspace:*",
