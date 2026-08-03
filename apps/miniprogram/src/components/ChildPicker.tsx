@@ -6,13 +6,14 @@ export function ChildPicker({
   value,
   onChange,
 }: {
-  children: ChildProfile[];
+  children: ChildProfile[] | undefined;
   value: string;
   onChange: (childId: string) => void;
 }) {
+  const safeChildren = children || [];
   const index = Math.max(
     0,
-    children.findIndex((child) => child.child_id === value),
+    safeChildren.findIndex((child) => child.child_id === value),
   );
 
   return (
@@ -20,14 +21,14 @@ export function ChildPicker({
       <Text className="field-label">选择孩子</Text>
       <Picker
         mode="selector"
-        range={children.map((child) => child.display_name)}
+        range={safeChildren.map((child) => child.display_name)}
         value={index}
         onChange={(event) =>
-          onChange(children[Number(event.detail.value)]?.child_id ?? value)
+          onChange(safeChildren[Number(event.detail.value)]?.child_id ?? value)
         }
       >
         <View className="picker-field">
-          {children[index]?.display_name ?? "请选择孩子"}
+          {safeChildren[index]?.display_name ?? "请选择孩子"}
         </View>
       </Picker>
     </View>

@@ -2,7 +2,7 @@ import { Button, Text, Textarea, View } from "@tarojs/components";
 import Taro, { useLoad } from "@tarojs/taro";
 import { useState } from "react";
 import type { ChatMessage, ChildProfile } from "../../models";
-import { createConversation, sendMessage } from "../../services/chat";
+import { createConversation, getConversation, sendMessage } from "../../services/chat";
 import { listChildren } from "../../services/family";
 import { ChildPicker } from "../../components/ChildPicker";
 import { LoadingState } from "../../components/PageState";
@@ -23,10 +23,12 @@ export default function ChatPage() {
 
   useLoad(() => {
     void Promise.all([listChildren(), createConversation()])
-      .then(([childItems, conversation]) => {
+      .then(async ([childItems, conversation]) => {
         setChildren(childItems);
         setChildId(selectChild(childItems));
         setConversationId(conversation.id);
+        const history = await getConversation(conversation.id);
+        setMessages(history.messages ?? []);
       })
       .catch((error) => showError(error, "咨询服务加载失败。"))
       .finally(() => setLoading(false));

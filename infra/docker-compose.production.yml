@@ -1,0 +1,94 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-boks}
+      POSTGRES_USER: ${POSTGRES_USER:-boks}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-boks-local-only}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER:-boks} -d $${POSTGRES_DB:-boks}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ../services/api
+      dockerfile: Dockerfile
+    image: boks-api:latest
+    environment:
+      BOKS_RUNTIME_ENV: ${BOKS_RUNTIME_ENV:-development}
+      BOKS_DATABASE_URL: ${BOKS_DATABASE_URL:-postgres://boks:boks-local-only@postgres:5432/boks}
+      BOKS_ADMIN_TOKEN: ${BOKS_ADMIN_TOKEN:-}
+      BOKS_ADMIN_REVIEWERS: ${BOKS_ADMIN_REVIEWERS:-}
+      BOKS_ADMIN_MFA_SECRET: ${BOKS_ADMIN_MFA_SECRET:-}
+      BOKS_OBJECT_STORAGE_BUCKET: ${BOKS_OBJECT_STORAGE_BUCKET:-}
+      BOKS_OBJECT_STORAGE_ACCESS_KEY: ${BOKS_OBJECT_STORAGE_ACCESS_KEY:-}
+      BOKS_OBJECT_STORAGE_SECRET_KEY: ${BOKS_OBJECT_STORAGE_SECRET_KEY:-}
+      BOKS_OBJECT_STORAGE_ENDPOINT: ${BOKS_OBJECT_STORAGE_ENDPOINT:-}
+      BOKS_STORAGE_MODE: ${BOKS_STORAGE_MODE:-postgres}
+      BOKS_WECHAT_APP_ID: ${BOKS_WECHAT_APP_ID:-}
+      BOKS_WECHAT_APP_SECRET: ${BOKS_WECHAT_APP_SECRET:-}
+      BOKS_PHONE_AUTH_URL: ${BOKS_PHONE_AUTH_URL:-}
+      BOKS_PHONE_AUTH_TOKEN: ${BOKS_PHONE_AUTH_TOKEN:-}
+      BOKS_CORS_ORIGIN: ${BOKS_CORS_ORIGIN:-}
+      BOKS_PUBLIC_HOST: ${BOKS_PUBLIC_HOST:-}
+      API_PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - api-data:/app/data
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit; while true; do sleep 24h & wait $${!}; certbot renew --quiet --webroot -w /var/www/certbot; done;'"
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  redis-data:
+  api-data:

@@ -51,7 +51,7 @@ export function submitSession(sessionId: string, values: AssessmentValue[]) {
 export function listReports(childId: string, children: ChildProfile[] = []) {
   return request<ContractAssessmentReport[]>(
     `/reports?child_id=${encodeURIComponent(childId)}`,
-  ).then((items) => items.map((item) => mapReport(item, children)));
+  ).then((items) => (items ?? []).map((item) => mapReport(item, children)));
 }
 
 export function getReport(reportId: string, child?: ChildProfile) {
@@ -69,11 +69,11 @@ export function getAssessmentTrend(childId: string) {
 function mapSchema(schema: ContractAssessmentSchema): AssessmentSchema {
   return {
     ...schema,
-    indicators: schema.indicators.map((indicator) => ({
+    indicators: schema.indicators?.map((indicator) => ({
       ...indicator,
       display_name: indicator.label,
       description: indicator.help_text,
-    })),
+    })) ?? [],
   };
 }
 

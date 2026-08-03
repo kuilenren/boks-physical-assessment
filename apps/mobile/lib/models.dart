@@ -45,9 +45,10 @@ class Family {
     return Family(
       id: json['id'] as String,
       displayName: json['display_name'] as String,
-      children: (json['children'] as List<dynamic>)
-          .map((item) => Child.fromJson(item as Map<String, dynamic>))
-          .toList(),
+      children: (json['children'] as List<dynamic>?)
+              ?.map((item) => Child.fromJson(item as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 }
@@ -140,12 +141,13 @@ class AssessmentSchema {
       measurementDate: json['measurement_date'] as String,
       childId: json['child_id'] as String,
       mode: json['mode'] as String,
-      indicators: (json['indicators'] as List<dynamic>)
-          .map(
-            (item) =>
-                AssessmentIndicator.fromJson(item as Map<String, dynamic>),
-          )
-          .toList(),
+      indicators: (json['indicators'] as List<dynamic>?)
+              ?.map(
+                (item) =>
+                    AssessmentIndicator.fromJson(item as Map<String, dynamic>),
+              )
+              .toList() ??
+          [],
     );
   }
 }
@@ -294,17 +296,17 @@ class AssessmentReport {
       mode: json['mode'] as String,
       totalScore: (json['total_score'] as num?)?.toDouble(),
       level: json['level'] as String,
-      results: (json['results'] as List<dynamic>)
-          .map((item) => ScoreResult.fromJson(item as Map<String, dynamic>))
-          .toList(),
-      priorityActions: (json['priority_actions'] as List<dynamic>)
-          .cast<String>(),
+      results: (json['results'] as List<dynamic>?)
+              ?.map((item) => ScoreResult.fromJson(item as Map<String, dynamic>))
+              .toList() ??
+          [],
+      priorityActions: (json['priority_actions'] as List<dynamic>?)?.cast<String>() ?? [],
       standardVersionId: json['standard_version_id'] as String,
       standardName: json['standard_name'] as String,
       standardStatus: json['standard_status'] as String,
       algorithmVersion: json['algorithm_version'] as String,
       knowledgeSnapshotId: json['knowledge_snapshot_id'] as String,
-      limitations: (json['limitations'] as List<dynamic>).cast<String>(),
+      limitations: (json['limitations'] as List<dynamic>?)?.cast<String>() ?? [],
       generatedAt: json['generated_at'] as String,
     );
   }
@@ -395,9 +397,12 @@ class TrainingPlan {
       daysPerWeek: json['days_per_week'] as int,
       minutesPerSession: json['minutes_per_session'] as int,
       status: json['status'] as String,
-      items: (json['items'] as List<dynamic>)
-          .map((item) => TrainingItem.fromJson(item as Map<String, dynamic>))
-          .toList(),
+      items: (json['items'] as List<dynamic>?)
+              ?.map(
+                (item) => TrainingItem.fromJson(item as Map<String, dynamic>),
+              )
+              .toList() ??
+          [],
     );
   }
 }
@@ -450,18 +455,18 @@ class PostureSession {
   final List<String> limitations;
 
   factory PostureSession.fromJson(Map<String, dynamic> json) {
-    final quality = json['quality'] as Map<String, dynamic>;
+    final quality = json['quality'] as Map<String, dynamic>?;
     return PostureSession(
       id: json['id'] as String,
       childId: json['child_id'] as String,
       status: json['status'] as String,
-      requiredViews: (json['required_views'] as List<dynamic>).cast<String>(),
-      attachedViews: (json['attached_views'] as List<dynamic>).cast<String>(),
-      qualityOverall: (quality['overall'] as String),
+      requiredViews: (json['required_views'] as List<dynamic>?)?.cast<String>() ?? [],
+      attachedViews: (json['attached_views'] as List<dynamic>?)?.cast<String>() ?? [],
+      qualityOverall: (quality?['overall'] as String?) ?? 'pending',
       analysis: json['analysis'] is Map<String, dynamic>
           ? PostureAnalysis.fromJson(json['analysis'] as Map<String, dynamic>)
           : null,
-      limitations: (json['limitations'] as List<dynamic>).cast<String>(),
+      limitations: (json['limitations'] as List<dynamic>?)?.cast<String>() ?? [],
     );
   }
 }
@@ -522,10 +527,9 @@ class PostureReport {
       riskLevel: json['risk_level'] as String,
       observationStatus: json['observation_status'] as String,
       confidence: json['confidence'] as String,
-      observations: (json['observations'] as List<dynamic>).cast<String>(),
-      recommendations: (json['recommendations'] as List<dynamic>)
-          .cast<String>(),
-      limitations: (json['limitations'] as List<dynamic>).cast<String>(),
+      observations: (json['observations'] as List<dynamic>?)?.cast<String>() ?? [],
+      recommendations: (json['recommendations'] as List<dynamic>?)?.cast<String>() ?? [],
+      limitations: (json['limitations'] as List<dynamic>?)?.cast<String>() ?? [],
       generatedAt: json['generated_at'] as String,
     );
   }
@@ -571,9 +575,10 @@ class ChatMessage {
       id: json['id'] as String,
       role: json['role'] as String,
       content: json['content'] as String,
-      citations: (json['citations'] as List<dynamic>)
-          .map((item) => ChatCitation.fromJson(item as Map<String, dynamic>))
-          .toList(),
+      citations: (json['citations'] as List<dynamic>?)
+              ?.map((item) => ChatCitation.fromJson(item as Map<String, dynamic>))
+              .toList() ??
+          [],
       createdAt: json['created_at'] as String,
     );
   }
@@ -588,9 +593,10 @@ class ChatConversation {
   factory ChatConversation.fromJson(Map<String, dynamic> json) {
     return ChatConversation(
       id: json['id'] as String,
-      messages: (json['messages'] as List<dynamic>)
-          .map((item) => ChatMessage.fromJson(item as Map<String, dynamic>))
-          .toList(),
+      messages: (json['messages'] as List<dynamic>?)
+              ?.map((item) => ChatMessage.fromJson(item as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 }

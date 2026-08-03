@@ -80,7 +80,7 @@ export default function PrivacyPage() {
       <View className="card">
         <Text className="section-title">重要限制</Text>
         <Text className="muted">
-          开发环境中的评分为演示夹具。正式上线前，标准知识库、算法版本和数据存储策略必须完成审核发布。
+          评分规则基于服务端标准知识库，正式版本需完成审核发布。
         </Text>
       </View>
       <View className="card">

@@ -151,17 +151,6 @@ export default function HomePage() {
       >
         隐私与数据说明
       </Text>
-      <Button
-        className="secondary-button"
-        onClick={() => {
-          void Taro.showToast({
-            title: "当前为开发演示环境",
-            icon: "none",
-          }).catch(showError);
-        }}
-      >
-        开发环境说明
-      </Button>
     </View>
   );
 }

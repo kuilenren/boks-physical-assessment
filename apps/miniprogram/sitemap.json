@@ -1,0 +1,52 @@
+{
+  "rules": [
+    {
+      "action": "allow",
+      "page": "pages/home/index"
+    },
+    {
+      "action": "allow",
+      "page": "pages/assessment/start"
+    },
+    {
+      "action": "allow",
+      "page": "pages/assessment/input"
+    },
+    {
+      "action": "allow",
+      "page": "pages/report/list"
+    },
+    {
+      "action": "allow",
+      "page": "pages/report/detail"
+    },
+    {
+      "action": "allow",
+      "page": "pages/training/detail"
+    },
+    {
+      "action": "allow",
+      "page": "pages/posture/consent"
+    },
+    {
+      "action": "allow",
+      "page": "pages/posture/capture"
+    },
+    {
+      "action": "allow",
+      "page": "pages/posture/report"
+    },
+    {
+      "action": "allow",
+      "page": "pages/chat/index"
+    },
+    {
+      "action": "allow",
+      "page": "pages/privacy/index"
+    },
+    {
+      "action": "allow",
+      "page": "pages/family/index"
+    }
+  ]
+}
