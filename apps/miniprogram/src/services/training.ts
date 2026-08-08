@@ -23,17 +23,17 @@ export function createTrainingPlan(childId: string, sourceReportId?: string) {
 export function listTrainingPlans(childId?: string) {
   const query = childId ? `?child_id=${encodeURIComponent(childId)}` : "";
   return request<ContractTrainingPlan[]>(`/training/plans${query}`).then(
-    (items) => items.map(mapPlan),
+    (items) => (items || []).map(mapPlan),
   );
 }
 
 function mapPlan(plan: ContractTrainingPlan): TrainingPlan {
-  const dayGroups = new Map<string, typeof plan.items>();
-  for (const item of plan.items) {
-    const key = `${item.week}-${item.day}`;
-    const items = dayGroups.get(key) ?? [];
-    items.push(item);
-    dayGroups.set(key, items);
+  const items = plan.items ?? [];
+  const dayGroups = new Map<number, typeof items>();
+  for (const item of items.filter((item) => item.week === 1)) {
+    const group = dayGroups.get(item.day) ?? [];
+    group.push(item);
+    dayGroups.set(item.day, group);
   }
   return {
     plan_id: plan.id,
@@ -43,25 +43,17 @@ function mapPlan(plan: ContractTrainingPlan): TrainingPlan {
     duration_weeks: plan.duration_weeks,
     sessions_per_week: plan.days_per_week,
     session_minutes: plan.minutes_per_session,
-    weekly_schedule: [...dayGroups.entries()].map(([key, items]) => {
-      const [week, day] = key.split("-").map(Number);
-      return {
-        week,
-        day,
-        day_label: `第 ${(week - 1) * plan.days_per_week + day} 天`,
-        focus:
-          items.find((item) => item.phase === "main")?.exercise_name ??
-          "综合训练",
-        exercises: items.map((item) => item.exercise_name),
-        minutes: items.reduce(
-          (total, item) => total + item.duration_minutes,
-          0,
-        ),
-      };
-    }),
+    weekly_schedule: [...dayGroups.entries()].map(([day, group]) => ({
+      day_label: `第 ${day} 天`,
+      focus:
+        group.find((item) => item.phase === "main")?.exercise_name ??
+        "综合训练",
+      exercises: group.map((item) => item.exercise_name),
+      minutes: group.reduce((total, item) => total + item.duration_minutes, 0),
+    })),
     safety_notes: [
       ...new Set(
-        plan.items.map((item) => `${item.safety_note} ${item.stop_condition}`),
+        items.map((item) => `${item.safety_note} ${item.stop_condition}`),
       ),
     ],
     status: plan.status,

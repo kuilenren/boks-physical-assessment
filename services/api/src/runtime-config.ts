@@ -97,7 +97,10 @@ export function assertRuntimeConfig(): void {
       ),
     );
     errors.push(
-      ...requiredProduction("BOKS_AI_SERVICE_URL", process.env.BOKS_AI_SERVICE_URL),
+      ...requiredProduction(
+        "BOKS_AI_SERVICE_URL",
+        process.env.BOKS_AI_SERVICE_URL,
+      ),
     );
     if (
       process.env.BOKS_AI_SERVICE_URL &&

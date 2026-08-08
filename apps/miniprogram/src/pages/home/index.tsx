@@ -208,9 +208,7 @@ export default function HomePage() {
       {insightError ? (
         <View className="danger-note">
           <Icon name="alert" size={16} tone="danger" />
-          <Text>
-            {insightError} 可先继续录入体测或查看已有家庭档案。
-          </Text>
+          <Text>{insightError} 可先继续录入体测或查看已有家庭档案。</Text>
         </View>
       ) : null}
 

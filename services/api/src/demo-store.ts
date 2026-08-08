@@ -885,7 +885,9 @@ function engineToScoreResults(
     indicator_code: item.indicator_code,
     label:
       labelByCode.get(item.indicator_code) ??
-      (item.indicator_code === "bmi" ? "身体质量指数（BMI）" : item.indicator_code),
+      (item.indicator_code === "bmi"
+        ? "身体质量指数（BMI）"
+        : item.indicator_code),
     raw_value: item.raw_value,
     unit: unitByCode.get(item.indicator_code) ?? "",
     score: item.score,
@@ -908,9 +910,7 @@ export function calculateResults(
     findStandard(schema.standard_version_id, target) ??
     defaultConfiguration.standards[0];
   if (selected.id === NATIONAL_2014_STANDARD_ID) {
-    const child = target.children.find(
-      (item) => item.id === schema.child_id,
-    );
+    const child = target.children.find((item) => item.id === schema.child_id);
     if (!child) {
       const results: ScoreResult[] = [];
       return {

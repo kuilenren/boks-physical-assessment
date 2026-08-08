@@ -1,7 +1,7 @@
 {
   "color": {
     "brand": {
-      "50":  { "value": "#f4faf3" },
+      "50": { "value": "#f4faf3" },
       "100": { "value": "#e8f6e6" },
       "300": { "value": "#a4df9a" },
       "500": { "value": "#4faf68" },
@@ -16,12 +16,12 @@
       "950": { "value": "#0a2a20" }
     },
     "sky": {
-      "50":   { "value": "#f2f9fb" },
-      "100":  { "value": "#e5f3f7" },
-      "600":  { "value": "#2b6f86" }
+      "50": { "value": "#f2f9fb" },
+      "100": { "value": "#e5f3f7" },
+      "600": { "value": "#2b6f86" }
     },
     "amber": {
-      "50":  { "value": "#fff9eb" },
+      "50": { "value": "#fff9eb" },
       "100": { "value": "#fff1d0" },
       "700": { "value": "#8a5a00" }
     },
@@ -33,13 +33,13 @@
       "900": { "value": "#142c25" }
     },
     "danger": {
-      "50":  { "value": "#fff5f4" },
+      "50": { "value": "#fff5f4" },
       "100": { "value": "#ffe8e5" },
       "600": { "value": "#b42318" }
     },
     "surface": {
-      "white":  { "value": "#ffffff" },
-      "soft":   { "value": "#f7fbf6" },
+      "white": { "value": "#ffffff" },
+      "soft": { "value": "#f7fbf6" },
       "canvas": { "value": "#eef6ec" }
     }
   }

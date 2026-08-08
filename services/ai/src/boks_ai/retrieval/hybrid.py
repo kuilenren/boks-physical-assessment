@@ -3,15 +3,13 @@ Hybrid Retriever（pgvector + BM25 + RRF 融合）
 数据源：boks.boks_knowledge_chunks（pgvector 768 维 + JSONB bm25_terms）
 """
 from __future__ import annotations
-import json
-import math
+
 from dataclasses import dataclass
-from typing import Sequence
 
 import asyncpg
 
-from .bm25 import BM25Index, tokenize
-from ..embeddings.client import get_embedder, EMBED_DIM
+from ..embeddings.client import get_embedder
+from .bm25 import BM25Index
 
 
 @dataclass

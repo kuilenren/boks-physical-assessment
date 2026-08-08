@@ -4,12 +4,17 @@
 import { strict as assert } from "node:assert";
 
 const API = process.env.API_BASE ?? "http://127.0.0.1:3000/v1";
-let pass = 0, fail = 0;
+let pass = 0,
+  fail = 0;
 
 async function req(path, opts = {}) {
   const r = await fetch(`${API}${path}`, {
     ...opts,
-    headers: { "Content-Type": "application/json", "X-Client-Version": "0.2.0-regression", ...opts.headers },
+    headers: {
+      "Content-Type": "application/json",
+      "X-Client-Version": "0.2.0-regression",
+      ...opts.headers,
+    },
   });
   const body = await r.json().catch(() => ({}));
   return { status: r.status, body };

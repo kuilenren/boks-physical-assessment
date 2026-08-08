@@ -5,8 +5,8 @@ Knowledge Sync：从 PG 读取已发布的知识库版本，重新切分 + embed
 - 入库：boks.boks_knowledge_chunks
 """
 from __future__ import annotations
+
 import re
-from typing import Iterable
 
 import asyncpg
 
@@ -69,8 +69,7 @@ async def sync_published(pool: asyncpg.Pool) -> int:
         """,
     )
     total = 0
-    async with pool.acquire() as conn:
-        async with conn.transaction():
+    async with pool.acquire() as conn, conn.transaction():
             for row in rows:
                 # 已有 chunks 则跳过
                 existing = await conn.fetchval(

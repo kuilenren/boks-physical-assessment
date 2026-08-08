@@ -9,8 +9,13 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const META = JSON.parse(readFileSync(path.join(ROOT, "packages/version/meta.json"), "utf8"));
+const ROOT = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../..",
+);
+const META = JSON.parse(
+  readFileSync(path.join(ROOT, "packages/version/meta.json"), "utf8"),
+);
 
 export type Channel = "stable" | "beta" | "canary";
 export type Client = "miniprogram" | "mobile" | "admin" | "api" | "ai";
@@ -35,12 +40,17 @@ function parseVersion(v: string): number[] {
   return main.split(".").map((s) => parseInt(s, 10));
 }
 
-export function isCompatible(clientVersion: string, serverVersion: string): boolean {
+export function isCompatible(
+  clientVersion: string,
+  serverVersion: string,
+): boolean {
   return compareVersions(clientVersion, serverVersion) >= 0;
 }
 
 export function supportsHotUpdate(clientVersion: string): boolean {
-  return compareVersions(clientVersion, META.hot_update.min_native_version) >= 0;
+  return (
+    compareVersions(clientVersion, META.hot_update.min_native_version) >= 0
+  );
 }
 
 export function getReleaseNotes(version: string): string[] {

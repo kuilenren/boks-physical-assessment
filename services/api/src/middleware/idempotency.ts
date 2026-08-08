@@ -17,31 +17,47 @@ function redisKey(k: string): string {
   return `${KEY_PREFIX}${k}`;
 }
 
-async function loadFromRedis(keyHash: string): Promise<{ status: number; body: unknown } | undefined> {
+async function loadFromRedis(
+  keyHash: string,
+): Promise<{ status: number; body: unknown } | undefined> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const c = (await getRedis()) as any;
   if (!c) return undefined;
   try {
     const raw = await c.get(redisKey(keyHash));
-    return raw ? (JSON.parse(raw) as { status: number; body: unknown }) : undefined;
+    return raw
+      ? (JSON.parse(raw) as { status: number; body: unknown })
+      : undefined;
   } catch {
     return undefined;
   }
 }
 
-async function saveToRedis(keyHash: string, status: number, body: unknown): Promise<void> {
+async function saveToRedis(
+  keyHash: string,
+  status: number,
+  body: unknown,
+): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const c = (await getRedis()) as any;
   if (!c) return;
   try {
-    await c.set(redisKey(keyHash), JSON.stringify({ status, body }), { EX: TTL_SECONDS });
+    await c.set(redisKey(keyHash), JSON.stringify({ status, body }), {
+      EX: TTL_SECONDS,
+    });
   } catch {
     // ignore
   }
 }
 
-async function loadFromPg(pool: Pool, keyHash: string): Promise<{ status: number; body: unknown } | undefined> {
-  const { rows } = await pool.query<{ response_status: number; response_body: unknown }>(
+async function loadFromPg(
+  pool: Pool,
+  keyHash: string,
+): Promise<{ status: number; body: unknown } | undefined> {
+  const { rows } = await pool.query<{
+    response_status: number;
+    response_body: unknown;
+  }>(
     `SELECT response_status, response_body FROM boks.boks_idempotency_keys
      WHERE key_hash = $1 AND expires_at > NOW()`,
     [keyHash],
@@ -51,7 +67,15 @@ async function loadFromPg(pool: Pool, keyHash: string): Promise<{ status: number
     : undefined;
 }
 
-async function saveToPg(pool: Pool, keyHash: string, route: string, method: string, requestHash: string, status: number, body: unknown): Promise<void> {
+async function saveToPg(
+  pool: Pool,
+  keyHash: string,
+  route: string,
+  method: string,
+  requestHash: string,
+  status: number,
+  body: unknown,
+): Promise<void> {
   await pool.query(
     `INSERT INTO boks.boks_idempotency_keys
        (key_hash, method, route, request_hash, response_status, response_body, expires_at)
@@ -72,7 +96,12 @@ export async function idempotencyMiddleware(
   next: NextFunction,
 ): Promise<void> {
   const method = req.method;
-  if (method !== "POST" && method !== "PATCH" && method !== "DELETE" && method !== "PUT") {
+  if (
+    method !== "POST" &&
+    method !== "PATCH" &&
+    method !== "DELETE" &&
+    method !== "PUT"
+  ) {
     next();
     return;
   }
@@ -107,7 +136,9 @@ export async function idempotencyMiddleware(
     }
   }
 
-  const cached = (await loadFromRedis(cacheKeyOnly)) ?? (pool ? await loadFromPg(pool, cacheKeyOnly) : undefined);
+  const cached =
+    (await loadFromRedis(cacheKeyOnly)) ??
+    (pool ? await loadFromPg(pool, cacheKeyOnly) : undefined);
   if (cached) {
     res.status(cached.status).json(cached.body);
     return;
@@ -117,10 +148,21 @@ export async function idempotencyMiddleware(
   const originalJson = res.json.bind(res);
   res.json = ((body: unknown) => {
     void saveToRedis(cacheKeyOnly, res.statusCode, body);
-    if (pool) void saveToPg(pool, cacheKeyOnly, route, method, requestHash, res.statusCode, body);
+    if (pool)
+      void saveToPg(
+        pool,
+        cacheKeyOnly,
+        route,
+        method,
+        requestHash,
+        res.statusCode,
+        body,
+      );
     if (process.env.BOKS_DEBUG_IDEMPOTENCY === "true") {
       // eslint-disable-next-line no-console
-      console.warn(`[idempotency] saved ${cacheKeyOnly} status=${res.statusCode}`);
+      console.warn(
+        `[idempotency] saved ${cacheKeyOnly} status=${res.statusCode}`,
+      );
     }
     return originalJson(body);
   }) as typeof res.json;

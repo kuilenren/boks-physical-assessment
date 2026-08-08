@@ -3,7 +3,11 @@ import { showToast, useLoad } from "@tarojs/taro";
 import { useState } from "react";
 import type { ChildProfile } from "../../models";
 import { createChild, listChildren } from "../../services/family";
-import { EmptyState, ErrorState, LoadingState } from "../../components/PageState";
+import {
+  EmptyState,
+  ErrorState,
+  LoadingState,
+} from "../../components/PageState";
 import { IconBadge } from "../../components/Icon";
 import { formatDate } from "../../utils/format";
 import { showError } from "../../utils/error";

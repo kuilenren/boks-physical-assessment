@@ -5,12 +5,12 @@ Embedding 客户端（sentence-transformers 真实 BGE-M3，本地 CPU）
 - 缓存：本地 sqlite（生产可换 Redis）
 """
 from __future__ import annotations
-import os
+
 import hashlib
-import json
+import os
 import sqlite3
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 EMBED_DIM = 768
 DEFAULT_MODEL = os.environ.get("BOKS_EMBED_MODEL", "intfloat/multilingual-e5-base")
@@ -43,7 +43,7 @@ def _cache_conn() -> sqlite3.Connection:
 
 
 def _key(text: str, model: str) -> str:
-    return hashlib.sha256(f"{model}|{text}".encode("utf-8")).hexdigest()
+    return hashlib.sha256(f"{model}|{text}".encode()).hexdigest()
 
 
 def _pack(vec: Sequence[float]) -> bytes:
@@ -69,7 +69,7 @@ class EmbeddingClient:
         try:
             from sentence_transformers import SentenceTransformer
             self._model = SentenceTransformer(self.model_name, device="cpu")
-        except (ImportError, Exception) as e:
+        except (ImportError, RuntimeError) as e:
             # 回退：哈希伪 embedding（仅占位，使开发环境可跑通 RAG 流程）
             import sys
             print(f"[embed] sentence-transformers unavailable ({e}); falling back to hash embedding", file=sys.stderr)

@@ -5,7 +5,11 @@ import type { AssessmentReport, ChildProfile } from "../../models";
 import { listReports } from "../../services/assessment";
 import { listChildren } from "../../services/family";
 import { ChildPicker } from "../../components/ChildPicker";
-import { EmptyState, ErrorState, LoadingState } from "../../components/PageState";
+import {
+  EmptyState,
+  ErrorState,
+  LoadingState,
+} from "../../components/PageState";
 import { IconBadge } from "../../components/Icon";
 import {
   selectChild,
@@ -109,9 +113,11 @@ export default function ReportListPage() {
             <View
               className="card list-card"
               key={report.report_id}
-              onClick={() => openRoute("/pages/report/detail", {
+              onClick={() =>
+                openRoute("/pages/report/detail", {
                   reportId: report.report_id,
-                })}
+                })
+              }
             >
               <View className="child-row">
                 <View>
@@ -122,7 +128,7 @@ export default function ReportListPage() {
                     {report.grade_label || "体测报告"}
                   </Text>
                   <Text className="muted">
-                                        {formatDate(report.created_at)} · {report.assessment_date}
+                    {formatDate(report.created_at)} · {report.assessment_date}
                   </Text>
                 </View>
                 <IconBadge name="report" tone="brand" size={36} />
