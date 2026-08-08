@@ -27,16 +27,14 @@ interface ApiFailure {
   };
 }
 
-const runtimeEnv =
-  typeof process === "undefined"
-    ? ({} as Record<string, string | undefined>)
-    : process.env;
+// 注意：必须直接读取 process.env.X（webpack DefinePlugin 只做字面量替换，
+// 经中间变量间接读取无法在构建期注入，小程序运行时没有 process）。
 const isProduction =
-  runtimeEnv.NODE_ENV === "production" ||
-  runtimeEnv.BOKS_BUILD_TARGET === "production";
+  process.env.NODE_ENV === "production" ||
+  process.env.BOKS_BUILD_TARGET === "production";
 const PLACEHOLDER_HOSTS = /api\.example\.invalid|example\.com|example\.org/i;
 const API_BASE_URL = (() => {
-  const configured = runtimeEnv.TARO_APP_API_BASE_URL;
+  const configured = process.env.TARO_APP_API_BASE_URL;
   if (configured && configured.startsWith("http")) {
     if (isProduction && PLACEHOLDER_HOSTS.test(configured))
       throw new Error(
@@ -200,7 +198,7 @@ async function ensureAuth(force = false): Promise<void> {
   if (!force && taroGetStorageSync<string>(AUTH_TOKEN_KEY)) return;
   if (authPromise) return authPromise;
 
-  const configuredToken = runtimeEnv.TARO_APP_API_TOKEN;
+  const configuredToken = process.env.TARO_APP_API_TOKEN;
   if (!force && !isProduction && configuredToken) {
     taroSetStorageSync(AUTH_TOKEN_KEY, configuredToken);
     return;

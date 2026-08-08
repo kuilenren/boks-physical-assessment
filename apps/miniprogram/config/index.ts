@@ -43,6 +43,11 @@ const config: UserConfigExport = {
   },
   h5: {},
   defineConstants: {
+    // 注意：不要在此定义 process.env.NODE_ENV —— Taro 已根据 mode 自动注入，
+    // 重复定义会触发 webpack DefinePlugin 冲突告警。
+    "process.env.BOKS_BUILD_TARGET": JSON.stringify(
+      process.env.BOKS_BUILD_TARGET ?? "",
+    ),
     "process.env.TARO_APP_API_BASE_URL": JSON.stringify(
       process.env.TARO_APP_API_BASE_URL ?? "",
     ),
