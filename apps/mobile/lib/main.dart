@@ -18,7 +18,7 @@ class BoksApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final apiClient = client ?? BoksApiClient();
     return MaterialApp(
-      title: 'BOKS',
+      title: 'BOKS智能体测体态分析',
       debugShowCheckedModeBanner: false,
       theme: buildBoksTheme(),
       home: AuthGate(client: apiClient),
@@ -61,7 +61,7 @@ class _AuthGateState extends State<AuthGate> {
         if (snapshot.hasError) {
           return LoginScreen(client: widget.client, onLoggedIn: _reload);
         }
-        return HomeScreen(client: widget.client);
+        return HomeScreen(client: widget.client, onLoggedOut: _reload);
       },
     );
   }

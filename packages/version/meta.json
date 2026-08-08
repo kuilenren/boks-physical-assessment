@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "service": "boks",
+  "channels": {
+    "stable": {
+      "miniprogram": "0.2.0",
+      "mobile": "0.2.0",
+      "admin": "0.1.0",
+      "api": "0.2.0",
+      "ai": "0.2.0"
+    },
+    "beta": {
+      "miniprogram": "0.3.0-rc.1",
+      "mobile": "0.3.0-rc.1",
+      "admin": "0.2.0-rc.1",
+      "api": "0.3.0-rc.1",
+      "ai": "0.3.0-rc.1"
+    },
+    "canary": {
+      "miniprogram": "0.3.0-canary.1",
+      "mobile": "0.3.0-canary.1",
+      "admin": "0.2.0-canary.1",
+      "api": "0.3.0-canary.1",
+      "ai": "0.3.0-canary.1"
+    }
+  },
+  "release_notes": {
+    "0.2.0": [
+      "PG + pgvector + RLS + 信封加密全链路",
+      "Redis 令牌桶限流 + Idempotency-Key 24h 缓存",
+      "LiteLLM Router + Hybrid Retriever (BGE-M3 + BM25)",
+      "流式 SSE (OAI 兼容) 接入小程序 + Flutter",
+      "design-tokens 三端一致率 100%",
+      "图标 sprite + currentColor 透传"
+    ]
+  },
+  "rollback": {
+    "strategy": "previous-stable",
+    "auto_rollback_on": ["error_rate>2%", "p95_latency_ms>4000"]
+  },
+  "ab_test": {
+    "enabled": true,
+    "buckets": {
+      "0.2.0-a": 50,
+      "0.2.0-b": 50
+    }
+  },
+  "hot_update": {
+    "enabled": true,
+    "min_native_version": "0.2.0",
+    "delivery": "https://updates.boks.local/manifest.json",
+    "rollback_url": "https://updates.boks.local/rollback.json"
+  }
+}

@@ -1,16 +1,139 @@
+﻿// BOKS visual system — calm forest brand for guardian trust
+// 单文件 token 源（避免 sass 模块系统 + sass-loader 兼容性问题）
+// 三端一致率 100%（@boks/design-tokens build 产物内联）
+// 上游：packages/design-tokens/tokens/*.json
+
+// ──────── color.brand ────────
+$color-brand-50: #f4faf3;
+$color-brand-100: #e8f6e6;
+$color-brand-300: #a4df9a;
+$color-brand-500: #4faf68;
 $color-brand-600: #2e8b57;
-$color-brand-500: #45a85b;
-$color-brand-300: #9bd88d;
-$color-brand-100: #e9f7e7;
-$color-ink-900: #173329;
-$color-ink-600: #4c6258;
+$color-brand-700: #1f6e45;
+$color-brand-800: #18533e;
+$color-brand-900: #103e2f;
+$color-brand-950: #0a2a20;
+// ──────── color.forest ────────
+$color-forest-900: #103e2f;
+$color-forest-950: #0a2a20;
+// ──────── color.sky ────────
+$color-sky-50: #f2f9fb;
+$color-sky-100: #e5f3f7;
+$color-sky-600: #2b6f86;
+// ──────── color.amber ────────
+$color-amber-50: #fff9eb;
+$color-amber-100: #fff1d0;
+$color-amber-700: #8a5a00;
+// ──────── color.ink ────────
+$color-ink-500: #72867d;
+$color-ink-600: #5b7168;
+$color-ink-700: #35584c;
+$color-ink-800: #1d3b32;
+$color-ink-900: #142c25;
+// ──────── color.danger ────────
+$color-danger-50: #fff5f4;
+$color-danger-100: #ffe8e5;
 $color-danger-600: #b42318;
-$color-surface: #ffffff;
-$color-canvas: #f7fbf6;
-$color-border: #d9e8dc;
+// ──────── color.surface ────────
+$color-surface-white: #ffffff;
+$color-surface-soft: #f7fbf6;
+$color-surface-canvas: #eef6ec;
+// ──────── alpha ────────
+$alpha-overlay-light: rgba(255, 255, 255, 0.96);
+$alpha-overlay-mid: rgba(255, 255, 255, 0.85);
+$alpha-overlay-soft: rgba(255, 255, 255, 0.60);
+$alpha-scrim-strong: rgba(10, 42, 32, 0.72);
+$alpha-scrim-mid: rgba(10, 42, 32, 0.48);
+$alpha-tint-brand: rgba(46, 139, 87, 0.08);
+$alpha-tint-brand-soft: rgba(46, 139, 87, 0.12);
+$alpha-tint-brand-mid: rgba(46, 139, 87, 0.22);
+$alpha-tint-brand-strong: rgba(46, 139, 87, 0.35);
+$alpha-tint-brand-xstrong: rgba(46, 139, 87, 0.55);
+$alpha-tint-brand-light: rgba(169, 226, 141, 0.18);
+$alpha-tint-sky: rgba(43, 111, 134, 0.08);
+$alpha-tint-sky-strong: rgba(43, 111, 134, 0.35);
+$alpha-tint-amber: rgba(138, 90, 0, 0.08);
+$alpha-tint-amber-soft: rgba(240, 216, 157, 0.9);
+$alpha-tint-danger: rgba(180, 35, 24, 0.10);
+$alpha-border-soft: rgba(215, 230, 219, 0.90);
+$alpha-border-mid: rgba(215, 230, 219, 0.88);
+$alpha-border-input: rgba(46, 139, 87, 0.28);
+$alpha-text-on-primary: rgba(232, 246, 230, 0.82);
+$alpha-text-on-primary-2: rgba(232, 246, 230, 0.84);
+$alpha-text-on-primary-3: rgba(232, 246, 230, 0.78);
+$alpha-shadow-button: rgba(46, 139, 87, 0.16);
+$alpha-shadow-card: rgba(16, 62, 47, 0.08);
+// ──────── space ────────
+$space-1: 4px;
 $space-2: 8px;
 $space-3: 12px;
 $space-4: 16px;
 $space-5: 20px;
-$radius-md: 12px;
-$radius-lg: 20px;
+$space-6: 24px;
+$space-7: 28px;
+$space-8: 32px;
+$space-10: 40px;
+// ──────── radius ────────
+$radius-sm: 12px;
+$radius-md: 16px;
+$radius-lg: 22px;
+$radius-xl: 28px;
+$radius-pill: 999px;
+// ──────── shadow ────────
+$shadow-xs: 0 1px 2px rgba(16, 62, 47, 0.04);
+$shadow-sm: 0 6px 16px rgba(16, 62, 47, 0.06);
+$shadow-card: 0 12px 30px rgba(16, 62, 47, 0.08);
+$shadow-hero: 0 18px 36px rgba(16, 62, 47, 0.18);
+$shadow-button: 0 10px 20px rgba(16, 62, 47, 0.16);
+// ──────── font ────────
+$font-display: 28px;
+$font-title: 22px;
+$font-section: 17px;
+$font-body: 15px;
+$font-meta: 13px;
+$font-caption: 12px;
+// ──────── duration ────────
+$duration-instant: 80ms;
+$duration-fast: 160ms;
+$duration-base: 240ms;
+$duration: 240ms; // 别名（向后兼容）
+$duration-slow: 360ms;
+$duration-deliberate: 480ms;
+// ──────── easing ────────
+$easing-out: cubic-bezier(0.22, 1, 0.36, 1);
+$easing-in: cubic-bezier(0.64, 0, 0.78, 0);
+$easing-in-out: cubic-bezier(0.83, 0, 0.17, 1);
+$easing-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+// ──────── z-index ────────
+$zindex-base: 1;
+$zindex-sticky: 100;
+$zindex-modal: 1000;
+$zindex-toast: 1100;
+$zindex-tooltip: 1200;
+
+// ──────── 旧命名兼容别名 ────────
+$color-forest-950: $color-brand-950;
+$color-forest-900: $color-brand-900;
+$color-forest-800: $color-brand-800;
+$color-brand-700: $color-brand-700;
+$color-brand-600: $color-brand-600;
+$color-brand-500: $color-brand-500;
+$color-brand-300: $color-brand-300;
+$color-brand-100: $color-brand-100;
+$color-brand-50: $color-brand-50;
+$color-amber-50: $color-amber-50;
+$color-amber-100: $color-amber-100;
+$color-amber-700: $color-amber-700;
+$color-ink-900: $color-ink-900;
+$color-ink-800: $color-ink-800;
+$color-ink-700: $color-ink-700;
+$color-ink-600: $color-ink-600;
+$color-ink-500: $color-ink-500;
+$color-danger-50: $color-danger-50;
+$color-danger-100: $color-danger-100;
+$color-danger-600: $color-danger-600;
+$color-surface: $color-surface-white;
+$color-surface-soft: $color-surface-soft;
+$color-canvas: $color-surface-canvas;
+$color-border: $alpha-border-soft;
+$color-border-soft: $alpha-border-soft; // 别名（向后兼容）

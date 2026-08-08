@@ -96,6 +96,14 @@ export function assertRuntimeConfig(): void {
         process.env.BOKS_OBJECT_STORAGE_SECRET_KEY,
       ),
     );
+    errors.push(
+      ...requiredProduction("BOKS_AI_SERVICE_URL", process.env.BOKS_AI_SERVICE_URL),
+    );
+    if (
+      process.env.BOKS_AI_SERVICE_URL &&
+      !process.env.BOKS_AI_SERVICE_URL.startsWith("https://")
+    )
+      errors.push("生产环境 BOKS_AI_SERVICE_URL 必须使用 HTTPS。");
     if (
       process.env.BOKS_OBJECT_STORAGE_ENDPOINT &&
       !process.env.BOKS_OBJECT_STORAGE_ENDPOINT.startsWith("https://")

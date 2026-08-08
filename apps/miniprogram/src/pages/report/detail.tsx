@@ -1,10 +1,11 @@
 import { Button, Text, View } from "@tarojs/components";
-import Taro, { useLoad } from "@tarojs/taro";
+import { navigateBack, useLoad } from "@tarojs/taro";
 import { useState } from "react";
 import type { AssessmentReport } from "../../models";
 import { getAssessmentTrend, getReport } from "../../services/assessment";
 import { ErrorState, LoadingState } from "../../components/PageState";
 import { showError } from "../../utils/error";
+import { openRoute } from "../../services/navigation";
 
 export default function ReportDetailPage() {
   const [report, setReport] = useState<AssessmentReport | null>(null);
@@ -50,7 +51,7 @@ export default function ReportDetailPage() {
       <View className="page">
         <ErrorState
           message={error || "报告不存在。"}
-          onRetry={() => void Taro.navigateBack()}
+          onRetry={() => void navigateBack()}
         />
       </View>
     );
@@ -59,10 +60,13 @@ export default function ReportDetailPage() {
 
   return (
     <View className="page">
-      <Text className="page-title">体测评分报告</Text>
-      <Text className="page-subtitle">
-        {report.child_name} · {report.assessment_date}
-      </Text>
+      <View className="page-header">
+        <Text className="page-kicker">ASSESSMENT REPORT</Text>
+        <Text className="page-title">体测评分报告</Text>
+        <Text className="page-subtitle">
+          {report.child_name} · {report.assessment_date}
+        </Text>
+      </View>
       {isReference ? (
         <View className="danger-note">
           幼儿阶段使用参考进步模式，不套用小学及以上国家总评等级。报告仅用于家庭训练沟通。
@@ -106,8 +110,9 @@ export default function ReportDetailPage() {
         <Button
           className="primary-button"
           onClick={() => {
-            void Taro.navigateTo({
-              url: `/pages/training/detail?childId=${report.child_id}&reportId=${report.report_id}`,
+            openRoute("/pages/training/detail", {
+              childId: report.child_id,
+              reportId: report.report_id,
             });
           }}
         >

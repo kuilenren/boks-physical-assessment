@@ -1,4 +1,4 @@
-# BOKS（搏克斯）儿童体测与体态健康平台
+# BOKS智能体测体态分析
 
 这是一套面向 BOKS 自有学生及其家长的产品研发基线文档。产品以体测数据和立体姿态照片为输入，生成可追溯的体测评分、体态观察报告、运动训练建议与阶段计划，并提供 BOKS 内部内容、知识库和安全审核后台。
 
@@ -31,6 +31,16 @@
 | [11-security-privacy-compliance.md](docs/11-security-privacy-compliance.md) | 未成年人、照片、健康推断、隐私、医疗边界和安全 |
 | [12-test-release-operations.md](docs/12-test-release-operations.md) | 测试、验收、监控、知识库发布和版本上线 |
 | [13-production-gap-and-remediation-plan.md](docs/13-production-gap-and-remediation-plan.md) | 正式上线差距分析与分阶段修复完善计划 |
+| [14-market-standard-audit.md](docs/14-market-standard-audit.md) | 基线市场审计 |
+| [15-execution-plan.md](docs/15-execution-plan.md) | 基线执行方案 |
+| [16-comprehensive-market-standard-audit-2026.md](docs/16-comprehensive-market-standard-audit-2026.md) | 综合审计强化版（58KB） |
+| [17-detailed-execution-roadmap-2026.md](docs/17-detailed-execution-roadmap-2026.md) | 详细执行方案强化版（38KB） |
+| [18-ai-agent-deep-dive.md](docs/18-ai-agent-deep-dive.md) | AI Agent 工具调用与多轮规划深化 |
+| [19-domain-data-assets.md](docs/19-domain-data-assets.md) | 专业领域数据资产深化 |
+| [20-design-motion-icons-system.md](docs/20-design-motion-icons-system.md) | 设计令牌 / 动效 / 图标资产化深化 |
+| [21-database-migrations-rls-encryption.md](docs/21-database-migrations-rls-encryption.md) | 数据库迁移 / RLS / 加密深化 |
+| [22-incremental-roadmap-addendum.md](docs/22-incremental-roadmap-addendum.md) | 增量深化总览（依赖矩阵 + 决策项） |
+| [23-industrial-upgrade-report-2026.md](docs/23-industrial-upgrade-report-2026.md) | **工业级升级完成报告（P0 一期，32/32 测试通过）** |
 
 ## 研发原则
 

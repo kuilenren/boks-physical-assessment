@@ -185,7 +185,14 @@ export class TrainingController {
       created_at: new Date().toISOString(),
     };
     await updateFamilyStore(context.family_id, (next) => {
-      next.checkIns[checkIn.id] = checkIn;
+      const existing = Object.values(next.checkIns).find(
+        (item) => item.plan_id === planId && item.day === input.day,
+      );
+      if (existing) {
+        next.checkIns[existing.id] = { ...existing, ...checkIn, id: existing.id };
+      } else {
+        next.checkIns[checkIn.id] = checkIn;
+      }
     });
     return success(checkIn, traceId);
   }

@@ -5,8 +5,15 @@ import type {
   DataExport,
   DeletionRequest,
   FamilySummary,
+  NextAction,
 } from "../models";
 import { request } from "./http";
+
+export function getNextActions() {
+  return request<{ generated_at: string; actions: NextAction[] }>(
+    "/families/me/next-actions",
+  );
+}
 
 export function getFamilySummary() {
   return request<{ id: string; display_name: string; children: Child[] }>(

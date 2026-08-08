@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <defs>
+    <symbol id="boks-home" viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5z"/></symbol>
+    <symbol id="boks-assessment" viewBox="0 0 24 24"><path d="M7 3h7l4 4v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm7 1.5V8h3.5M8 12h8M8 16h6M8 8h3"/></symbol>
+    <symbol id="boks-posture" viewBox="0 0 24 24"><circle cx="12" cy="7" r="2"/><path d="M10 10h4l1.5 4.5L18 20h-2.2l-1.6-4h-2.4L10.2 20H8l2.5-5.5L10 10z"/></symbol>
+    <symbol id="boks-training" viewBox="0 0 24 24"><path d="M5 9h2v10H5V9zm12 0h2v10h-2V9zM8.5 11h7v2h-7v-2zm0 4h7v2h-7v-2zM4 7h4v2H4V7zm12 0h4v2h-4V7z"/></symbol>
+    <symbol id="boks-family" viewBox="0 0 24 24"><circle cx="12" cy="9" r="3.5"/><path d="M4.5 20a5.5 5.5 0 0 1 11 0v1h-11v-1z"/></symbol>
+    <symbol id="boks-chat" viewBox="0 0 24 24"><path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H10l-4 3v-3H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></symbol>
+    <symbol id="boks-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v5.5c0 4.4 2.9 7.6 7 8.5 4.1-.9 7-4.1 7-8.5V6l-7-3zm-1 11.2-2.7-2.7 1.4-1.4L11 11.4l3.8-3.8 1.4 1.4L11 14.2z"/></symbol>
+    <symbol id="boks-report" viewBox="0 0 24 24"><path d="M6 4h9l3 3v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm8 1.5V8h2.5M8 12h8M8 15h6M8 18h4"/></symbol>
+    <symbol id="boks-arrow" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+    <symbol id="boks-check" viewBox="0 0 24 24"><path d="M5.5 12.5 10 17l8.5-9"/></symbol>
+    <symbol id="boks-alert" viewBox="0 0 24 24"><path d="M12 4 3.5 19h17L12 4zm0 5v5m0 3.2h.01"/></symbol>
+    <symbol id="boks-plus" viewBox="0 0 24 24"><path d="M12 6v12M6 12h12"/></symbol>
+    <symbol id="boks-spark" viewBox="0 0 24 24"><path d="M12 3.5 13.6 9H19l-4.3 3.2L16.4 18 12 14.8 7.6 18l1.7-5.8L5 9h5.4L12 3.5z"/></symbol>
+    <symbol id="boks-camera" viewBox="0 0 24 24"><path d="M9 7 10.2 5h3.6L15 7h3a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3zm3 3.2a3.3 3.3 0 1 1 0 6.6 3.3 3.3 0 0 1 0-6.6z"/></symbol>
+    <symbol id="boks-leaf" viewBox="0 0 24 24"><path d="M6 18c6-1 10-5 12-12-7 2-11 6-12 12zm0 0c2-4 6-7 10-8"/></symbol>
+    <symbol id="boks-me" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  </defs>
+</svg>

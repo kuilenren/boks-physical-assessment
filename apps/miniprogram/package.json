@@ -3,9 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev:weapp": "taro build --type weapp --watch",
-    "build:weapp": "taro build --type weapp && node -e \"require('fs').rmSync('.swc',{recursive:true,force:true})\"",
-    "typecheck": "tsc --noEmit"
+    "dev:weapp": "cross-env NODE_ENV=development taro build --type weapp --watch",
+    "build:weapp": "cross-env NODE_ENV=production taro build --type weapp --env production && node -e \"require('fs').rmSync('.swc',{recursive:true,force:true})\"",
+    "build:weapp:dev": "cross-env NODE_ENV=development taro build --type weapp",
+    "typecheck": "tsc --noEmit",
+    "verify:dist": "node ./scripts/verify-dist.mjs"
   },
   "dependencies": {
     "@boks/contracts": "workspace:*",
@@ -19,14 +21,17 @@
   "devDependencies": {
     "@babel/core": "^7.26.9",
     "@babel/preset-react": "^7.26.3",
+    "@pmmmwh/react-refresh-webpack-plugin": "0.5.15",
     "@tarojs/cli": "^4.2.1",
     "@tarojs/plugin-framework-react": "^4.2.1",
+    "@tarojs/plugin-platform-h5": "4.2.1",
     "@tarojs/plugin-platform-weapp": "^4.2.1",
     "@tarojs/shared": "^4.2.1",
     "@tarojs/webpack5-runner": "^4.2.1",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "babel-preset-taro": "^4.2.1",
+    "cross-env": "^10.1.0",
     "less": "^4.2.0",
     "postcss": "^8.5.3",
     "sass": "^1.89.2",

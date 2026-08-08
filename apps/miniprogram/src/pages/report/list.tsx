@@ -1,28 +1,46 @@
-import { Button, Text, View } from "@tarojs/components";
-import Taro, { useLoad } from "@tarojs/taro";
+import { Text, View } from "@tarojs/components";
+import { useLoad } from "@tarojs/taro";
 import { useState } from "react";
-import type { ChildProfile, ReportListItem } from "../../models";
-import { listChildren } from "../../services/family";
+import type { AssessmentReport, ChildProfile } from "../../models";
 import { listReports } from "../../services/assessment";
-import { ErrorState, LoadingState } from "../../components/PageState";
+import { listChildren } from "../../services/family";
+import { ChildPicker } from "../../components/ChildPicker";
+import { EmptyState, ErrorState, LoadingState } from "../../components/PageState";
+import { IconBadge } from "../../components/Icon";
+import {
+  selectChild,
+  setSelectedChildId,
+} from "../../services/child-selection";
 import { formatDate } from "../../utils/format";
+import { openRoute } from "../../services/navigation";
 
 export default function ReportListPage() {
-  const [reports, setReports] = useState<ReportListItem[]>([]);
   const [children, setChildren] = useState<ChildProfile[]>([]);
+  const [childId, setChildId] = useState("");
+  const [reports, setReports] = useState<AssessmentReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const loadReports = async (
+    nextChildId: string,
+    nextChildren: ChildProfile[],
+  ) => {
+    if (!nextChildId) {
+      setReports([]);
+      return;
+    }
+    setReports(await listReports(nextChildId, nextChildren));
+  };
 
   const load = async () => {
     setLoading(true);
     setError("");
     try {
-      const childItems = await listChildren();
-      setChildren(childItems);
-      const reportGroups = await Promise.all(
-        childItems.map((child) => listReports(child.child_id, childItems)),
-      );
-      setReports(reportGroups.flat());
+      const nextChildren = await listChildren();
+      const nextChildId = selectChild(nextChildren);
+      setChildren(nextChildren);
+      setChildId(nextChildId);
+      await loadReports(nextChildId, nextChildren);
     } catch (loadError) {
       setError(
         loadError instanceof Error ? loadError.message : "报告加载失败。",
@@ -36,57 +54,85 @@ export default function ReportListPage() {
     void load();
   });
 
-  if (loading)
-    return (
-      <View className="page">
-        <LoadingState />
-      </View>
-    );
-  if (error)
-    return (
-      <View className="page">
-        <ErrorState message={error} onRetry={() => void load()} />
-      </View>
-    );
+  const onChildChange = async (nextChildId: string) => {
+    setChildId(nextChildId);
+    setSelectedChildId(nextChildId);
+    setLoading(true);
+    setError("");
+    try {
+      await loadReports(nextChildId, children);
+    } catch (loadError) {
+      setError(
+        loadError instanceof Error ? loadError.message : "报告加载失败。",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View className="page">
-      <Text className="page-title">体测报告</Text>
-      <Text className="page-subtitle">
-        每份报告都标注标准版本、算法版本和适用限制。
-      </Text>
-      {children.length === 0 ? (
-        <Text className="muted">还没有儿童档案。</Text>
+      <View className="page-header">
+        <Text className="page-kicker">REPORT CENTER</Text>
+        <Text className="page-title">体测报告</Text>
+        <Text className="page-subtitle">
+          查看评分摘要、短板建议和后续训练入口。
+        </Text>
+      </View>
+
+      {children.length ? (
+        <View className="card">
+          <ChildPicker
+            children={children}
+            value={childId}
+            onChange={(next) => void onChildChange(next)}
+          />
+        </View>
       ) : null}
-      <View className="card">
-        {reports.length === 0 ? (
-          <Text className="muted">还没有已生成报告。</Text>
-        ) : null}
-        {reports.map((report) => (
-          <View className="list-row" key={report.report_id}>
-            <View>
-              <Text className="result-label">
-                {formatDate(report.created_at)}
-              </Text>
+
+      {loading ? <LoadingState /> : null}
+      {error ? (
+        <ErrorState message={error} onRetry={() => void load()} />
+      ) : null}
+
+      {!loading && !error && reports.length === 0 ? (
+        <EmptyState
+          title="还没有体测报告"
+          message="完成一次体测录入后，这里会显示报告摘要。"
+          actionLabel="去体测"
+          onAction={() => openRoute("/pages/assessment/start")}
+        />
+      ) : null}
+
+      {!loading && !error
+        ? reports.map((report) => (
+            <View
+              className="card list-card"
+              key={report.report_id}
+              onClick={() => openRoute("/pages/report/detail", {
+                  reportId: report.report_id,
+                })}
+            >
+              <View className="child-row">
+                <View>
+                  <Text
+                    className="section-title"
+                    style={{ marginBottom: "4px" }}
+                  >
+                    {report.grade_label || "体测报告"}
+                  </Text>
+                  <Text className="muted">
+                                        {formatDate(report.created_at)} · {report.assessment_date}
+                  </Text>
+                </View>
+                <IconBadge name="report" tone="brand" size={36} />
+              </View>
               <Text className="muted">
-                {report.report_type === "reference_only"
-                  ? "参考进步报告"
-                  : "综合体测报告"}
+                总分 {report.overall_score ?? "--"} · 点击查看详情
               </Text>
             </View>
-            <Button
-              className="secondary-button"
-              onClick={() =>
-                void Taro.navigateTo({
-                  url: `/pages/report/detail?reportId=${report.report_id}`,
-                })
-              }
-            >
-              查看
-            </Button>
-          </View>
-        ))}
-      </View>
+          ))
+        : null}
     </View>
   );
 }

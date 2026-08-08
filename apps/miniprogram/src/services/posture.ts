@@ -2,7 +2,10 @@ import type {
   PostureSession as ContractPostureSession,
   PostureView as ContractPostureView,
 } from "@boks/contracts";
-import Taro from "@tarojs/taro";
+import {
+  getFileInfo as taroGetFileInfo,
+  getFileSystemManager as taroGetFileSystemManager,
+} from "@tarojs/taro";
 import type { PostureSession } from "../models";
 import type { PostureReport } from "../models";
 import { request } from "./http";
@@ -50,7 +53,7 @@ export async function uploadPostureView(
 ) {
   const [contentBase64, fileInfoResult] = await Promise.all([
     readFileAsBase64(filePath),
-    Taro.getFileInfo({ filePath }),
+    taroGetFileInfo({ filePath }),
   ]);
   if (!("size" in fileInfoResult)) throw new Error("照片大小读取失败。");
   return request<ContractPostureSession>(
@@ -119,7 +122,7 @@ function mapSession(session: ContractPostureSession): PostureSession {
 
 function readFileAsBase64(filePath: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    Taro.getFileSystemManager().readFile({
+    taroGetFileSystemManager().readFile({
       filePath,
       encoding: "base64",
       success: (result) => {

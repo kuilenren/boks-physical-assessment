@@ -1,0 +1,63 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg15
+    environment:
+      POSTGRES_USER: boks
+      POSTGRES_PASSWORD: boks-local-only
+      POSTGRES_DB: boks
+    ports:
+      - "5433:5432"
+    volumes:
+      - boks-pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U boks -d boks"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      target: api
+    env_file: .env
+    environment:
+      BOKS_DATABASE_URL: postgresql://boks:boks-local-only@postgres:5432/boks
+      BOKS_REDIS_URL: redis://redis:6379
+      BOKS_AI_SERVICE_URL: http://ai:8001
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ai:
+        condition: service_started
+
+  ai:
+    build:
+      context: .
+      target: ai
+    environment:
+      BOKS_DATABASE_URL: postgresql://boks:boks-local-only@postgres:5432/boks
+      BOKS_EMBED_CACHE: /tmp/embed-cache.db
+    ports:
+      - "8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  boks-pg-data:

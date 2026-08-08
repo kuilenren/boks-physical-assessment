@@ -22,12 +22,14 @@ import {
   getAssessmentSchema,
   loadFamilyStore,
   updateFamilyStore,
-  DEMO_STANDARD_VERSION,
 } from "./demo-store.js";
 import { success } from "./http.js";
 import { parseInput } from "./validation.js";
-import { guardianContext, resourceNotFound } from "./auth.js";
-import { isProductionRuntime } from "./runtime-config.js";
+import {
+  requireAccountContext,
+  requireRole,
+  resourceNotFound,
+} from "./auth.js";
 
 function requireFamilyChild(
   family: Awaited<ReturnType<typeof loadFamilyStore>>,
@@ -50,7 +52,7 @@ export class AssessmentController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireAccountContext(request);
     const family = await loadFamilyStore(context.family_id);
     const child = requireFamilyChild(family, childId);
     return success(
@@ -66,16 +68,11 @@ export class AssessmentController {
     @Headers("x-trace-id") traceId?: string,
   ) {
     const input = parseInput(createAssessmentSessionRequestSchema, body);
-    const context = guardianContext(request);
+    const context = requireRole(request, ["staff", "super_admin"]);
     const family = await loadFamilyStore(context.family_id);
     const child = requireFamilyChild(family, input.child_id);
     const schema = getAssessmentSchema(child, input.measurement_date, family);
-    if (
-      (input.standard_version_id !== schema.standard_version_id &&
-        input.standard_version_id !== DEMO_STANDARD_VERSION) ||
-      (isProductionRuntime() &&
-        input.standard_version_id === DEMO_STANDARD_VERSION)
-    ) {
+    if (input.standard_version_id !== schema.standard_version_id) {
       resourceNotFound(
         "ASSESSMENT_STANDARD_NOT_FOUND",
         "标准版本不存在或不适用于当前儿童。",
@@ -104,7 +101,7 @@ export class AssessmentController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireAccountContext(request);
     const family = await loadFamilyStore(context.family_id);
     const session = family.assessmentSessions[sessionId];
     if (!session)
@@ -120,7 +117,7 @@ export class AssessmentController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireRole(request, ["staff", "super_admin"]);
     const family = await loadFamilyStore(context.family_id);
     const session = family.assessmentSessions[sessionId];
     if (!session)
@@ -144,7 +141,7 @@ export class AssessmentController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireRole(request, ["staff", "super_admin"]);
     const family = await loadFamilyStore(context.family_id);
     const session = family.assessmentSessions[sessionId];
     if (!session)
@@ -188,7 +185,7 @@ export class AssessmentController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireAccountContext(request);
     const family = await loadFamilyStore(context.family_id);
     requireFamilyChild(family, childId);
     return success(
@@ -205,7 +202,7 @@ export class AssessmentController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireAccountContext(request);
     const family = await loadFamilyStore(context.family_id);
     requireFamilyChild(family, childId);
     return success(
@@ -229,7 +226,7 @@ export class AssessmentController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireAccountContext(request);
     const family = await loadFamilyStore(context.family_id);
     const session = family.assessmentSessions[sessionId];
     if (!session)
@@ -262,7 +259,7 @@ export class AssessmentController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireAccountContext(request);
     const family = await loadFamilyStore(context.family_id);
     requireFamilyChild(family, childId);
     return success(
@@ -279,7 +276,7 @@ export class AssessmentController {
     @Req() request: Request,
     @Headers("x-trace-id") traceId?: string,
   ) {
-    const context = guardianContext(request);
+    const context = requireAccountContext(request);
     const family = await loadFamilyStore(context.family_id);
     const report = family.reports[reportId];
     if (!report)

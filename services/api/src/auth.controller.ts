@@ -3,30 +3,43 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
+  Param,
   Req,
   ForbiddenException,
 } from "@nestjs/common";
 import type { Request } from "express";
 import { randomUUID } from "node:crypto";
 import {
+  createAccountRequestSchema,
   devLoginRequestSchema,
-  refreshSessionRequestSchema,
+  passwordLoginRequestSchema,
   phoneLoginRequestSchema,
   phoneRequestCodeSchema,
+  refreshSessionRequestSchema,
+  setAccountStatusRequestSchema,
+  setupSuperAdminRequestSchema,
   wechatBindingRequestSchema,
   wechatLoginRequestSchema,
 } from "@boks/contracts";
 import {
+  bootstrapSuperAdmin,
+  createAccount,
   createSession,
   guardianContext,
+  listAccounts,
+  loginWithPassword,
   loginWithWechat,
   loginWithPhone,
+  publicAccountView,
   requestPhoneCode,
   refreshSession,
   revokeSession,
+  requireRole,
   adminReviewer,
+  setAccountStatus,
 } from "./auth.js";
-import { familyExists, persistStore, store } from "./demo-store.js";
+import { familyExists, hasSuperAdmin, persistStore, store } from "./demo-store.js";
 import { success } from "./http.js";
 import { parseInput } from "./validation.js";
 import { isDevAuthEnabled } from "./runtime-config.js";
@@ -34,6 +47,80 @@ import { isPostgresStorage, persistIdentityBinding } from "./storage.js";
 
 @Controller("auth")
 export class AuthController {
+  @Post("setup-super-admin")
+  setupSuperAdmin(@Body() body: unknown, @Req() request: Request) {
+    if (hasSuperAdmin())
+      throw new ForbiddenException({
+        error: {
+          code: "SUPER_ADMIN_EXISTS",
+          message: "系统超级管理员已开通，请使用现有账号登录。",
+          details: [],
+          retryable: false,
+        },
+      });
+    const input = parseInput(setupSuperAdminRequestSchema, body);
+    const result = bootstrapSuperAdmin(input);
+    const session = createSession(
+      `account:${result.account.id}`,
+      store.family_id,
+      result.account.id,
+      result.account.role,
+      result.organization.id,
+    );
+    return success(
+      { account: result.account, organization: result.organization, session },
+      request.headers["x-trace-id"] as string | undefined,
+    );
+  }
+
+  @Post("password-login")
+  async passwordLogin(@Body() body: unknown, @Req() request: Request) {
+    const input = parseInput(passwordLoginRequestSchema, body);
+    return success(
+      await loginWithPassword(input.username, input.password),
+      request.headers["x-trace-id"] as string | undefined,
+    );
+  }
+
+  @Get("accounts")
+  accounts(@Req() request: Request) {
+    const context = requireRole(request, ["super_admin"]);
+    void context;
+    return success(
+      listAccounts(),
+      request.headers["x-trace-id"] as string | undefined,
+    );
+  }
+
+  @Post("accounts")
+  createAccountRoute(@Body() body: unknown, @Req() request: Request) {
+    const context = requireRole(request, ["super_admin"]);
+    const input = parseInput(createAccountRequestSchema, body);
+    const account = createAccount({
+      ...input,
+      created_by: context.account_id ?? context.guardian_id,
+      org_id: context.org_id ?? null,
+    });
+    return success(
+      publicAccountView(account),
+      request.headers["x-trace-id"] as string | undefined,
+    );
+  }
+
+  @Patch("accounts/:id/status")
+  accountStatus(
+    @Param("id") id: string,
+    @Body() body: unknown,
+    @Req() request: Request,
+  ) {
+    const context = requireRole(request, ["super_admin"]);
+    const input = parseInput(setAccountStatusRequestSchema, body);
+    return success(
+      setAccountStatus(id, input.status, context.account_id ?? context.guardian_id),
+      request.headers["x-trace-id"] as string | undefined,
+    );
+  }
+
   @Post("wechat-login")
   async wechatLogin(@Body() body: unknown, @Req() request: Request) {
     const input = parseInput(wechatLoginRequestSchema, body);
@@ -107,7 +194,7 @@ export class AuthController {
       });
     const input = parseInput(devLoginRequestSchema, body ?? {});
     return success(
-      createSession(input.guardian_id),
+      createSession(input.guardian_id, input.family_id),
       request.headers["x-trace-id"] as string | undefined,
     );
   }

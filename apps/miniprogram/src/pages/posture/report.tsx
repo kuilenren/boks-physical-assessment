@@ -1,5 +1,5 @@
 import { Text, View } from "@tarojs/components";
-import Taro, { useLoad } from "@tarojs/taro";
+import { navigateBack, useLoad } from "@tarojs/taro";
 import { useState } from "react";
 import type { PostureReport } from "../../models";
 import { getPostureReport } from "../../services/posture";
@@ -40,7 +40,7 @@ export default function PostureReportPage() {
       <View className="page">
         <ErrorState
           message={error || "体态报告不存在。"}
-          onRetry={() => void Taro.navigateBack()}
+          onRetry={() => void navigateBack()}
         />
       </View>
     );

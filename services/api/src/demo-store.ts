@@ -17,9 +17,19 @@ import type {
   PostureView,
   ScoreResult,
   TrainingPlan,
+  EngineResult as ContractEngineResult,
 } from "@boks/contracts";
 import { ForbiddenException } from "@nestjs/common";
 import { isProductionRuntime } from "./runtime-config.js";
+import {
+  NATIONAL_2014_STANDARD_ID,
+  NATIONAL_2014_STANDARD_NAME,
+  NATIONAL_2014_ALGORITHM_VERSION,
+  NATIONAL_2014_SOURCE_URL,
+  gradeOf,
+  national2014Indicators,
+  scoreNational2014,
+} from "./scoring-engine.js";
 import {
   initializePostgresStore,
   isPostgresStorage,
@@ -31,10 +41,10 @@ import {
   type StoreDocument,
 } from "./storage.js";
 
-export const DEMO_STANDARD_VERSION = "std-demo-primary-2014-v0";
-export const DEMO_STANDARD_NAME = "国家学生体质健康标准（2014年修订）·开发夹具";
+export const DEMO_STANDARD_VERSION = NATIONAL_2014_STANDARD_ID;
+export const DEMO_STANDARD_NAME = NATIONAL_2014_STANDARD_NAME;
 export const DEMO_KNOWLEDGE_SNAPSHOT = "knowledge-demo-pending-review-v0";
-export const ALGORITHM_VERSION = "assessment-config-rule-1.0";
+export const ALGORITHM_VERSION = NATIONAL_2014_ALGORITHM_VERSION;
 
 export type ScoreBand = {
   min: number | null;
@@ -72,16 +82,39 @@ export type GuardianSession = {
   refresh_token: string;
   guardian_id: string;
   family_id: string;
+  account_id?: string | null;
+  role?: string | null;
+  org_id?: string | null;
   created_at: string;
   expires_at: string;
   refresh_expires_at: string;
   revoked_at: string | null;
 };
+export type Account = {
+  id: string;
+  org_id: string | null;
+  role: "super_admin" | "staff" | "parent";
+  display_name: string;
+  username: string | null;
+  password_hash: string | null;
+  phone: string | null;
+  status: "active" | "disabled";
+  family_id: string | null;
+  created_by: string | null;
+  created_at: string;
+};
+export type Organization = {
+  id: string;
+  name: string;
+  status: "active" | "archived";
+  created_at: string;
+};
 export type IdentityBinding = {
-  provider: "wechat";
+  provider: "wechat" | "password" | "phone";
   subject: string;
   guardian_id: string;
   family_id: string;
+  account_id?: string | null;
   created_at: string;
 };
 export type Consent = {
@@ -161,14 +194,18 @@ export type KnowledgeVersion = {
   version: string;
   title: string;
   content: string;
+  content_hash: string | null;
   status: "candidate" | "published" | "withdrawn";
   reviewers: string[];
   published_at: string | null;
+  created_at: string;
 };
 export type KnowledgeSource = {
   id: string;
   title: string;
   owner: string;
+  fetch_url: string | null;
+  content_hash: string | null;
   created_at: string;
 };
 export type AuditEvent = {
@@ -205,6 +242,8 @@ export type AssessmentSession = {
 export type BoksStore = {
   family_id: string;
   families: Record<string, FamilyRecord>;
+  organizations: Record<string, Organization>;
+  accounts: Record<string, Account>;
   children: Child[];
   assessmentSessions: Record<string, AssessmentSession>;
   reports: Record<string, AssessmentReport>;
@@ -255,63 +294,7 @@ export function buildChild(
   };
 }
 
-const indicators = [
-  {
-    indicator_code: "height",
-    label: "身高",
-    unit: "厘米",
-    input_type: "decimal" as const,
-    min_value: 80,
-    max_value: 220,
-    step: 0.1,
-    required: true,
-    help_text: "脱鞋、站直，视线平行。",
-  },
-  {
-    indicator_code: "weight",
-    label: "体重",
-    unit: "千克",
-    input_type: "decimal" as const,
-    min_value: 10,
-    max_value: 160,
-    step: 0.1,
-    required: true,
-    help_text: "穿轻薄衣物测量。",
-  },
-  {
-    indicator_code: "run_50m",
-    label: "50 米跑",
-    unit: "秒",
-    input_type: "decimal" as const,
-    min_value: 5,
-    max_value: 30,
-    step: 0.1,
-    required: true,
-    help_text: "记录最好一次成绩，数值越小越好。",
-  },
-  {
-    indicator_code: "sit_reach",
-    label: "坐位体前屈",
-    unit: "厘米",
-    input_type: "decimal" as const,
-    min_value: -30,
-    max_value: 60,
-    step: 0.1,
-    required: true,
-    help_text: "双腿伸直，缓慢前伸。",
-  },
-  {
-    indicator_code: "rope_1min",
-    label: "一分钟跳绳",
-    unit: "次",
-    input_type: "integer" as const,
-    min_value: 0,
-    max_value: 300,
-    step: 1,
-    required: true,
-    help_text: "连续一分钟内有效次数。",
-  },
-];
+const nationalIndicators = national2014Indicators(6);
 const preschoolIndicators = [
   {
     indicator_code: "balance_single_leg",
@@ -340,11 +323,12 @@ const standard = (
   id: string,
   name: string,
   mode: "scored" | "reference_only",
-  list: typeof indicators,
+  list: typeof nationalIndicators,
+  status: "approved" | "demo_pending_review" = "demo_pending_review",
 ): StandardConfiguration => ({
   id,
   name,
-  status: "demo_pending_review",
+  status,
   mode,
   indicators: list,
   rules: [
@@ -374,9 +358,8 @@ const standard = (
   ),
   source_references: [
     {
-      title: "开发夹具来源（待审核）",
-      official_url:
-        "https://www.gov.cn/gongbao/content/2014/content_2781929.htm",
+      title: "国家学生体质健康标准（2014年修订）",
+      official_url: NATIONAL_2014_SOURCE_URL,
     },
   ],
   reviewers: [],
@@ -386,7 +369,13 @@ const defaultConfiguration: StoreConfiguration = {
   algorithm_version: ALGORITHM_VERSION,
   knowledge_snapshot_id: DEMO_KNOWLEDGE_SNAPSHOT,
   standards: [
-    standard(DEMO_STANDARD_VERSION, DEMO_STANDARD_NAME, "scored", indicators),
+    standard(
+      DEMO_STANDARD_VERSION,
+      DEMO_STANDARD_NAME,
+      "scored",
+      nationalIndicators,
+      "approved",
+    ),
     standard(
       "ref-demo-preschool-development-v0",
       "幼儿体能发展目标参考·开发夹具",
@@ -418,6 +407,8 @@ function emptyStore(): BoksStore {
         status: "active",
       },
     },
+    organizations: {},
+    accounts: {},
     children: [structuredClone(demoChild)],
     assessmentSessions: {},
     reports: {},
@@ -720,6 +711,7 @@ export async function updateFamilyStore(
 ): Promise<BoksStore> {
   if (!isPostgresStorage()) {
     updater(store);
+    syncCollections();
     await persistStore();
     return store;
   }
@@ -793,6 +785,27 @@ export function getChild(
       (familyId === undefined || child.family_id === familyId),
   );
 }
+export function getAccount(accountId: string): Account | undefined {
+  return store.accounts[accountId];
+}
+export function getAccountByUsername(username: string): Account | undefined {
+  return Object.values(store.accounts).find(
+    (account) => account.username === username,
+  );
+}
+export function getAccountByPhone(phone: string): Account | undefined {
+  return Object.values(store.accounts).find(
+    (account) => account.phone === phone,
+  );
+}
+export function getOrganization(orgId: string): Organization | undefined {
+  return store.organizations[orgId];
+}
+export function hasSuperAdmin(): boolean {
+  return Object.values(store.accounts).some(
+    (account) => account.role === "super_admin" && account.status === "active",
+  );
+}
 export function familyExists(familyId: string): boolean {
   return (
     store.families[familyId]?.status === "active" ||
@@ -835,6 +848,10 @@ export function getAssessmentSchema(
         : target.configuration.active_standard_id,
       target,
     ) ?? defaultConfiguration.standards[0];
+  const indicators =
+    selected.id === NATIONAL_2014_STANDARD_ID
+      ? national2014Indicators(gradeOf(child))
+      : selected.indicators;
   return {
     standard_version_id: selected.id,
     standard_name: selected.name,
@@ -842,12 +859,45 @@ export function getAssessmentSchema(
     measurement_date: measurementDate,
     child_id: child.id,
     mode: selected.mode,
-    indicators: selected.indicators,
+    indicators,
   };
 }
 export function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
+function engineToScoreResults(
+  engine: ContractEngineResult,
+  schema: AssessmentSchema,
+): ScoreResult[] {
+  const labelByCode = new Map(
+    schema.indicators.map((indicator) => [
+      indicator.indicator_code,
+      indicator.label,
+    ]),
+  );
+  const unitByCode = new Map(
+    schema.indicators.map((indicator) => [
+      indicator.indicator_code,
+      indicator.unit,
+    ]),
+  );
+  return engine.results.map((item) => ({
+    indicator_code: item.indicator_code,
+    label:
+      labelByCode.get(item.indicator_code) ??
+      (item.indicator_code === "bmi" ? "身体质量指数（BMI）" : item.indicator_code),
+    raw_value: item.raw_value,
+    unit: unitByCode.get(item.indicator_code) ?? "",
+    score: item.score,
+    bonus: item.bonus,
+    weight: item.weight,
+    contribution: item.contribution,
+    band_label: item.band_label,
+    interpretation: item.interpretation,
+    status: item.status,
+  }));
+}
+
 export function calculateResults(
   schema: AssessmentSchema,
   values: AssessmentValue[],
@@ -857,6 +907,43 @@ export function calculateResults(
   const selected =
     findStandard(schema.standard_version_id, target) ??
     defaultConfiguration.standards[0];
+  if (selected.id === NATIONAL_2014_STANDARD_ID) {
+    const child = target.children.find(
+      (item) => item.id === schema.child_id,
+    );
+    if (!child) {
+      const results: ScoreResult[] = [];
+      return {
+        results,
+        totalScore: null,
+        level: "reference_only" as const,
+        completeness: 0,
+        priorityActions: [],
+        engineResults: null,
+      };
+    }
+    const grade = gradeOf(child);
+    const engine = scoreNational2014({ child, grade, values });
+    const engineResults: ContractEngineResult = {
+      ...engine,
+      standard_id: selected.id,
+      algorithm_version: NATIONAL_2014_ALGORITHM_VERSION,
+    };
+    const results = engineToScoreResults(engineResults, schema);
+    const priorityActions = results
+      .filter((item) => item.score !== null && item.score < 80)
+      .sort((a, b) => (a.score ?? 0) - (b.score ?? 0))
+      .slice(0, 3)
+      .map((item) => `优先练习：${item.label}`);
+    return {
+      results,
+      totalScore: engine.total_score,
+      level: engine.level,
+      completeness: engine.completeness,
+      priorityActions,
+      engineResults,
+    };
+  }
   const valueByCode = new Map(
     values.map((value) => [value.indicator_code, value]),
   );
@@ -900,8 +987,10 @@ export function calculateResults(
       raw_value: submitted?.raw_value ?? "",
       unit: indicator.unit,
       score,
+      bonus: 0,
       weight: rule?.weight ?? 0,
       contribution: Number(((score ?? 0) * (rule?.weight ?? 0)).toFixed(2)),
+      band_label: "",
       interpretation:
         score === null
           ? schema.mode === "reference_only"
@@ -960,7 +1049,14 @@ export function calculateResults(
     .sort((a, b) => (a.score ?? 0) - (b.score ?? 0))
     .slice(0, 3)
     .map((item) => `优先练习：${item.label}`);
-  return { results, totalScore, level, completeness, priorityActions };
+  return {
+    results,
+    totalScore,
+    level,
+    completeness,
+    priorityActions,
+    engineResults: null,
+  };
 }
 export function createAssessmentReport(
   sessionId: string,
@@ -984,7 +1080,9 @@ export function createAssessmentReport(
   if (
     isProductionRuntime() &&
     schema.mode === "scored" &&
-    (!standard || standard.rules.some((rule) => !rule.score_bands?.length))
+    (!standard ||
+      (standard.id !== NATIONAL_2014_STANDARD_ID &&
+        standard.rules.some((rule) => !rule.score_bands?.length)))
   )
     throw new ForbiddenException({
       error: {
@@ -1013,20 +1111,25 @@ export function createAssessmentReport(
     completeness: calculated.completeness,
     priority_actions: calculated.priorityActions,
     results: calculated.results,
+    engine_results: calculated.engineResults ?? undefined,
     limitations: [
       ...(schema.standard_status === "approved"
         ? []
         : [
             "当前评分配置是开发夹具，状态为 demo_pending_review，不能替代已审核标准。",
           ]),
-      "本报告不构成医疗建议或诊断。",
+      "本报告依据国家学生体质健康标准（2014 年修订）评分，仅作体能观察，不构成医疗建议或诊断。",
     ],
     source_references: (standard ?? defaultConfiguration.standards[0])
       .source_references,
     generated_at: iso(),
   };
-  if (target === store) reports.set(report.id, report);
-  else target.reports[report.id] = report;
+  if (target === store) {
+    reports.set(report.id, report);
+    store.reports[report.id] = report;
+  } else {
+    target.reports[report.id] = report;
+  }
   const session =
     target === store
       ? assessmentSessions.get(sessionId)
@@ -1096,7 +1199,7 @@ export function createTrainingPlan(
   };
   if (target === store) {
     trainingPlans.set(plan.id, plan);
-    void persistStore();
+    store.trainingPlans[plan.id] = plan;
   } else {
     target.trainingPlans[plan.id] = plan;
   }
@@ -1132,6 +1235,7 @@ export function createPostureSession(
   };
   if (target === store) {
     postureSessions.set(session.id, session);
+    store.postureSessions[session.id] = session;
     void persistStore();
   } else {
     target.postureSessions[session.id] = session;

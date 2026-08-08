@@ -9,6 +9,7 @@ import * as training from "./training.controller.js";
 import * as configuration from "./configuration.controller.js";
 import * as posture from "./posture.controller.js";
 import { FamilyController } from "./family.controller.js";
+import { AssessmentController } from "./assessment.controller.js";
 import { assertRuntimeConfig } from "./runtime-config.js";
 import { createPostureUploadUrl } from "./asset-storage.js";
 
@@ -87,28 +88,82 @@ describe("production safety boundaries", () => {
     });
   });
 
-  it("scores configured run, reach and rope rules", () => {
+  it("scores the national 2014 grade-2 female tables", () => {
     const child = db.getChild("child-demo-001");
     if (!child) throw new Error("seed missing");
     const schema = db.getAssessmentSchema(child, "2026-08-02");
     const result = db.calculateResults(
       schema,
       [
-        { indicator_code: "run_50m", raw_value: "10", unit: "秒" },
+        { indicator_code: "height", raw_value: "120", unit: "厘米" },
+        { indicator_code: "weight", raw_value: "22", unit: "千克" },
+        { indicator_code: "lung_capacity", raw_value: "1300", unit: "毫升" },
+        { indicator_code: "run_50m", raw_value: "11", unit: "秒" },
         { indicator_code: "sit_reach", raw_value: "15", unit: "厘米" },
         { indicator_code: "rope_1min", raw_value: "100", unit: "次" },
       ],
       "completed",
     );
-    expect(result.totalScore).not.toBeNull();
+    expect(result.totalScore).toBe(84.8);
+    expect(result.level).toBe("good");
+    expect(result.completeness).toBe(1);
     expect(
-      result.results.every(
-        (item) =>
-          item.score !== null ||
-          item.indicator_code === "height" ||
-          item.indicator_code === "weight",
-      ),
+      result.results.every((item) => item.score !== null),
     ).toBe(true);
+    expect(result.results.find((item) => item.indicator_code === "bmi"))
+      .toMatchObject({ score: 100, band_label: expect.stringContaining("正常") });
+  });
+
+  it("keeps an assessment session submitted through the controller available for follow-up reads", async () => {
+    auth.bootstrapSuperAdmin({
+      org_name: "示例学校",
+      display_name: "校长",
+      username: "principal",
+      password: "Password123",
+    });
+    auth.createAccount({
+      role: "staff",
+      display_name: "体育老师",
+      username: "teacher-01",
+      password: "Teacher123",
+      created_by: "principal",
+      org_id: null,
+    });
+    const session = await auth.loginWithPassword("teacher-01", "Teacher123");
+    const request = {
+      headers: { authorization: `Bearer ${session.token}` },
+    } as unknown as import("express").Request;
+    const controller = new AssessmentController();
+    const created = (await controller.createSession(
+      {
+        child_id: "child-demo-001",
+        measurement_date: "2026-08-02",
+        standard_version_id: "std-national-primary-2014-v1",
+      },
+      request,
+    )) as { data: { id: string } };
+    const values = [
+      { indicator_code: "height", raw_value: "128", unit: "厘米" },
+      { indicator_code: "weight", raw_value: "27", unit: "千克" },
+      { indicator_code: "lung_capacity", raw_value: "1800", unit: "毫升" },
+      { indicator_code: "run_50m", raw_value: "9.5", unit: "秒" },
+      { indicator_code: "sit_reach", raw_value: "8", unit: "厘米" },
+      { indicator_code: "rope_1min", raw_value: "120", unit: "次" },
+    ];
+    const submitted = (await controller.submitSession(
+      created.data.id,
+      { values, test_status: "completed" },
+      request,
+    )) as { data: { id: string; total_score: number } };
+    expect(submitted.data.total_score).toBeGreaterThan(0);
+    const persisted = db.store.assessmentSessions[created.data.id];
+    expect(persisted).toBeDefined();
+    expect(persisted.status).toBe("reported");
+    expect(persisted.report_id).toBe(submitted.data.id);
+    const list = (await controller.getReports("child-demo-001", request)) as {
+      data: Array<{ id: string }>;
+    };
+    expect(list.data.map((report) => report.id)).toContain(submitted.data.id);
   });
 
   it("rejects photo use without an active consent", () => {
@@ -162,6 +217,24 @@ describe("production safety boundaries", () => {
     )) as { data: { message: { content: string } } };
     expect(response.data.message.content).toContain("不能");
     expect(response.data.message.content).toContain("停止训练");
+  });
+
+  it("uses the AI service answer when configured and reachable", async () => {
+    vi.stubEnv("BOKS_AI_SERVICE_URL", "https://ai.example.invalid");
+    const request = { headers: {} } as import("express").Request;
+    const controller = new chat.ChatController();
+    const conversation = (await controller.create(request)) as {
+      data: { id: string };
+    };
+    const response = (await controller.message(
+      conversation.data.id,
+      { content: "如何查看体测报告？" },
+      request,
+    )) as { data: { message: { content: string; citations: unknown[] } } };
+    vi.unstubAllEnvs();
+    // AI 服务不可达时确定性降级，不能抛错，且必须给出可执行答复。
+    expect(response.data.message.content).toBeTruthy();
+    expect(response.data.message.content).toContain("体测");
   });
 
   it("blocks a plan when a safety red flag is supplied", async () => {

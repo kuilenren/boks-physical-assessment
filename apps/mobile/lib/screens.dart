@@ -81,103 +81,280 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('BOKS 家长登录')),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
-        children: [
-          const Text(
-            '登录后管理孩子的体测记录、训练计划和体态观察。',
-            style: TextStyle(color: boksMuted),
-          ),
-          const SizedBox(height: 24),
-          TextField(
-            controller: _phoneController,
-            keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(labelText: '手机号'),
-          ),
-          const SizedBox(height: 12),
-          Row(
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
             children: [
-              Expanded(
-                child: TextField(
-                  controller: _codeController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: '验证码'),
+              Container(
+                padding: const EdgeInsets.all(22),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [boksForestDark, boksForest, boksBrand],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x33103E2F),
+                      blurRadius: 24,
+                      offset: Offset(0, 12),
+                    ),
+                  ],
+                ),
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 22,
+                      backgroundColor: Color(0x33FFFFFF),
+                      child: Icon(Icons.spa_outlined, color: Colors.white),
+                    ),
+                    SizedBox(height: 18),
+                    Text(
+                      'BOKS 家长登录',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.4,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      '登录后管理孩子的体测记录、训练计划和体态观察。',
+                      style: TextStyle(color: Color(0xE6FFFFFF), height: 1.5),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 12),
-              TextButton(
-                onPressed: _sendingCode ? null : _requestCode,
-                child: _sendingCode
+              const SizedBox(height: 24),
+              TextField(
+                controller: _phoneController,
+                keyboardType: TextInputType.phone,
+                decoration: const InputDecoration(
+                  labelText: '手机号',
+                  prefixIcon: Icon(Icons.phone_iphone_outlined),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _codeController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: '验证码',
+                        prefixIcon: Icon(Icons.pin_outlined),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  TextButton(
+                    onPressed: _sendingCode ? null : _requestCode,
+                    child: _sendingCode
+                        ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('获取验证码'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _loggingIn ? null : _login,
+                child: _loggingIn
                     ? const SizedBox(
-                        height: 18,
-                        width: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
-                    : const Text('获取验证码'),
+                    : const Text('登录'),
+              ),
+              const SizedBox(height: 14),
+              const Text(
+                '手机号仅用于身份验证。若账号尚未绑定 BOKS 家庭，请联系 BOKS 工作人员。',
+                style: TextStyle(color: boksMuted, fontSize: 12, height: 1.5),
               ),
             ],
           ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: _loggingIn ? null : _login,
-            child: _loggingIn
-                ? const CircularProgressIndicator(color: Colors.white)
-                : const Text('登录'),
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            '手机号仅用于身份验证。若账号尚未绑定 BOKS 家庭，请联系 BOKS 工作人员。',
-            style: TextStyle(color: boksMuted, fontSize: 12),
-          ),
-        ],
-      ),
-    );
+        ),
+      );
+    }
   }
-}
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({required this.client, super.key});
+  const HomeScreen({required this.client, required this.onLoggedOut, super.key});
 
   final BoksApiClient client;
+  final VoidCallback onLoggedOut;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+class _HomeData {
+  const _HomeData({
+    required this.family,
+    required this.report,
+    required this.plan,
+    required this.progress,
+    required this.insightError,
+  });
+
+  final Family family;
+  final AssessmentReport? report;
+  final TrainingPlan? plan;
+  final TrainingProgress? progress;
+  final String? insightError;
+}
+
 class _HomeScreenState extends State<HomeScreen> {
-  late Future<Family> _family;
+  late Future<_HomeData> _homeData;
   String? _selectedChildId;
 
   @override
   void initState() {
     super.initState();
-    _family = _loadFamily();
+    _homeData = _loadHomeData();
   }
 
   void _reload() {
-    setState(() => _family = _loadFamily());
+    setState(() => _homeData = _loadHomeData());
   }
 
-  Future<Family> _loadFamily() async {
+  Future<_HomeData> _loadHomeData() async {
     final family = await widget.client.getFamily();
     final selected = await widget.client.resolveSelectedChildId(
       family.children,
     );
     if (mounted) _selectedChildId = selected;
-    return family;
+
+    AssessmentReport? report;
+    TrainingPlan? plan;
+    TrainingProgress? progress;
+    String? insightError;
+    if (selected != null) {
+      try {
+        final reports = await widget.client.listReports(selected);
+        reports.sort(
+          (left, right) =>
+              right.measurementDate.compareTo(left.measurementDate),
+        );
+        report = reports.isEmpty ? null : reports.first;
+        final plans = await widget.client.listTrainingPlans(selected);
+        plan = plans.isEmpty ? null : plans.first;
+        if (plan != null) {
+          progress = await widget.client.getTrainingProgress(plan.id);
+        }
+      } catch (error) {
+        insightError = error.toString();
+      }
+    }
+
+    return _HomeData(
+      family: family,
+      report: report,
+      plan: plan,
+      progress: progress,
+      insightError: insightError,
+    );
   }
 
   void _open(Widget page) {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
   }
 
+  String _reportLevelLabel(String level) {
+    return const {
+          'excellent': '优秀',
+          'good': '良好',
+          'pass': '及格',
+          'fail': '待提升',
+          'reference_only': '参考进步',
+        }[level] ??
+        '待查看';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('BOKS')),
-      body: FutureBuilder<Family>(
-        future: _family,
+      appBar: AppBar(
+        titleSpacing: 16,
+        title: const Row(
+          children: [
+            CircleAvatar(
+              radius: 17,
+              backgroundColor: boksBrandLight,
+              child: Text(
+                'B',
+                style: TextStyle(
+                  color: boksForest,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+            SizedBox(width: 10),
+            Text('BOKS智能体测体态分析'),
+          ],
+        ),
+        actions: [
+          IconButton(
+            tooltip: '隐私与数据说明',
+            onPressed: () => _open(const PrivacyScreen()),
+            icon: const Icon(Icons.shield_outlined),
+          ),
+          const SizedBox(width: 4),
+        ],
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: 0,
+        onDestinationSelected: (index) {
+          switch (index) {
+            case 1:
+              _open(AssessmentStartScreen(client: widget.client));
+            case 2:
+              _open(TrainingScreen(client: widget.client));
+            case 3:
+              _open(
+                FamilyScreen(
+                  client: widget.client,
+                  onLoggedOut: widget.onLoggedOut,
+                ),
+              );
+          }
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: '首页',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.assessment_outlined),
+            selectedIcon: Icon(Icons.assessment),
+            label: '体测',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.directions_run_outlined),
+            selectedIcon: Icon(Icons.directions_run),
+            label: '训练',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: '我的',
+          ),
+        ],
+      ),
+      body: FutureBuilder<_HomeData>(
+        future: _homeData,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
             return const Center(child: CircularProgressIndicator());
@@ -188,7 +365,8 @@ class _HomeScreenState extends State<HomeScreen> {
               onRetry: _reload,
             );
           }
-          final family = snapshot.data!;
+          final data = snapshot.data!;
+          final family = data.family;
           final child = family.children.isEmpty
               ? null
               : family.children.firstWhere(
@@ -198,124 +376,231 @@ class _HomeScreenState extends State<HomeScreen> {
           return RefreshIndicator(
             onRefresh: () async => _reload(),
             child: ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
               children: [
-                Text(
-                  '你好，BOKS 家庭',
-                  style: Theme.of(context).textTheme.headlineSmall,
+                Container(
+                  padding: const EdgeInsets.all(22),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [boksForest, boksBrand],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(28),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x26103E2F),
+                        blurRadius: 18,
+                        offset: Offset(0, 9),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Expanded(
+                            child: Text(
+                              'BOKS 家庭成长记录',
+                              style: TextStyle(
+                                color: Color(0xB3FFFFFF),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                          StatusPill(
+                            label: family.children.isEmpty ? '先建立档案' : '监护人已就绪',
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.14,
+                            ),
+                            foregroundColor: Colors.white,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      Text(
+                        child?.displayName ?? '添加孩子档案',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w800,
+                          height: 1.1,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        child == null
+                            ? '建立档案后开始记录成长变化'
+                            : '${child.schoolStage} · 仅供 BOKS 家庭使用',
+                        style: const TextStyle(
+                          color: Color(0xD9FFFFFF),
+                          fontSize: 14,
+                        ),
+                      ),
+                      if (family.children.isNotEmpty) ...[
+                        const SizedBox(height: 18),
+                        DropdownButtonFormField<String>(
+                          initialValue: child?.id,
+                          style: const TextStyle(
+                            color: boksInk,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          dropdownColor: Colors.white,
+                          iconEnabledColor: Colors.white,
+                          decoration: InputDecoration(
+                            labelText: '当前孩子',
+                            labelStyle: const TextStyle(color: Colors.white),
+                            filled: true,
+                            fillColor: Colors.white.withValues(alpha: 0.14),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: const BorderSide(
+                                color: Color(0x66FFFFFF),
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: const BorderSide(color: Colors.white),
+                            ),
+                          ),
+                          items: family.children
+                              .map(
+                                (item) => DropdownMenuItem(
+                                  value: item.id,
+                                  child: Text(item.displayName),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            if (value == null) return;
+                            setState(() => _selectedChildId = value);
+                            unawaited(widget.client.setSelectedChildId(value));
+                            _reload();
+                          },
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 4),
-                const Text(
-                  '记录成长，用科学训练陪伴孩子变得更强健。',
-                  style: TextStyle(color: boksMuted),
+                if (data.insightError != null) ...[
+                  const SizedBox(height: 12),
+                  DangerCard(message: '${data.insightError} 报告和训练摘要暂时不可用。'),
+                ],
+                const SizedBox(height: 24),
+                _HomeSectionHeading(
+                  title: '最近一次体测',
+                  actionLabel: '全部记录',
+                  onAction: () =>
+                      _open(ReportListScreen(client: widget.client)),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
+                _HomeReportCard(
+                  report: data.report,
+                  levelLabel: data.report == null
+                      ? null
+                      : _reportLevelLabel(data.report!.level),
+                  onOpen: data.report == null
+                      ? () =>
+                            _open(AssessmentStartScreen(client: widget.client))
+                      : () => _open(
+                          ReportDetailScreen(
+                            client: widget.client,
+                            report: data.report!,
+                          ),
+                        ),
+                ),
+                const SizedBox(height: 8),
+                _HomeSectionHeading(title: '下一步怎么做', actionLabel: '两项核心记录'),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ActionTile(
+                        icon: Icons.assessment_outlined,
+                        title: '国家标准体测',
+                        subtitle: '按现场数据逐项录入',
+                        onTap: () =>
+                            _open(AssessmentStartScreen(client: widget.client)),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ActionTile(
+                        icon: Icons.accessibility_new,
+                        title: '四视角体态',
+                        subtitle: '授权后完成拍摄',
+                        accentColor: boksSkyLight,
+                        onTap: () =>
+                            _open(PostureConsentScreen(client: widget.client)),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                _HomeSectionHeading(
+                  title: '家庭训练计划',
+                  actionLabel: data.plan == null ? null : '打开计划',
+                  onAction: data.plan == null
+                      ? null
+                      : () => _open(TrainingScreen(client: widget.client)),
+                ),
+                const SizedBox(height: 10),
+                _HomeTrainingCard(
+                  plan: data.plan,
+                  progress: data.progress,
+                  onOpen: () => _open(TrainingScreen(client: widget.client)),
+                ),
+                const SizedBox(height: 8),
                 Card(
+                  color: boksAmberLight,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
-                    child: Column(
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          '本周概览',
-                          style: Theme.of(context).textTheme.titleMedium,
+                        const Icon(
+                          Icons.info_outline,
+                          color: Color(0xFF8B6508),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          child == null
-                              ? '先添加孩子档案，再开始第一次体测'
-                              : '已为 ${child.displayName} 建立成长档案',
-                          style: const TextStyle(color: boksMuted),
-                        ),
-                        const SizedBox(height: 12),
-                        if (family.children.isNotEmpty)
-                          DropdownButtonFormField<String>(
-                            initialValue: child?.id,
-                            decoration: const InputDecoration(
-                              labelText: '当前孩子',
+                        const SizedBox(width: 10),
+                        const Expanded(
+                          child: Text(
+                            'BOKS 提供体测评分与非诊断性体态观察。若孩子出现明显疼痛、麻木、无力或急症，请停止训练并及时就医。',
+                            style: TextStyle(
+                              color: Color(0xFF6F5516),
+                              height: 1.45,
                             ),
-                            items: family.children
-                                .map(
-                                  (item) => DropdownMenuItem(
-                                    value: item.id,
-                                    child: Text(item.displayName),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (value) {
-                              if (value == null) return;
-                              setState(() => _selectedChildId = value);
-                              unawaited(
-                                widget.client.setSelectedChildId(value),
-                              );
-                            },
                           ),
-                        if (family.children.isNotEmpty)
-                          const SizedBox(height: 12),
-                        const StatusPill(label: '家庭数据由监护人维护'),
+                        ),
                       ],
                     ),
                   ),
                 ),
-                GridView.count(
-                  crossAxisCount: 2,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 1.1,
-                  children: [
-                    ActionTile(
-                      icon: Icons.assessment_outlined,
-                      title: '开始体测',
-                      subtitle: '录入项目并生成报告',
-                      onTap: () =>
-                          _open(AssessmentStartScreen(client: widget.client)),
-                    ),
-                    ActionTile(
-                      icon: Icons.accessibility_new,
-                      title: '体态观察',
-                      subtitle: '授权后完成四视角拍摄',
-                      onTap: () =>
-                          _open(PostureConsentScreen(client: widget.client)),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 6),
                 Card(
                   child: Column(
                     children: [
                       ActionButton(
-                        label: '查看体测报告',
-                        onPressed: () =>
-                            _open(ReportListScreen(client: widget.client)),
-                      ),
-                      ActionButton(
-                        label: '查看训练计划',
-                        onPressed: () =>
-                            _open(TrainingScreen(client: widget.client)),
-                      ),
-                      ActionButton(
-                        label: '管理儿童档案',
-                        onPressed: () =>
-                            _open(FamilyScreen(client: widget.client)),
-                      ),
-                      ActionButton(
                         label: '专业咨询',
+                        icon: Icons.chat_bubble_outline,
                         onPressed: () =>
                             _open(ChatScreen(client: widget.client)),
                       ),
                       ActionButton(
-                        label: '数据控制与导出',
-                        onPressed: () =>
-                            _open(DataControlScreen(client: widget.client)),
+                        label: '儿童档案与数据控制',
+                        icon: Icons.manage_accounts_outlined,
+                        onPressed: () => _open(
+                          FamilyScreen(
+                            client: widget.client,
+                            onLoggedOut: widget.onLoggedOut,
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                ),
-                TextButton(
-                  onPressed: () => _open(const PrivacyScreen()),
-                  child: const Text('隐私与数据说明'),
                 ),
               ],
             ),
@@ -327,9 +612,10 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class FamilyScreen extends StatefulWidget {
-  const FamilyScreen({required this.client, super.key});
+  const FamilyScreen({required this.client, required this.onLoggedOut, super.key});
 
   final BoksApiClient client;
+  final VoidCallback onLoggedOut;
 
   @override
   State<FamilyScreen> createState() => _FamilyScreenState();
@@ -346,6 +632,10 @@ class _FamilyScreenState extends State<FamilyScreen> {
 
   void _reload() {
     setState(() => _children = widget.client.listChildren());
+  }
+
+  void _open(Widget page) {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
   }
 
   Future<void> _addChild() async {
@@ -440,33 +730,98 @@ class _FamilyScreenState extends State<FamilyScreen> {
           }
           final children = snapshot.data!;
           if (children.isEmpty) {
-            return const Center(child: Text('还没有儿童档案。'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('还没有儿童档案。'),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: _addChild,
+                    icon: const Icon(Icons.add),
+                    label: const Text('添加'),
+                  ),
+                ],
+              ),
+            );
           }
           return ListView(
             padding: const EdgeInsets.all(16),
-            children: children
-                .map(
-                  (child) => Card(
-                    child: ListTile(
-                      leading: const CircleAvatar(
-                        backgroundColor: boksBrandLight,
-                        child: Icon(Icons.person, color: boksBrand),
-                      ),
-                      title: Text(child.displayName),
-                      subtitle: Text(
-                        '${child.birthDate} · ${child.schoolStage} · ${child.gradeCode}',
-                      ),
-                      trailing: StatusPill(
-                        label: child.profileStatus == 'active' ? '正常' : '已停用',
-                      ),
+            children: [
+              ...children.map(
+                (child) => Card(
+                  child: ListTile(
+                    leading: const CircleAvatar(
+                      backgroundColor: boksBrandLight,
+                      child: Icon(Icons.person, color: boksBrand),
+                    ),
+                    title: Text(child.displayName),
+                    subtitle: Text(
+                      '${child.birthDate} · ${child.schoolStage} · ${child.gradeCode}',
+                    ),
+                    trailing: StatusPill(
+                      label:
+                          child.profileStatus == 'active' ? '正常' : '已停用',
                     ),
                   ),
-                )
-                .toList(),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SectionCard(
+                title: '监护人控制',
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.shield_outlined),
+                      title: const Text('数据控制与导出'),
+                      subtitle: const Text('导出家庭数据、申请删除儿童数据'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _open(
+                        DataControlScreen(client: widget.client),
+                      ),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.logout),
+                      title: const Text('退出登录'),
+                      subtitle: const Text('退出后需重新验证身份'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _confirmLogout(),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           );
         },
       ),
     );
+  }
+
+  Future<void> _confirmLogout() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('退出登录'),
+        content: const Text('确定要退出当前账号吗？退出后需重新验证身份。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('退出'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    try {
+      await widget.client.logout();
+    } on ApiException {
+      // 登出即使远端失败也清理本地 token，保证本地一定回到登录态。
+    }
+    if (mounted) widget.onLoggedOut();
   }
 }
 
@@ -1993,12 +2348,315 @@ class PrivacyScreen extends StatelessWidget {
   }
 }
 
+class _HomeSectionHeading extends StatelessWidget {
+  const _HomeSectionHeading({
+    required this.title,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  final String title;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+        ),
+        if (actionLabel != null && onAction != null)
+          TextButton(onPressed: onAction, child: Text(actionLabel!))
+        else if (actionLabel != null)
+          Text(
+            actionLabel!,
+            style: const TextStyle(color: boksMuted, fontSize: 12),
+          ),
+      ],
+    );
+  }
+}
+
+class _HomeReportCard extends StatelessWidget {
+  const _HomeReportCard({
+    required this.report,
+    required this.levelLabel,
+    required this.onOpen,
+  });
+
+  final AssessmentReport? report;
+  final String? levelLabel;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    if (report == null) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.insights_outlined, color: boksBrand),
+                  SizedBox(width: 10),
+                  Text(
+                    '还没有体测记录',
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                '完成一次真实测量后，这里会显示孩子的标准版本、结果和优先行动。',
+                style: TextStyle(color: boksMuted, height: 1.45),
+              ),
+              const SizedBox(height: 14),
+              FilledButton(onPressed: onOpen, child: const Text('开始第一次体测')),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Card(
+      color: boksForest,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Expanded(
+                  child: Row(
+                    children: [
+                      Icon(Icons.assessment_outlined, color: Colors.white),
+                      SizedBox(width: 10),
+                      Text(
+                        '国家标准体测报告',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 17,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      report!.totalScore?.toStringAsFixed(1) ?? '—',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 34,
+                        fontWeight: FontWeight.w900,
+                        height: 1,
+                      ),
+                    ),
+                    Text(
+                      report!.totalScore == null ? '参考进步' : '$levelLabel · 综合分',
+                      style: const TextStyle(
+                        color: Color(0xCCFFFFFF),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${report!.measurementDate} · ${report!.standardName}',
+              style: const TextStyle(color: Color(0xD9FFFFFF), fontSize: 12),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.only(top: 13),
+              decoration: const BoxDecoration(
+                border: Border(top: BorderSide(color: Color(0x33FFFFFF))),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '优先改善行动',
+                    style: TextStyle(
+                      color: Color(0xD9FFFFFF),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  ...report!.priorityActions
+                      .take(3)
+                      .map(
+                        (item) => Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Text(
+                            item,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              height: 1.35,
+                            ),
+                          ),
+                        ),
+                      ),
+                  const SizedBox(height: 8),
+                  FilledButton(
+                    onPressed: onOpen,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: boksForest,
+                    ),
+                    child: const Text('查看完整报告'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeTrainingCard extends StatelessWidget {
+  const _HomeTrainingCard({
+    required this.plan,
+    required this.progress,
+    required this.onOpen,
+  });
+
+  final TrainingPlan? plan;
+  final TrainingProgress? progress;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    if (plan == null) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const DecoratedBox(
+                decoration: BoxDecoration(
+                  color: boksBrandLight,
+                  shape: BoxShape.circle,
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(10),
+                  child: Icon(Icons.directions_run, color: boksBrand),
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  '完成体测后，BOKS 会根据当前数据生成可执行的家庭训练计划。',
+                  style: TextStyle(color: boksMuted, height: 1.45),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final completed = progress?.completed ?? 0;
+    final total = progress?.totalDays ?? 0;
+    final percent = total == 0 ? 0.0 : (completed / total).clamp(0.0, 1.0);
+    final firstItem = plan!.items.isEmpty ? null : plan!.items.first;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: boksBrandLight,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.all(10),
+                    child: Icon(Icons.directions_run, color: boksBrand),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        plan!.goal,
+                        style: const TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        '${plan!.durationWeeks} 周 · 每周 ${plan!.daysPerWeek} 次 · 每次约 ${plan!.minutesPerSession} 分钟',
+                        style: const TextStyle(color: boksMuted, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  '$completed/$total',
+                  style: const TextStyle(
+                    color: boksBrand,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(99),
+              child: LinearProgressIndicator(
+                value: percent,
+                minHeight: 8,
+                backgroundColor: boksBrandLight,
+                valueColor: const AlwaysStoppedAnimation(boksBrandBright),
+              ),
+            ),
+            if (firstItem != null) ...[
+              const SizedBox(height: 14),
+              Text(
+                '今日建议 · ${firstItem.exerciseName}',
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                '约 ${firstItem.durationMinutes.toStringAsFixed(0)} 分钟 · 训练时如不适请立即停止',
+                style: const TextStyle(color: boksMuted, fontSize: 12),
+              ),
+            ],
+            const SizedBox(height: 14),
+            OutlinedButton(onPressed: onOpen, child: const Text('打开训练计划')),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class ActionTile extends StatelessWidget {
   const ActionTile({
     required this.icon,
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.accentColor = boksBrandLight,
     super.key,
   });
 
@@ -2006,6 +2664,7 @@ class ActionTile extends StatelessWidget {
   final String title;
   final String subtitle;
   final VoidCallback onTap;
+  final Color accentColor;
 
   @override
   Widget build(BuildContext context) {
@@ -2019,9 +2678,18 @@ class ActionTile extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, color: boksBrand, size: 30),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: accentColor,
+                  shape: BoxShape.circle,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(9),
+                  child: Icon(icon, color: boksBrand, size: 24),
+                ),
+              ),
               const SizedBox(height: 10),
-              Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
               const SizedBox(height: 4),
               Text(
                 subtitle,
@@ -2036,14 +2704,21 @@ class ActionTile extends StatelessWidget {
 }
 
 class ActionButton extends StatelessWidget {
-  const ActionButton({required this.label, required this.onPressed, super.key});
+  const ActionButton({
+    required this.label,
+    required this.onPressed,
+    this.icon,
+    super.key,
+  });
 
   final String label;
   final VoidCallback onPressed;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      leading: icon == null ? null : Icon(icon, color: boksBrand),
       title: Text(label),
       trailing: const Icon(Icons.chevron_right),
       onTap: onPressed,
@@ -2052,22 +2727,29 @@ class ActionButton extends StatelessWidget {
 }
 
 class StatusPill extends StatelessWidget {
-  const StatusPill({required this.label, super.key});
+  const StatusPill({
+    required this.label,
+    this.backgroundColor = boksBrandLight,
+    this.foregroundColor = boksBrand,
+    super.key,
+  });
 
   final String label;
+  final Color backgroundColor;
+  final Color foregroundColor;
 
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: boksBrandLight,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(99),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         child: Text(
           label,
-          style: const TextStyle(color: boksBrand, fontSize: 12),
+          style: TextStyle(color: foregroundColor, fontSize: 12),
         ),
       ),
     );

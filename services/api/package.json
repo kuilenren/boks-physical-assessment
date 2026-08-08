@@ -1,13 +1,15 @@
 {
   "name": "@boks/api",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "dev": "tsx watch src/main.ts",
-    "start": "node dist/main.js",
+    "dev": "tsx watch --env-file-if-exists=../../.env src/main.ts",
+    "start": "node --env-file-if-exists=../../.env dist/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "migrate:up": "tsx --env-file-if-exists=../../.env db/migrate.ts up",
+    "migrate:down": "tsx --env-file-if-exists=../../.env db/migrate.ts down"
   },
   "dependencies": {
     "@boks/contracts": "workspace:*",
@@ -16,6 +18,7 @@
     "@nestjs/platform-express": "^11.0.0",
     "express": "5.2.1",
     "pg": "^8.22.0",
+    "redis": "^4.7.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2"
   },

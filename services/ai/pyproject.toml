@@ -4,25 +4,38 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "boks-ai"
-version = "0.1.0"
-description = "BOKS 体态分析与 AI 编排服务骨架"
+version = "0.2.0"
+description = "BOKS 体态分析与 AI 编排服务（含 RAG、Hybrid Retriever、流式 SSE）"
 requires-python = ">=3.12"
 dependencies = [
   "fastapi>=0.115,<1",
   "pydantic>=2.10,<3",
-  "uvicorn[standard]>=0.34,<1"
+  "python-dotenv>=1.0,<2",
+  "uvicorn[standard]>=0.34,<1",
+  "httpx>=0.28,<1",
+  "asyncpg>=0.30,<1",
+  "jieba>=0.42,<1",
+  "sentence-transformers>=3.0,<4",
+  "numpy>=1.26,<3",
+  "redis>=5.0,<6",
+  "sse-starlette>=2.1,<3",
 ]
 
 [project.optional-dependencies]
 dev = [
   "httpx>=0.28,<1",
   "pytest>=8.3,<9",
-  "ruff>=0.11,<1"
+  "pytest-asyncio>=0.24,<1",
+  "ruff>=0.11,<1",
 ]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
+asyncio_mode = "auto"
 
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+
+[tool.setuptools.packages.find]
+where = ["src"]

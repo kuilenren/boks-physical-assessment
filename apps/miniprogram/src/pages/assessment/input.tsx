@@ -1,5 +1,5 @@
 import { Button, Input, Text, View } from "@tarojs/components";
-import Taro, { useLoad } from "@tarojs/taro";
+import { redirectTo, showToast, useLoad } from "@tarojs/taro";
 import { useState } from "react";
 import type { ChildProfile, AssessmentSchema } from "../../models";
 import { ChildPicker } from "../../components/ChildPicker";
@@ -54,12 +54,12 @@ export default function AssessmentInputPage() {
 
   const submit = async () => {
     if (!childId) {
-      void Taro.showToast({ title: "请先选择孩子", icon: "none" });
+      void showToast({ title: "请先选择孩子", icon: "none" });
       return;
     }
 
     if (!schema) {
-      void Taro.showToast({ title: "体测项目尚未加载", icon: "none" });
+      void showToast({ title: "体测项目尚未加载", icon: "none" });
       return;
     }
 
@@ -72,7 +72,7 @@ export default function AssessmentInputPage() {
       .filter((metric) => metric.raw_value.trim().length > 0);
 
     if (valuesToSubmit.length === 0) {
-      void Taro.showToast({ title: "至少录入一项实际测量值", icon: "none" });
+      void showToast({ title: "至少录入一项实际测量值", icon: "none" });
       return;
     }
 
@@ -82,7 +82,7 @@ export default function AssessmentInputPage() {
       setSessionId(session);
       await saveSession(session, valuesToSubmit);
       const report = await submitSession(session, valuesToSubmit);
-      void Taro.redirectTo({
+      void redirectTo({
         url: `/pages/report/detail?reportId=${report.report_id}`,
       });
     } catch (error) {
@@ -101,10 +101,13 @@ export default function AssessmentInputPage() {
 
   return (
     <View className="page">
-      <Text className="page-title">录入体测数据</Text>
-      <Text className="page-subtitle">
-        空白项目代表缺测，不会静默当作 0 分。
-      </Text>
+      <View className="page-header">
+        <Text className="page-kicker">MEASUREMENT ENTRY</Text>
+        <Text className="page-title">录入体测数据</Text>
+        <Text className="page-subtitle">
+          空白项目代表缺测，不会静默当作 0 分。
+        </Text>
+      </View>
       <View className="card">
         <ChildPicker
           children={children}
@@ -151,7 +154,7 @@ export default function AssessmentInputPage() {
         </Button>
       </View>
       <Text className="muted">
-        当前开发环境使用演示评分夹具。正式上线前必须替换为审核发布的标准知识库规则。
+        评分依据国家学生体质健康标准（2014 年修订）查表计算，结果仅作体能观察，不构成医疗建议或诊断。
       </Text>
     </View>
   );

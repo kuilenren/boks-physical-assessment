@@ -140,13 +140,43 @@ export const scoreResultSchema = z.object({
   raw_value: z.string(),
   unit: z.string(),
   score: z.number().min(0).max(100).nullable(),
+  bonus: z.number().min(0).max(20).default(0),
   weight: z.number().min(0).max(1),
   contribution: z.number().min(0),
+  band_label: z.string().default(""),
   interpretation: z.string(),
   status: z.enum(["scored", "missing", "reference_only", "needs_review"]),
 });
 
 export type ScoreResult = z.infer<typeof scoreResultSchema>;
+
+export const engineIndicatorScoreSchema = z.object({
+  indicator_code: z.string(),
+  score: z.number().min(0).max(100).nullable(),
+  bonus: z.number().min(0).max(20),
+  contribution: z.number().min(0),
+  weight: z.number().min(0).max(1),
+  band_label: z.string(),
+  raw_value: z.string(),
+  interpretation: z.string(),
+  matched_threshold: z.number().nullable(),
+  status: z.enum(["scored", "missing", "reference_only", "needs_review"]),
+});
+
+export type EngineIndicatorScore = z.infer<typeof engineIndicatorScoreSchema>;
+
+export const engineResultSchema = z.object({
+  standard_id: z.string(),
+  algorithm_version: z.string(),
+  standard_score: z.number().min(0).max(100),
+  bonus_score: z.number().min(0).max(20),
+  total_score: z.number().min(0).max(120),
+  level: z.enum(["excellent", "good", "pass", "fail"]),
+  completeness: z.number().min(0).max(1),
+  results: z.array(engineIndicatorScoreSchema),
+});
+
+export type EngineResult = z.infer<typeof engineResultSchema>;
 
 export const assessmentReportSchema = z.object({
   id: z.string(),
@@ -166,6 +196,7 @@ export const assessmentReportSchema = z.object({
   completeness: z.number().min(0).max(1),
   priority_actions: z.array(z.string()).max(3),
   results: z.array(scoreResultSchema),
+  engine_results: engineResultSchema.optional(),
   limitations: z.array(z.string()),
   source_references: z.array(
     z.object({
@@ -357,11 +388,70 @@ export const authSessionSchema = z.object({
   refresh_token: z.string().min(1),
   guardian_id: z.string().min(1),
   family_id: z.string().min(1),
+  account_id: z.string().nullable().default(null),
+  role: z.string().nullable().default(null),
+  org_id: z.string().nullable().default(null),
   expires_at: z.string().datetime(),
 });
 export type AuthSession = z.infer<typeof authSessionSchema>;
+export const accountRoleSchema = z.enum(["super_admin", "staff", "parent"]);
+export type AccountRole = z.infer<typeof accountRoleSchema>;
+export const accountSchema = z.object({
+  id: z.string().min(1),
+  org_id: z.string().nullable().default(null),
+  role: accountRoleSchema,
+  display_name: z.string().min(1),
+  username: z.string().nullable().default(null),
+  phone: z.string().nullable().default(null),
+  status: z.enum(["active", "disabled"]).default("active"),
+  family_id: z.string().nullable().default(null),
+  created_by: z.string().nullable().default(null),
+  created_at: z.string().datetime(),
+});
+export type Account = z.infer<typeof accountSchema>;
+export const organizationSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  status: z.enum(["active", "archived"]).default("active"),
+  created_at: z.string().datetime(),
+});
+export type Organization = z.infer<typeof organizationSchema>;
+export const setupSuperAdminRequestSchema = z.object({
+  org_name: z.string().trim().min(1).max(120),
+  display_name: z.string().trim().min(1).max(64),
+  username: z.string().trim().min(3).max(64),
+  password: z.string().min(8).max(128),
+});
+export type SetupSuperAdminRequest = z.infer<
+  typeof setupSuperAdminRequestSchema
+>;
+export const passwordLoginRequestSchema = z.object({
+  username: z.string().trim().min(1).max(64),
+  password: z.string().min(1).max(128),
+});
+export type PasswordLoginRequest = z.infer<typeof passwordLoginRequestSchema>;
+export const createAccountRequestSchema = z.object({
+  role: z.enum(["staff", "parent"]),
+  display_name: z.string().trim().min(1).max(64),
+  username: z.string().trim().min(3).max(64).optional(),
+  password: z.string().min(8).max(128).optional(),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^\+?[1-9]\d{6,14}$/, "手机号格式不正确。")
+    .optional(),
+  family_id: z.string().trim().min(1).optional(),
+});
+export type CreateAccountRequest = z.infer<typeof createAccountRequestSchema>;
+export const setAccountStatusRequestSchema = z.object({
+  status: z.enum(["active", "disabled"]),
+});
+export type SetAccountStatusRequest = z.infer<
+  typeof setAccountStatusRequestSchema
+>;
 export const devLoginRequestSchema = z.object({
   guardian_id: z.string().min(1).default("guardian-demo-001"),
+  family_id: z.string().min(1).optional(),
 });
 export type DevLoginRequest = z.infer<typeof devLoginRequestSchema>;
 export const refreshSessionRequestSchema = z.object({
@@ -492,6 +582,7 @@ export const chatCitationSchema = z.object({
   title: z.string(),
   version: z.string(),
 });
+export type ChatCitation = z.infer<typeof chatCitationSchema>;
 export const chatMessageSchema = z.object({
   id: z.string(),
   role: z.enum(["user", "assistant"]),
@@ -514,6 +605,8 @@ export const knowledgeSourceSchema = z.object({
   id: z.string(),
   title: z.string(),
   owner: z.string(),
+  fetch_url: z.string().url().nullable().default(null),
+  content_hash: z.string().nullable().default(null),
   created_at: z.string().datetime(),
 });
 export const knowledgeVersionSchema = z.object({
@@ -522,6 +615,7 @@ export const knowledgeVersionSchema = z.object({
   version: z.string(),
   title: z.string(),
   content: z.string(),
+  content_hash: z.string().nullable().default(null),
   status: z.enum(["candidate", "published", "withdrawn"]),
   reviewers: z.array(z.string()),
   published_at: z.string().datetime().nullable(),
@@ -529,12 +623,34 @@ export const knowledgeVersionSchema = z.object({
 export const knowledgeSourceRequestSchema = z.object({
   title: z.string().min(1),
   owner: z.string().min(1),
+  fetch_url: z.string().url().nullable().default(null),
 });
 export const knowledgeVersionRequestSchema = z.object({
   source_id: z.string(),
   version: z.string().min(1),
   title: z.string().min(1),
   content: z.string().min(1),
+});
+export const nextActionSchema = z.object({
+  id: z.string(),
+  child_id: z.string(),
+  priority: z.number().int().min(1).max(100),
+  category: z.enum([
+    "consent",
+    "assessment",
+    "training",
+    "posture",
+    "consult",
+  ]),
+  title: z.string(),
+  description: z.string(),
+  reason: z.string(),
+});
+export type NextAction = z.infer<typeof nextActionSchema>;
+export const nextActionsResponseSchema = z.object({
+  child_id: z.string(),
+  generated_at: z.string().datetime(),
+  actions: z.array(nextActionSchema),
 });
 export const dataExportSchema = z.object({
   family_id: z.string(),

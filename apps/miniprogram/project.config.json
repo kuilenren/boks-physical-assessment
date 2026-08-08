@@ -1,10 +1,40 @@
 {
-  "description": "BOKS 儿童体测与体态观察小程序",
+  "description": "BOKS智能体测体态分析",
   "compileType": "miniprogram",
   "libVersion": "3.8.0",
-  "appid": "touristappid",
-  "projectname": "boks-miniprogram",
-  "miniprogramRoot": "./dist",
+  "appid": "wx2b1c048c953f409c",
+  "projectname": "BOKS智能体测体态分析",
+  "miniprogramRoot": "dist/",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "coverView": true,
+    "checkInvalidKey": true,
+    "checkSiteMap": false,
+    "compileWorklet": false,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "useCompilerPlugins": false,
+    "condition": false,
+    "swc": true,
+    "disableSWC": false,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
+  },
+  "condition": {},
+  "simulatorPluginLibVersion": {},
   "packOptions": {
     "ignore": [
       {
@@ -39,17 +69,8 @@
         "type": "file",
         "value": "README.md"
       }
-    ]
+    ],
+    "include": []
   },
-  "setting": {
-    "urlCheck": false,
-    "es6": true,
-    "enhance": true,
-    "postcss": true,
-    "minified": true,
-    "coverView": true,
-    "checkInvalidKey": true,
-    "checkSiteMap": false
-  },
-  "condition": {}
+  "editorSetting": {}
 }
