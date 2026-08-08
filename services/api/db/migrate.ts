@@ -63,6 +63,7 @@ export async function discover(): Promise<Migration[]> {
 export async function ensureMigrationsTable(
   client: import("pg").PoolClient,
 ): Promise<void> {
+  await client.query(`CREATE SCHEMA IF NOT EXISTS boks`);
   await client.query(`
     CREATE TABLE IF NOT EXISTS boks.boks_schema_migrations (
       id              TEXT PRIMARY KEY,
