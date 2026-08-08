@@ -36,9 +36,7 @@ const API_BASE_URL = (() => {
     return configured.replace(/\/+$/, "");
   }
   if (isProduction)
-    throw new Error(
-      "生产构建必须通过 TARO_APP_API_BASE_URL 配置 API 域名。",
-    );
+    throw new Error("生产构建必须通过 TARO_APP_API_BASE_URL 配置 API 域名。");
   return "http://127.0.0.1:3000/v1";
 })();
 const AUTH_TOKEN_KEY = "boks.guardian.token";
@@ -120,7 +118,7 @@ async function ensureAuth(force = false): Promise<void> {
 
   const configuredToken = process.env.TARO_APP_API_TOKEN;
   if (!force && !isProduction && configuredToken) {
-    taroSetStorageSync(AUTH_TOKEN_KEY, configuredToken);
+    Taro.setStorageSync(AUTH_TOKEN_KEY, configuredToken);
     return;
   }
 
