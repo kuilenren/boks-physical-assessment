@@ -3,10 +3,10 @@ BM25 简易实现（jieba 0.42 中文分词 + 自定义 BOKS 词表）
 不依赖 rank_bm25，避免额外依赖
 """
 from __future__ import annotations
+
 import math
 import re
 from collections import Counter
-from typing import Iterable
 
 try:
     import jieba

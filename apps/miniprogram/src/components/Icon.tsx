@@ -1,4 +1,4 @@
-import { Image } from '@tarojs/components';
+import { Image } from "@tarojs/components";
 
 /**
  * BOKS 图标（currentColor 透传，dark mode 自动跟随）

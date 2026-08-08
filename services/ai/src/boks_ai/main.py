@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 
 from .audit import append_audit
-from .llm_router import LlmUnavailableError, stream, LlmRequest, LlmMessage, TASK_DEFAULTS
+from .llm_router import TASK_DEFAULTS, LlmMessage, LlmRequest, LlmUnavailableError, stream
 from .models import (
     AuditEvent,
     ChatRequest,

@@ -11,29 +11,27 @@ NestJS 端通过 POST /v1/chat/conversations/:id/stream 接收请求，
   event: done        data: {"trace_id":"...","usage":{...}}
 """
 from __future__ import annotations
-import asyncio
+
 import json
 import uuid
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
+from boks_ai.embeddings.client import EMBED_DIM
 from boks_ai.llm_router import (
-    LlmRequest,
-    LlmMessage,
     TASK_DEFAULTS,
-    LlmChunk,
+    LlmMessage,
+    LlmRequest,
     LlmUsage,
-    stream,
-    provider_order,
     is_configured,
+    provider_order,
+    stream,
 )
-from boks_ai.safety import classify, refusal_content
 from boks_ai.retrieval.hybrid import HybridRetriever, make_pg_pool
-from boks_ai.embeddings.client import get_embedder, EMBED_DIM
-
+from boks_ai.safety import classify, refusal_content
 
 app = FastAPI(title="BOKS AI Streaming", version="0.2.0")
 
@@ -188,7 +186,6 @@ async def _sse_events(req: ChatStreamRequest) -> AsyncIterator[dict]:
 @app.post("/v1/chat")
 async def chat_legacy(req: ChatStreamRequest):
     """非流式版本（兼容旧 client）。返回完整 message。"""
-    chunks = []
     citations = []
     intercepted = False
     intent = "process"
