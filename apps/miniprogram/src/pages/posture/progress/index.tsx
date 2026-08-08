@@ -6,7 +6,10 @@ import { getPostureSession } from "../../../services/posture";
 import { ErrorState, LoadingState } from "../../../components/PageState";
 import { showError } from "../../../utils/error";
 
-const views: Array<{ key: "front" | "back" | "left" | "right"; label: string }> = [
+const views: Array<{
+  key: "front" | "back" | "left" | "right";
+  label: string;
+}> = [
   { key: "front", label: "正面" },
   { key: "back", label: "背面" },
   { key: "left", label: "左侧" },
@@ -91,10 +94,18 @@ export default function PostureProgressPage() {
         <View className="card">
           <Text className="section-title">观察状态</Text>
           <Text className="muted">
-            置信度：{session.analysis.confidence === "high" ? "高" : session.analysis.confidence === "medium" ? "中" : "低"}
+            置信度：
+            {session.analysis.confidence === "high"
+              ? "高"
+              : session.analysis.confidence === "medium"
+                ? "中"
+                : "低"}
           </Text>
           <Text className="muted">
-            观察结果：{session.analysis.observation_status === "observed" ? "已观察" : "数据不足"}
+            观察结果：
+            {session.analysis.observation_status === "observed"
+              ? "已观察"
+              : "数据不足"}
           </Text>
         </View>
       ) : null}

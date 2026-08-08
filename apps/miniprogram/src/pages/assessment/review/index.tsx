@@ -2,7 +2,11 @@ import { Button, Text, View } from "@tarojs/components";
 import { navigateBack, redirectTo, useLoad } from "@tarojs/taro";
 import { useState } from "react";
 import type { AssessmentSession, ChildProfile } from "../../../models";
-import { getSession, saveSession, submitSession } from "../../../services/assessment";
+import {
+  getSession,
+  saveSession,
+  submitSession,
+} from "../../../services/assessment";
 import { listChildren } from "../../../services/family";
 import { ChildPicker } from "../../../components/ChildPicker";
 import { ErrorState, LoadingState } from "../../../components/PageState";
@@ -51,11 +55,14 @@ export default function AssessmentReviewPage() {
   const save = async () => {
     if (!session) return;
     try {
-      const updated = await saveSession(session.id, Object.entries(values).map(([indicator_code, raw_value]) => ({
-        indicator_code,
-        raw_value,
-        unit: "",
-      })));
+      const updated = await saveSession(
+        session.id,
+        Object.entries(values).map(([indicator_code, raw_value]) => ({
+          indicator_code,
+          raw_value,
+          unit: "",
+        })),
+      );
       setSession(updated);
     } catch (error) {
       showError(error, "保存失败。");
@@ -99,7 +106,10 @@ export default function AssessmentReviewPage() {
   if (!session) {
     return (
       <View className="page">
-        <ErrorState message="会话不存在。" onRetry={() => void navigateBack()} />
+        <ErrorState
+          message="会话不存在。"
+          onRetry={() => void navigateBack()}
+        />
       </View>
     );
   }
@@ -135,9 +145,7 @@ export default function AssessmentReviewPage() {
               <Text className="field-label">{code}</Text>
             </View>
             <View className="metric-input-row">
-              <Text className="muted">
-                {value || "（未录入）"}
-              </Text>
+              <Text className="muted">{value || "（未录入）"}</Text>
             </View>
           </View>
         ))}
