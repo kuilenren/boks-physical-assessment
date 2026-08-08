@@ -117,5 +117,11 @@ const sd = new StyleDictionary({
   },
 });
 
+// Ensure all build directories exist before writing files
+fs.mkdirSync(path.join(__dirname, "build/scss"), { recursive: true });
+fs.mkdirSync(path.join(__dirname, "build/css"), { recursive: true });
+fs.mkdirSync(path.join(__dirname, "build/ts"), { recursive: true });
+fs.mkdirSync(path.join(__dirname, "build/dart"), { recursive: true });
+
 sd.buildAllPlatforms();
 console.log("design-tokens built: scss / css / js / dart");

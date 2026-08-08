@@ -3,7 +3,16 @@
  */
 import { strict as assert } from "node:assert";
 import { createRequire } from "node:module";
-const require = createRequire(import.meta.url);
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+const require = createRequire(
+  join(
+    dirname(fileURLToPath(import.meta.url)),
+    "..",
+    "..",
+    "services/api/package.json",
+  ),
+);
 const { Pool } = require("pg");
 
 const API = process.env.API_BASE ?? "http://127.0.0.1:3000/v1";

@@ -2,3 +2,7 @@ packages:
   - apps/*
   - services/*
   - packages/*
+
+ignoredBuiltDependencies:
+  - '@bundled-es-modules/glob'
+  - style-dictionary
