@@ -79,7 +79,10 @@ export async function ensureAuth(): Promise<boolean> {
   return false;
 }
 
-async function devLogin(): Promise<{ token: string; refreshToken: string } | null> {
+async function devLogin(): Promise<{
+  token: string;
+  refreshToken: string;
+} | null> {
   try {
     const resp = await request<{
       token: string;

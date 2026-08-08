@@ -11,8 +11,7 @@ export interface SessionState {
 
 export function getSessionState(): SessionState {
   const token = Taro.getStorageSync<string>(SESSION_TOKEN_KEY) ?? null;
-  const refreshToken =
-    Taro.getStorageSync<string>(SESSION_REFRESH_KEY) ?? null;
+  const refreshToken = Taro.getStorageSync<string>(SESSION_REFRESH_KEY) ?? null;
   return {
     token,
     refreshToken,
@@ -20,10 +19,7 @@ export function getSessionState(): SessionState {
   };
 }
 
-export function setSessionToken(
-  token: string,
-  refreshToken: string,
-): void {
+export function setSessionToken(token: string, refreshToken: string): void {
   Taro.setStorageSync(SESSION_TOKEN_KEY, token);
   Taro.setStorageSync(SESSION_REFRESH_KEY, refreshToken);
 }

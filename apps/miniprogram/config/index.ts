@@ -13,11 +13,9 @@ const config: UserConfigExport = {
   outputRoot: "dist",
   framework: "react",
   compiler: "webpack5",
-  plugins: [
-    "@tarojs/plugin-platform-weapp",
-    "@tarojs/plugin-platform-h5",
-  ],
+  plugins: ["@tarojs/plugin-platform-weapp", "@tarojs/plugin-platform-h5"],
   copy: {
+    options: {},
     patterns: [
       { from: "src/assets/icons/", to: "assets/icons/" },
       { from: "src/assets/tab/", to: "assets/tab/" },

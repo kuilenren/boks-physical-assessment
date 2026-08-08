@@ -225,3 +225,13 @@ export interface Session {
   created_at: string;
   expires_at: string;
 }
+
+export interface NextAction {
+  id: string;
+  category: "consent" | "assessment" | "training" | "posture" | "consult";
+  title: string;
+  reason: string;
+  description: string;
+  child_id: string;
+  target_route: string;
+}

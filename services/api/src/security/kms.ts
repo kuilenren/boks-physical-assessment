@@ -6,7 +6,13 @@
  * - DEK 通过 runtime cache 持有，应用启动时 unwrap 一次
  * - 密钥轮换：写入新 KEK 后批量 reencrypt（见 scripts/reencrypt.ts）
  */
-import { createCipheriv, createDecipheriv, createHash, randomBytes, createHmac } from "node:crypto";
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  randomBytes,
+  createHmac,
+} from "node:crypto";
 import { Pool } from "pg";
 
 export type WrappedKey = {
@@ -33,7 +39,9 @@ function loadKek(): { kekId: string; key: Buffer } {
   }
   const key = unb64(b64kek);
   if (key.length !== 32) {
-    throw new Error(`BOKS_KEK_BASE64 长度必须为 32 字节（base64 = 44 字符），当前 ${key.length}`);
+    throw new Error(
+      `BOKS_KEK_BASE64 长度必须为 32 字节（base64 = 44 字符），当前 ${key.length}`,
+    );
   }
   return { kekId: id, key };
 }

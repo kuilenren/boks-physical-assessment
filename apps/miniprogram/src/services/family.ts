@@ -5,6 +5,7 @@ import type {
   DataExport,
   DeletionRequest,
   FamilySummary,
+  NextAction,
 } from "../models";
 import { request } from "./http";
 
@@ -82,6 +83,13 @@ export function deleteChild(childId: string) {
     `/children/${encodeURIComponent(childId)}`,
     { method: "DELETE" },
   );
+}
+
+export function getNextActions(childId?: string) {
+  const url = childId
+    ? `/insights/next-actions?child_id=${encodeURIComponent(childId)}`
+    : "/insights/next-actions";
+  return request<{ actions: NextAction[] }>(url);
 }
 
 function mapChild(child: Child): ChildProfile {

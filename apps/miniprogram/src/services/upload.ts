@@ -11,18 +11,15 @@ export async function createUploadSession(
   fileSize: number,
   purpose: "photo" | "video",
 ): Promise<PreSignedUpload> {
-  const resp = await request<PreSignedUpload>(
-    "/media/upload-sessions",
-    {
-      method: "POST",
-      data: {
-        child_id: childId,
-        file_type: fileType,
-        file_size: fileSize,
-        purpose,
-      },
+  const resp = await request<PreSignedUpload>("/media/upload-sessions", {
+    method: "POST",
+    data: {
+      child_id: childId,
+      file_type: fileType,
+      file_size: fileSize,
+      purpose,
     },
-  );
+  });
   return resp;
 }
 
@@ -47,7 +44,12 @@ export async function uploadPhoto(
   const fileHandle = Taro.getFileSystemManager().accessSync(tempFilePath);
   const fileSize = Taro.getFileSystemManager().statSync(tempFilePath).size;
 
-  const session = await createUploadSession(childId, `image/${fileExt}`, fileSize, "photo");
+  const session = await createUploadSession(
+    childId,
+    `image/${fileExt}`,
+    fileSize,
+    "photo",
+  );
 
   const uploadResult = await Taro.uploadFile({
     url: session.presigned_url,

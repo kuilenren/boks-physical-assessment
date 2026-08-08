@@ -217,4 +217,3 @@ export async function logout(): Promise<void> {
     Taro.removeStorageSync(AUTH_REFRESH_TOKEN_KEY);
   }
 }
-

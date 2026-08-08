@@ -196,7 +196,9 @@ export default function TrainingDetailPage() {
                     <Text className="result-label">
                       {session.day_label} · {session.focus}
                     </Text>
-                    <Text className="muted">{session.exercises.join("、")}</Text>
+                    <Text className="muted">
+                      {session.exercises.join("、")}
+                    </Text>
                   </View>
                   <View>
                     <Text className="unit">{session.minutes} 分钟</Text>
