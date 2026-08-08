@@ -66,6 +66,10 @@ export function getAssessmentTrend(childId: string) {
   );
 }
 
+export function getSession(sessionId: string) {
+  return request<AssessmentSession>(`/assessment/sessions/${sessionId}`);
+}
+
 function mapSchema(schema: ContractAssessmentSchema): AssessmentSchema {
   return {
     ...schema,
@@ -130,7 +134,7 @@ function mapReport(
     standard_status: report.standard_status,
     algorithm_version: report.algorithm_version,
     knowledge_snapshot_id: report.knowledge_snapshot_id,
-    limitation_text: report.limitations.join(" "),
+    limitation_text: (report.limitations ?? []).join(" "),
     created_at: report.generated_at,
   };
 }

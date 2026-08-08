@@ -5,30 +5,23 @@ import type {
   DataExport,
   DeletionRequest,
   FamilySummary,
-  NextAction,
 } from "../models";
 import { request } from "./http";
-
-export function getNextActions() {
-  return request<{ generated_at: string; actions: NextAction[] }>(
-    "/families/me/next-actions",
-  );
-}
 
 export function getFamilySummary() {
   return request<{ id: string; display_name: string; children: Child[] }>(
     "/families/me",
   ).then((family) => ({
-    family_id: family.id,
-    display_name: family.display_name,
-    children: family.children.map(mapChild),
+    family_id: family.id ?? "",
+    display_name: family.display_name ?? "",
+    children: (family.children || []).map(mapChild),
     pending_actions: 0,
   }));
 }
 
 export function listChildren() {
   return request<Child[]>("/families/me/children").then((items) =>
-    items.map(mapChild),
+    (items || []).map(mapChild),
   );
 }
 

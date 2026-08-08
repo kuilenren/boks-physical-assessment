@@ -1,10 +1,4 @@
-import {
-  getStorageSync as taroGetStorageSync,
-  login as taroLogin,
-  removeStorageSync as taroRemoveStorageSync,
-  request as taroRequest,
-  setStorageSync as taroSetStorageSync,
-} from "@tarojs/taro";
+﻿import Taro from "@tarojs/taro";
 
 interface ApiSuccess<T> {
   data: T;
@@ -18,7 +12,6 @@ interface ApiFailure {
   error?: {
     code?: string;
     message?: string;
-    retryable?: boolean;
   };
   message?: string | string[];
   code?: string;
@@ -50,59 +43,18 @@ const API_BASE_URL = (() => {
 })();
 const AUTH_TOKEN_KEY = "boks.guardian.token";
 const AUTH_REFRESH_TOKEN_KEY = "boks.guardian.refresh-token";
-const REQUEST_TIMEOUT_MS = 15_000;
-const RETRYABLE_STATUS = new Set([408, 425, 429, 500, 502, 503, 504]);
 let authPromise: Promise<void> | null = null;
 
 export class ApiRequestError extends Error {
   readonly code: string;
   readonly traceId?: string;
-  readonly retryable: boolean;
 
-  constructor(error: {
-    code: string;
-    message: string;
-    traceId?: string;
-    retryable?: boolean;
-  }) {
+  constructor(error: { code: string; message: string; traceId?: string }) {
     super(error.message);
     this.name = "ApiRequestError";
     this.code = error.code;
     this.traceId = error.traceId;
-    this.retryable = error.retryable ?? false;
   }
-}
-
-function buildHeaders(token?: string, idempotencyKey?: string) {
-  return {
-    "Content-Type": "application/json",
-    "X-Client-Platform": "miniprogram",
-    "X-Client-Version": "0.2.0",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
-  };
-}
-
-function isWriteMethod(method: string): boolean {
-  return method === "POST" || method === "PATCH" || method === "DELETE";
-}
-
-async function sendRaw(
-  path: string,
-  options: {
-    data?: unknown;
-    method?: "GET" | "POST" | "PATCH" | "DELETE";
-    token?: string;
-    idempotencyKey?: string;
-  },
-): Promise<{ statusCode: number; data: ApiSuccess<unknown> | ApiFailure }> {
-  return taroRequest<ApiSuccess<unknown> | ApiFailure>({
-    url: `${API_BASE_URL}${path}`,
-    method: options.method ?? "GET",
-    data: options.data,
-    header: buildHeaders(options.token, options.idempotencyKey),
-    timeout: REQUEST_TIMEOUT_MS,
-  });
 }
 
 export async function request<T>(
@@ -111,25 +63,29 @@ export async function request<T>(
     data?: unknown;
     method?: "GET" | "POST" | "PATCH" | "DELETE";
     retryAuth?: boolean;
-    idempotencyKey?: string;
   } = {},
 ): Promise<T> {
   if (!path.startsWith("/auth/")) await ensureAuth();
 
-  const token = taroGetStorageSync<string>(AUTH_TOKEN_KEY);
-  const method = options.method ?? "GET";
-  const idempotencyKey =
-    options.idempotencyKey ??
-    (isWriteMethod(method) ? randomIdempotencyKey() : undefined);
-  const response = await sendRaw(path, {
+  const token = Taro.getStorageSync<string>(AUTH_TOKEN_KEY);
+  const response = await Taro.request<ApiSuccess<T> | ApiFailure>({
+    url: `${API_BASE_URL}${path}`,
+    method: options.method ?? "GET",
     data: options.data,
-    method,
-    token,
-    idempotencyKey,
+    header: {
+      "Content-Type": "application/json",
+      "X-Client-Platform": "miniprogram",
+      "X-Client-Version": "0.2.0",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
   });
 
   const body = response.data;
-  if (response.statusCode < 200 || response.statusCode >= 300) {
+  if (
+    response.statusCode < 200 ||
+    response.statusCode >= 300 ||
+    !("data" in body)
+  ) {
     const failure = body as ApiFailure;
     const message =
       failure.error?.message ??
@@ -142,60 +98,24 @@ export async function request<T>(
         failure.error?.code ?? failure.code ?? `HTTP_${response.statusCode}`,
       message,
       traceId: failure.meta?.trace_id,
-      retryable: failure.error?.retryable ?? RETRYABLE_STATUS.has(response.statusCode),
     });
     if (
       options.retryAuth !== false &&
       !path.startsWith("/auth/") &&
       (error.code === "AUTH_REQUIRED" || error.code === "AUTH_INVALID_TOKEN")
     ) {
-      taroRemoveStorageSync(AUTH_TOKEN_KEY);
+      Taro.removeStorageSync(AUTH_TOKEN_KEY);
       await ensureAuth(true);
       return request<T>(path, { ...options, retryAuth: false });
     }
     throw error;
   }
 
-  return (body as ApiSuccess<T>).data;
-}
-
-function randomIdempotencyKey(): string {
-  const random = Math.random().toString(36).slice(2);
-  return `${Date.now().toString(36)}-${random}`;
-}
-
-export async function requestWithRetry<T>(
-  path: string,
-  options: {
-    data?: unknown;
-    method?: "GET" | "POST" | "PATCH" | "DELETE";
-    maxAttempts?: number;
-  } = {},
-): Promise<T> {
-  const maxAttempts = options.maxAttempts ?? 3;
-  let lastError: unknown;
-  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-    if (attempt > 0) await sleep(backoffDelay(attempt));
-    try {
-      return await request<T>(path, options);
-    } catch (error) {
-      lastError = error;
-      if (!(error instanceof ApiRequestError) || !error.retryable) throw error;
-    }
-  }
-  throw lastError;
-}
-
-function backoffDelay(attempt: number): number {
-  return Math.min(1500, 250 * 2 ** attempt) + Math.floor(Math.random() * 200);
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return body.data;
 }
 
 async function ensureAuth(force = false): Promise<void> {
-  if (!force && taroGetStorageSync<string>(AUTH_TOKEN_KEY)) return;
+  if (!force && Taro.getStorageSync<string>(AUTH_TOKEN_KEY)) return;
   if (authPromise) return authPromise;
 
   const configuredToken = process.env.TARO_APP_API_TOKEN;
@@ -205,9 +125,9 @@ async function ensureAuth(force = false): Promise<void> {
   }
 
   authPromise = (async () => {
-    const refreshToken = taroGetStorageSync<string>(AUTH_REFRESH_TOKEN_KEY);
+    const refreshToken = Taro.getStorageSync<string>(AUTH_REFRESH_TOKEN_KEY);
     if (refreshToken) {
-      const refreshed = await taroRequest<
+      const refreshed = await Taro.request<
         ApiSuccess<{ token: string; refresh_token: string }> | ApiFailure
       >({
         url: `${API_BASE_URL}/auth/refresh`,
@@ -226,21 +146,21 @@ async function ensureAuth(force = false): Promise<void> {
         typeof refreshed.data.data.token === "string" &&
         typeof refreshed.data.data.refresh_token === "string"
       ) {
-        taroSetStorageSync(AUTH_TOKEN_KEY, refreshed.data.data.token);
-        taroSetStorageSync(
+        Taro.setStorageSync(AUTH_TOKEN_KEY, refreshed.data.data.token);
+        Taro.setStorageSync(
           AUTH_REFRESH_TOKEN_KEY,
           refreshed.data.data.refresh_token,
         );
         return;
       }
-      taroRemoveStorageSync(AUTH_REFRESH_TOKEN_KEY);
+      Taro.removeStorageSync(AUTH_REFRESH_TOKEN_KEY);
     }
 
     const response =
-      isProduction
+      process.env.NODE_ENV === "production"
         ? await (async () => {
-            const login = await taroLogin();
-            return taroRequest<
+            const login = await Taro.login();
+            return Taro.request<
               ApiSuccess<{ token: string; refresh_token: string }> | ApiFailure
             >({
               url: `${API_BASE_URL}/auth/wechat-login`,
@@ -253,7 +173,7 @@ async function ensureAuth(force = false): Promise<void> {
               },
             });
           })()
-        : await taroRequest<
+        : await Taro.request<
             ApiSuccess<{ token: string; refresh_token: string }> | ApiFailure
           >({
             url: `${API_BASE_URL}/auth/dev-login`,
@@ -281,8 +201,8 @@ async function ensureAuth(force = false): Promise<void> {
         message: failure.error?.message ?? "监护人登录失败，请稍后重试。",
       });
     }
-    taroSetStorageSync(AUTH_TOKEN_KEY, body.data.token);
-    taroSetStorageSync(AUTH_REFRESH_TOKEN_KEY, body.data.refresh_token);
+    Taro.setStorageSync(AUTH_TOKEN_KEY, body.data.token);
+    Taro.setStorageSync(AUTH_REFRESH_TOKEN_KEY, body.data.refresh_token);
   })().finally(() => {
     authPromise = null;
   });
@@ -293,7 +213,8 @@ export async function logout(): Promise<void> {
   try {
     await request("/auth/logout", { method: "POST", retryAuth: false });
   } finally {
-    taroRemoveStorageSync(AUTH_TOKEN_KEY);
-    taroRemoveStorageSync(AUTH_REFRESH_TOKEN_KEY);
+    Taro.removeStorageSync(AUTH_TOKEN_KEY);
+    Taro.removeStorageSync(AUTH_REFRESH_TOKEN_KEY);
   }
 }
+
