@@ -5,6 +5,42 @@
   "appid": "touristappid",
   "projectname": "boks-miniprogram",
   "miniprogramRoot": "./dist",
+  "packOptions": {
+    "ignore": [
+      {
+        "type": "folder",
+        "value": ".swc"
+      },
+      {
+        "type": "folder",
+        "value": "src"
+      },
+      {
+        "type": "folder",
+        "value": "config"
+      },
+      {
+        "type": "folder",
+        "value": "node_modules"
+      },
+      {
+        "type": "file",
+        "value": "package.json"
+      },
+      {
+        "type": "file",
+        "value": "tsconfig.json"
+      },
+      {
+        "type": "file",
+        "value": "babel.config.js"
+      },
+      {
+        "type": "file",
+        "value": "README.md"
+      }
+    ]
+  },
   "setting": {
     "urlCheck": false,
     "es6": true,
