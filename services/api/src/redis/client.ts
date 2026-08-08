@@ -10,6 +10,8 @@ const { createClient } = require("redis") as any;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let client: any;
+let lastConnectFailedAt = 0;
+const CONNECT_RETRY_AFTER_MS = 30_000;
 
 function url(): string {
   return process.env.BOKS_REDIS_URL ?? "redis://localhost:6379";
@@ -17,6 +19,10 @@ function url(): string {
 
 export async function getRedis(): Promise<unknown | undefined> {
   if (client && client.isReady) return client;
+  // 最近一次连接失败后短暂缓存“不可用”，避免每个请求都等待超时。
+  if (lastConnectFailedAt && Date.now() - lastConnectFailedAt < CONNECT_RETRY_AFTER_MS) {
+    return undefined;
+  }
   const c = createClient({
     url: url(),
     socket: {
@@ -30,10 +36,24 @@ export async function getRedis(): Promise<unknown | undefined> {
     console.warn(`[redis] error: ${e.message}`);
   });
   try {
-    await c.connect();
+    // redis@4 在配置了 reconnectStrategy 时，服务器不可达会一直重连而不会 reject，
+    // 导致 fail-open 失效、请求被无限阻塞。这里用超时兜底保证降级路径可达。
+    await Promise.race([
+      c.connect(),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Redis connect timeout")), 4_000),
+      ),
+    ]);
     client = c;
+    lastConnectFailedAt = 0;
     return client;
   } catch (e) {
+    lastConnectFailedAt = Date.now();
+    try {
+      c.destroy();
+    } catch {
+      // ignore
+    }
     // eslint-disable-next-line no-console
     console.warn(`[redis] connect failed: ${(e as Error).message}; falling back to no-op`);
     return undefined;
