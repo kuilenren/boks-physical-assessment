@@ -15,7 +15,7 @@ const ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../..",
 );
-const MIGRATIONS_DIR = path.join(ROOT, "db/migrations");
+const MIGRATIONS_DIR = path.join(ROOT, "api/db/migrations");
 
 type Migration = {
   id: string;

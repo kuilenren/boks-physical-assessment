@@ -4,5 +4,5 @@ packages:
   - packages/*
 
 ignoredBuiltDependencies:
-  - '@bundled-es-modules/glob'
+  - "@bundled-es-modules/glob"
   - style-dictionary
