@@ -39,7 +39,12 @@ import {
   adminReviewer,
   setAccountStatus,
 } from "./auth.js";
-import { familyExists, hasSuperAdmin, persistStore, store } from "./demo-store.js";
+import {
+  familyExists,
+  hasSuperAdmin,
+  persistStore,
+  store,
+} from "./demo-store.js";
 import { success } from "./http.js";
 import { parseInput } from "./validation.js";
 import { isDevAuthEnabled } from "./runtime-config.js";
@@ -116,7 +121,11 @@ export class AuthController {
     const context = requireRole(request, ["super_admin"]);
     const input = parseInput(setAccountStatusRequestSchema, body);
     return success(
-      setAccountStatus(id, input.status, context.account_id ?? context.guardian_id),
+      setAccountStatus(
+        id,
+        input.status,
+        context.account_id ?? context.guardian_id,
+      ),
       request.headers["x-trace-id"] as string | undefined,
     );
   }

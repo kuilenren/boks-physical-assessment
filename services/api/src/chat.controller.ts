@@ -43,9 +43,7 @@ function publishedKnowledge(
     }));
 }
 
-function citations(
-  family: Awaited<ReturnType<typeof loadFamilyStore>>,
-) {
+function citations(family: Awaited<ReturnType<typeof loadFamilyStore>>) {
   const published = publishedKnowledge(family);
   return published.length > 0
     ? published.slice(0, 3).map((item) => ({
@@ -162,8 +160,8 @@ export class ChatController {
       const aiResult = await requestAiChat(
         input.content,
         publishedKnowledge(family),
-        family.children.find((item) => item.id === contextChildId)?.grade_code ??
-          null,
+        family.children.find((item) => item.id === contextChildId)
+          ?.grade_code ?? null,
       );
       if (aiResult) {
         content = aiResult.content;

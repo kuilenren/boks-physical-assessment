@@ -35,13 +35,13 @@ function parseQuery(query: string): RouteParams {
   return params;
 }
 
-function storedTabParams(): RouteParams {
+function storedTabParams(): Record<string, RouteParams> {
   const value = getStorageSync(TAB_PARAMS_KEY);
   if (typeof value !== "object" || value === null) return {};
-  return value as RouteParams;
+  return value as Record<string, RouteParams>;
 }
 
-export function readTabParams(): RouteParams {
+export function readTabParams(): Record<string, RouteParams> {
   return storedTabParams();
 }
 

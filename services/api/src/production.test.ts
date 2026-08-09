@@ -107,11 +107,13 @@ describe("production safety boundaries", () => {
     expect(result.totalScore).toBe(84.8);
     expect(result.level).toBe("good");
     expect(result.completeness).toBe(1);
+    expect(result.results.every((item) => item.score !== null)).toBe(true);
     expect(
-      result.results.every((item) => item.score !== null),
-    ).toBe(true);
-    expect(result.results.find((item) => item.indicator_code === "bmi"))
-      .toMatchObject({ score: 100, band_label: expect.stringContaining("正常") });
+      result.results.find((item) => item.indicator_code === "bmi"),
+    ).toMatchObject({
+      score: 100,
+      band_label: expect.stringContaining("正常"),
+    });
   });
 
   it("keeps an assessment session submitted through the controller available for follow-up reads", async () => {

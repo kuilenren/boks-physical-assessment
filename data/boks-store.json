@@ -569,12 +569,7 @@
       "family_id": "family-primary-low-001",
       "child_id": "child-001",
       "status": "completed",
-      "required_views": [
-        "front",
-        "back",
-        "left",
-        "right"
-      ],
+      "required_views": ["front", "back", "left", "right"],
       "quality": {
         "overall": "passed",
         "views": {
@@ -608,12 +603,7 @@
       "family_id": "family-junior-003",
       "child_id": "child-003",
       "status": "completed",
-      "required_views": [
-        "front",
-        "back",
-        "left",
-        "right"
-      ],
+      "required_views": ["front", "back", "left", "right"],
       "quality": {
         "overall": "passed",
         "views": {
@@ -647,12 +637,7 @@
       "family_id": "family-multi-006",
       "child_id": "child-006",
       "status": "completed",
-      "required_views": [
-        "front",
-        "back",
-        "left",
-        "right"
-      ],
+      "required_views": ["front", "back", "left", "right"],
       "quality": {
         "overall": "passed",
         "views": {
@@ -686,12 +671,7 @@
       "family_id": "family-multi-006",
       "child_id": "child-007",
       "status": "completed",
-      "required_views": [
-        "front",
-        "back",
-        "left",
-        "right"
-      ],
+      "required_views": ["front", "back", "left", "right"],
       "quality": {
         "overall": "passed",
         "views": {
@@ -2041,10 +2021,7 @@
       "content": "《国家学生体质健康标准（2014年修订）》规定小学至大学体质测试项目：小学一、二年级测体重指数（BMI）、肺活量、50米跑、坐位体前屈、1分钟跳绳；三、四年级增加1分钟仰卧起坐；五、六年级增加50米×8往返跑；初中及以上增加立定跳远、引体向上（男）/1分钟仰卧起坐（女）、1000米（男）/800米（女）跑。总评分为100分制，附加分另计；学生按年级对应评分表计分，缺测项目按0分处理。BOKS 平台按此标准内置评分表，用于儿童体测成绩计算与报告生成。",
       "content_hash": "864a86154885c26b02d458f833f326a466c857b0d5e8eaa3e21e1087cd78b089",
       "status": "published",
-      "reviewers": [
-        "reviewer-one",
-        "reviewer-two"
-      ],
+      "reviewers": ["reviewer-one", "reviewer-two"],
       "published_at": "2026-08-02T10:39:33.968Z",
       "created_at": "2026-08-02T10:39:33.968Z"
     },
@@ -2056,10 +2033,7 @@
       "content": "儿童参与体测或体能训练前应确认身体健康状况，存在急性伤病、发热或医嘱静养时应暂停训练。训练中出现胸痛、头晕、恶心、面色苍白、关节疼痛或麻木等症状，应立即停止并休息，必要时就医。训练强度应循序渐进，训练前后做好热身与放松，保证充足睡眠与水分。BOKS 生成的训练计划仅作健康教育参考，不替代医疗诊断，涉及疼痛、麻木等不适请停止训练并咨询专业人员。",
       "content_hash": "51a55e6e029fd5ca9236d51fc17ef13062f21e1fe556aa79e41f4c97246ea210",
       "status": "published",
-      "reviewers": [
-        "reviewer-one",
-        "reviewer-two"
-      ],
+      "reviewers": ["reviewer-one", "reviewer-two"],
       "published_at": "2026-08-02T10:39:33.968Z",
       "created_at": "2026-08-02T10:39:33.968Z"
     },
@@ -2071,10 +2045,7 @@
       "content": "BOKS 体态评估需要拍摄儿童正面、背面、左侧、右侧四个视角的站立全身照片。拍摄要求：儿童自然站立，双脚与肩同宽，双臂自然下垂，穿贴身浅色衣物，背景简洁光线均匀，相机与儿童视线高度一致，取景包含全身。照片仅用于体态对称性等健康教育分析，不用于医疗诊断，不能据此判断 Cobb 角。照片上传后仅监护人可查看，存储受隐私保护控制。",
       "content_hash": "13fb2c83ba0249a89a82dffed70ae0635da1eecdd982f6bd53a4bb23bb573287",
       "status": "published",
-      "reviewers": [
-        "reviewer-one",
-        "reviewer-two"
-      ],
+      "reviewers": ["reviewer-one", "reviewer-two"],
       "published_at": "2026-08-02T10:39:33.968Z",
       "created_at": "2026-08-02T10:39:33.968Z"
     },
@@ -2086,10 +2057,7 @@
       "content": "BOKS 平台遵循最小必要原则收集儿童体测与体态数据。所有体测记录、体态照片、训练计划仅对授权的监护人账户可见。监护人可随时申请删除儿童数据（含导出与删除请求），平台支持账号注销与数据删除。体态照片只用于健康教育分析，不上传给任何第三方用于商业用途。知情同意记录可追溯，涉及儿童隐私的操作均记录审计日志。",
       "content_hash": "f17cf5e8afd7e162b99c8bc0d918a658065c9594a261829447aa29fcb5e6a95e",
       "status": "published",
-      "reviewers": [
-        "reviewer-one",
-        "reviewer-two"
-      ],
+      "reviewers": ["reviewer-one", "reviewer-two"],
       "published_at": "2026-08-02T10:39:33.968Z",
       "created_at": "2026-08-02T10:39:33.968Z"
     }

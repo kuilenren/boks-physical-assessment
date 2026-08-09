@@ -9,7 +9,7 @@ import { tokenBucket } from "../redis/client.js";
 import { isDevAuthEnabled } from "../runtime-config.js";
 import { randomUUID } from "node:crypto";
 
-const DEFAULT_WRITE_RATE = 5;     // req/s per family
+const DEFAULT_WRITE_RATE = 5; // req/s per family
 const DEFAULT_WRITE_CAP = 20;
 const DEFAULT_READ_RATE = 50;
 const DEFAULT_READ_CAP = 100;
@@ -23,7 +23,10 @@ function familyIdFromToken(req: Request): string | undefined {
   const token = auth.slice(7);
   // 仅取 token 的 family hint（请求头 X-Family-Hint 仅开发环境使用）
   if (isDevAuthEnabled()) return req.header("x-family-hint");
-  return (req as unknown as { familyId?: string }).familyId ?? req.header("x-family-hint");
+  return (
+    (req as unknown as { familyId?: string }).familyId ??
+    req.header("x-family-hint")
+  );
 }
 
 function clientIp(req: Request): string {
@@ -42,7 +45,11 @@ export async function rateLimitMiddleware(
     return;
   }
   const method = req.method;
-  const isWrite = method === "POST" || method === "PATCH" || method === "DELETE" || method === "PUT";
+  const isWrite =
+    method === "POST" ||
+    method === "PATCH" ||
+    method === "DELETE" ||
+    method === "PUT";
   const familyId = familyIdFromToken(req);
   const ip = clientIp(req);
 
@@ -60,7 +67,10 @@ export async function rateLimitMiddleware(
         details: [],
         retryable: true,
       },
-      meta: { trace_id: req.header("x-trace-id") ?? randomUUID(), request_id: randomUUID() },
+      meta: {
+        trace_id: req.header("x-trace-id") ?? randomUUID(),
+        request_id: randomUUID(),
+      },
     });
     return;
   }
@@ -80,7 +90,10 @@ export async function rateLimitMiddleware(
           details: [],
           retryable: true,
         },
-        meta: { trace_id: req.header("x-trace-id") ?? randomUUID(), request_id: randomUUID() },
+        meta: {
+          trace_id: req.header("x-trace-id") ?? randomUUID(),
+          request_id: randomUUID(),
+        },
       });
       return;
     }

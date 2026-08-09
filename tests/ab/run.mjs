@@ -6,7 +6,9 @@
 import { createHash } from "node:crypto";
 
 const API = process.env.API_BASE ?? "http://127.0.0.1:3000/v1";
-const BUCKETS = JSON.parse(process.env.BOKS_AB_BUCKETS ?? '{"0.2.0-a":50,"0.2.0-b":50}');
+const BUCKETS = JSON.parse(
+  process.env.BOKS_AB_BUCKETS ?? '{"0.2.0-a":50,"0.2.0-b":50}',
+);
 
 function bucket(familyId) {
   const h = createHash("sha256").update(familyId).digest();
@@ -38,7 +40,13 @@ export async function abRequest(familyId, path, opts = {}) {
 }
 
 if (import.meta.url.endsWith(process.argv[1].replace(/\\/g, "/"))) {
-  const families = ["family-primary-low-001", "family-junior-003", "family-senior-004", "family-preschool-005", "family-multi-006"];
+  const families = [
+    "family-primary-low-001",
+    "family-junior-003",
+    "family-senior-004",
+    "family-preschool-005",
+    "family-multi-006",
+  ];
   const counts = {};
   for (const f of families) {
     const v = selectVersion(f);

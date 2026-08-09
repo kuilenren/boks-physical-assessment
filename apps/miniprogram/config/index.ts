@@ -13,15 +13,13 @@ const config: UserConfigExport = {
   outputRoot: "dist",
   framework: "react",
   compiler: "webpack5",
-  plugins: [
-    "@tarojs/plugin-platform-weapp",
-    "@tarojs/plugin-platform-h5",
-  ],
+  plugins: ["@tarojs/plugin-platform-weapp", "@tarojs/plugin-platform-h5"],
   copy: {
     patterns: [
       { from: "src/assets/icons/", to: "assets/icons/" },
       { from: "src/assets/tab/", to: "assets/tab/" },
     ],
+    options: {},
   },
   mini: {
     // 关闭 webpack5 mangleExports：避免 taroWindowProvider 等模块 exports

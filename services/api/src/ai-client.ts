@@ -18,7 +18,9 @@ const DEFAULT_TIMEOUT_MS = 12000;
 
 export function aiServiceBaseUrl(): string | undefined {
   const url = process.env.BOKS_AI_SERVICE_URL;
-  return url && url.trim().length > 0 ? url.trim().replace(/\/+$/, "") : undefined;
+  return url && url.trim().length > 0
+    ? url.trim().replace(/\/+$/, "")
+    : undefined;
 }
 
 export async function requestAiChat(
@@ -35,7 +37,11 @@ export async function requestAiChat(
       method: "POST",
       headers: { "content-type": "application/json" },
       signal: controller.signal,
-      body: JSON.stringify({ content, documents, child_grade: childGrade ?? null }),
+      body: JSON.stringify({
+        content,
+        documents,
+        child_grade: childGrade ?? null,
+      }),
     });
     if (!response.ok) return null;
     const payload = (await response.json()) as AiChatResult;

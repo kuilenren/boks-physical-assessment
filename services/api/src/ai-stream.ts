@@ -11,16 +11,30 @@ import { aiServiceBaseUrl } from "./ai-client.js";
 export type StreamCallbacks = {
   onPlan?: (data: { steps: string[] }) => void;
   onToolCall?: (data: { id: string; args: Record<string, unknown> }) => void;
-  onToolResult?: (data: { id: string; ok: boolean; citations?: unknown[] }) => void;
+  onToolResult?: (data: {
+    id: string;
+    ok: boolean;
+    citations?: unknown[];
+  }) => void;
   onDelta?: (data: { delta: string }) => void;
-  onMessage?: (data: { answer: string; citations: unknown[]; intent?: string; intercepted?: boolean }) => void;
+  onMessage?: (data: {
+    answer: string;
+    citations: unknown[];
+    intent?: string;
+    intercepted?: boolean;
+  }) => void;
   onTrace?: (data: { trace_id: string }) => void;
   onDone?: (data: { trace_id: string; usage?: unknown }) => void;
   onError?: (err: Error) => void;
 };
 
 export async function streamAiChat(
-  body: { content: string; child_grade?: string | null; audience?: string | null; conversation_id?: string | null },
+  body: {
+    content: string;
+    child_grade?: string | null;
+    audience?: string | null;
+    conversation_id?: string | null;
+  },
   abortSignal: AbortSignal,
   cb: StreamCallbacks,
 ): Promise<void> {
@@ -53,15 +67,32 @@ export async function streamAiChat(
       try {
         const data = event.data ? JSON.parse(event.data) : {};
         switch (event.event) {
-          case "trace":    cb.onTrace?.(data); break;
-          case "plan":     cb.onPlan?.(data); break;
-          case "tool_call":cb.onToolCall?.(data); break;
-          case "tool_result": cb.onToolResult?.(data); break;
-          case "delta":    cb.onDelta?.(data); break;
-          case "message":  cb.onMessage?.(data); break;
-          case "done":     cb.onDone?.(data); break;
-          case "tool_error": cb.onError?.(new Error(String(data.error))); break;
-          default: break;
+          case "trace":
+            cb.onTrace?.(data);
+            break;
+          case "plan":
+            cb.onPlan?.(data);
+            break;
+          case "tool_call":
+            cb.onToolCall?.(data);
+            break;
+          case "tool_result":
+            cb.onToolResult?.(data);
+            break;
+          case "delta":
+            cb.onDelta?.(data);
+            break;
+          case "message":
+            cb.onMessage?.(data);
+            break;
+          case "done":
+            cb.onDone?.(data);
+            break;
+          case "tool_error":
+            cb.onError?.(new Error(String(data.error)));
+            break;
+          default:
+            break;
         }
       } catch (e) {
         cb.onError?.(e as Error);
@@ -84,7 +115,12 @@ function parseSseBlock(block: string): { event: string; data: string } | null {
 export async function sseHandler(
   req: Request,
   res: Response,
-  body: { content: string; child_grade?: string | null; audience?: string | null; conversation_id?: string | null },
+  body: {
+    content: string;
+    child_grade?: string | null;
+    audience?: string | null;
+    conversation_id?: string | null;
+  },
 ): Promise<void> {
   const traceId = (req.header("x-trace-id") ?? randomUUID()) as string;
   res.setHeader("Content-Type", "text/event-stream");

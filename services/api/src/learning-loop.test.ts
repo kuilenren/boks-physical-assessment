@@ -24,24 +24,23 @@ describe("knowledge auto-sync", () => {
 
   it("creates a candidate version when source content changes", async () => {
     let content = "版本一";
-    const source = (await db.updatePlatformStore((platform) => {
-      const item = {
-        id: "src-sync-1",
-        title: "体测安全说明",
-        owner: "BOKS",
-        fetch_url: "https://example.gov.cn/safety",
-        content_hash: null,
-        created_at: new Date().toISOString(),
-      };
-      platform.knowledgeSources[item.id] = item;
-      return platform;
-    })).knowledgeSources["src-sync-1"];
+    const source = (
+      await db.updatePlatformStore((platform) => {
+        const item = {
+          id: "src-sync-1",
+          title: "体测安全说明",
+          owner: "BOKS",
+          fetch_url: "https://example.gov.cn/safety",
+          content_hash: null,
+          created_at: new Date().toISOString(),
+        };
+        platform.knowledgeSources[item.id] = item;
+        return platform;
+      })
+    ).knowledgeSources["src-sync-1"];
     expect(source.fetch_url).toBe("https://example.gov.cn/safety");
 
-    const result = await syncKnowledgeSource(
-      "src-sync-1",
-      async () => content,
-    );
+    const result = await syncKnowledgeSource("src-sync-1", async () => content);
     expect(result.status).toBe("updated");
 
     const platform = await db.loadPlatformStore();
@@ -74,7 +73,10 @@ describe("knowledge auto-sync", () => {
       };
     });
     await syncKnowledgeSource("src-sync-2", async () => "同样的内容");
-    const result = await syncKnowledgeSource("src-sync-2", async () => "同样的内容");
+    const result = await syncKnowledgeSource(
+      "src-sync-2",
+      async () => "同样的内容",
+    );
     expect(result.status).toBe("unchanged");
     const versions = Object.values(
       (await db.loadPlatformStore()).knowledgeVersions,
@@ -214,9 +216,7 @@ describe("learning loop next-actions", () => {
       ],
       hasPostureReport: true,
     });
-    const training = actions.find(
-      (item) => item.category === "training",
-    );
+    const training = actions.find((item) => item.category === "training");
     expect(training).toBeDefined();
     expect(training?.title).toBe("生成训练计划");
   });
@@ -238,7 +238,9 @@ describe("learning loop next-actions", () => {
       hasPostureReport: false,
     });
     for (let i = 1; i < actions.length; i++)
-      expect(actions[i].priority).toBeGreaterThanOrEqual(actions[i - 1].priority);
+      expect(actions[i].priority).toBeGreaterThanOrEqual(
+        actions[i - 1].priority,
+      );
   });
 
   it("builds actions for multiple children via buildFamilyNextActions", () => {
@@ -337,6 +339,10 @@ describe("learning loop next-actions", () => {
       ],
       hasPostureReport: true,
     });
-    expect(actions.some((item) => item.category === "assessment" && item.reason.includes("180"))).toBe(true);
+    expect(
+      actions.some(
+        (item) => item.category === "assessment" && item.reason.includes("180"),
+      ),
+    ).toBe(true);
   });
 });

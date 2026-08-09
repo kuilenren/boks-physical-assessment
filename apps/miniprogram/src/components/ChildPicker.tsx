@@ -27,7 +27,10 @@ export function ChildPicker({
           onChange(children[Number(event.detail.value)]?.child_id ?? value)
         }
       >
-        <View className="picker-field" style={{ justifyContent: "space-between" }}>
+        <View
+          className="picker-field"
+          style={{ justifyContent: "space-between" }}
+        >
           <Text>{children[index]?.display_name ?? "请选择孩子"}</Text>
           <Icon name="arrow" size={16} tone="brand" />
         </View>
