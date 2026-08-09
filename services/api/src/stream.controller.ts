@@ -28,7 +28,12 @@ export class StreamController {
     const conversation = family.conversations[id];
     if (!conversation || conversation.family_id !== context.family_id) {
       throw new BadRequestException({
-        error: { code: "CHAT_NOT_FOUND", message: "咨询会话不存在。", details: [], retryable: false },
+        error: {
+          code: "CHAT_NOT_FOUND",
+          message: "咨询会话不存在。",
+          details: [],
+          retryable: false,
+        },
       });
     }
     const input = chatRequestSchema.parse(body);
@@ -46,8 +51,10 @@ export class StreamController {
       const target = next.conversations[id];
       if (target) {
         target.child_id = input.child_id ?? target.child_id;
-        target.context_report_id = input.context_report_id ?? target.context_report_id;
-        target.context_plan_id = input.context_plan_id ?? target.context_plan_id;
+        target.context_report_id =
+          input.context_report_id ?? target.context_report_id;
+        target.context_plan_id =
+          input.context_plan_id ?? target.context_plan_id;
         target.messages.push(userMsg);
       }
     });

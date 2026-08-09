@@ -548,7 +548,10 @@ export async function loginWithPassword(
   password: string,
 ): Promise<GuardianSession> {
   const account = assertAccountActive(getAccountByUsername(username.trim()));
-  if (!account.password_hash || !verifyPassword(password, account.password_hash))
+  if (
+    !account.password_hash ||
+    !verifyPassword(password, account.password_hash)
+  )
     throw new UnauthorizedException({
       error: {
         code: "ACCOUNT_PASSWORD_INVALID",

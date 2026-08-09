@@ -20,14 +20,18 @@ function url(): string {
 export async function getRedis(): Promise<unknown | undefined> {
   if (client && client.isReady) return client;
   // 最近一次连接失败后短暂缓存“不可用”，避免每个请求都等待超时。
-  if (lastConnectFailedAt && Date.now() - lastConnectFailedAt < CONNECT_RETRY_AFTER_MS) {
+  if (
+    lastConnectFailedAt &&
+    Date.now() - lastConnectFailedAt < CONNECT_RETRY_AFTER_MS
+  ) {
     return undefined;
   }
   const c = createClient({
     url: url(),
     socket: {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      reconnectStrategy: (retries: number) => Math.min(1000 * 2 ** retries, 15_000),
+      reconnectStrategy: (retries: number) =>
+        Math.min(1000 * 2 ** retries, 15_000),
       connectTimeout: 3_000,
     },
   });
@@ -55,7 +59,9 @@ export async function getRedis(): Promise<unknown | undefined> {
       // ignore
     }
     // eslint-disable-next-line no-console
-    console.warn(`[redis] connect failed: ${(e as Error).message}; falling back to no-op`);
+    console.warn(
+      `[redis] connect failed: ${(e as Error).message}; falling back to no-op`,
+    );
     return undefined;
   }
 }
@@ -112,7 +118,12 @@ export async function tokenBucket(opts: {
         String(opts.capacity),
         String(now),
         "1",
-        String(Math.max(60_000, Math.ceil((opts.capacity / opts.ratePerSecond) * 2000))),
+        String(
+          Math.max(
+            60_000,
+            Math.ceil((opts.capacity / opts.ratePerSecond) * 2000),
+          ),
+        ),
       ],
     })) as [number, number];
     return { allowed: r[0] === 1, remaining: r[1] };

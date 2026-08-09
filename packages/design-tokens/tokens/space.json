@@ -11,10 +11,10 @@
     "10": { "value": "40px" }
   },
   "radius": {
-    "sm":   { "value": "12px" },
-    "md":   { "value": "16px" },
-    "lg":   { "value": "22px" },
-    "xl":   { "value": "28px" },
+    "sm": { "value": "12px" },
+    "md": { "value": "16px" },
+    "lg": { "value": "22px" },
+    "xl": { "value": "28px" },
     "pill": { "value": "999px" }
   }
 }

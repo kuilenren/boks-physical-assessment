@@ -1,3 +1,5 @@
+import { Image } from "@tarojs/components";
+
 /**
  * BOKS 图标（currentColor 透传，dark mode 自动跟随）
  * 平台差异：
@@ -61,8 +63,7 @@ const PATHS: Record<IconName, string> = {
     "M6 4h9l3 3v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm8 1.5V8h2.5M8 12h8M8 15h6M8 18h4",
   arrow: "M9 6l6 6-6 6",
   check: "M5.5 12.5 10 17l8.5-9",
-  alert:
-    "M12 4 3.5 19h17L12 4zm0 5v5m0 3.2h.01",
+  alert: "M12 4 3.5 19h17L12 4zm0 5v5m0 3.2h.01",
   plus: "M12 6v12M6 12h12",
   spark:
     "M12 3.5 13.6 9H19l-4.3 3.2L16.4 18 12 14.8 7.6 18l1.7-5.8L5 9h5.4L12 3.5z",
@@ -95,22 +96,24 @@ export function Icon({
   size = 20,
   className = "",
   ariaLabel,
+  tone,
 }: {
   name: IconName;
   size?: number;
   className?: string;
   ariaLabel?: string;
+  tone?: IconTone;
 }) {
   // weapp / h5 通用：data:image/svg+xml 内嵌（无网络、无 use href）
-  const src = toDataUri(name, "currentColor");
+  const src = toDataUri(name, tone ? TONES[tone] : "currentColor");
   return (
-    <image
+    <Image
       className={`ui-icon ${className}`}
       src={src}
       style={{
         width: `${size}px`,
         height: `${size}px`,
-        color: "inherit",
+        color: tone ? TONES[tone] : "inherit",
       }}
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore — weapp 忽略 role/aria

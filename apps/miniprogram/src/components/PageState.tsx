@@ -1,7 +1,11 @@
 import { Button, Text, View } from "@tarojs/components";
 import { IconBadge } from "./Icon";
 
-export function LoadingState({ message = "正在加载，请稍候…" }: { message?: string }) {
+export function LoadingState({
+  message = "正在加载，请稍候…",
+}: {
+  message?: string;
+}) {
   return (
     <View className="card loading-state">
       <IconBadge name="leaf" tone="brand" size={48} />

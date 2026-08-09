@@ -43,9 +43,7 @@ const API_BASE_URL = (() => {
     return configured.replace(/\/+$/, "");
   }
   if (isProduction)
-    throw new Error(
-      "生产构建必须通过 TARO_APP_API_BASE_URL 配置 API 域名。",
-    );
+    throw new Error("生产构建必须通过 TARO_APP_API_BASE_URL 配置 API 域名。");
   return "http://127.0.0.1:3000/v1";
 })();
 const AUTH_TOKEN_KEY = "boks.guardian.token";
@@ -142,7 +140,8 @@ export async function request<T>(
         failure.error?.code ?? failure.code ?? `HTTP_${response.statusCode}`,
       message,
       traceId: failure.meta?.trace_id,
-      retryable: failure.error?.retryable ?? RETRYABLE_STATUS.has(response.statusCode),
+      retryable:
+        failure.error?.retryable ?? RETRYABLE_STATUS.has(response.statusCode),
     });
     if (
       options.retryAuth !== false &&
@@ -236,35 +235,34 @@ async function ensureAuth(force = false): Promise<void> {
       taroRemoveStorageSync(AUTH_REFRESH_TOKEN_KEY);
     }
 
-    const response =
-      isProduction
-        ? await (async () => {
-            const login = await taroLogin();
-            return taroRequest<
-              ApiSuccess<{ token: string; refresh_token: string }> | ApiFailure
-            >({
-              url: `${API_BASE_URL}/auth/wechat-login`,
-              method: "POST",
-              data: { code: login.code },
-              header: {
-                "Content-Type": "application/json",
-                "X-Client-Platform": "miniprogram",
-                "X-Client-Version": "0.2.0",
-              },
-            });
-          })()
-        : await taroRequest<
+    const response = isProduction
+      ? await (async () => {
+          const login = await taroLogin();
+          return taroRequest<
             ApiSuccess<{ token: string; refresh_token: string }> | ApiFailure
           >({
-            url: `${API_BASE_URL}/auth/dev-login`,
+            url: `${API_BASE_URL}/auth/wechat-login`,
             method: "POST",
-            data: { guardian_id: "guardian-demo-001" },
+            data: { code: login.code },
             header: {
               "Content-Type": "application/json",
               "X-Client-Platform": "miniprogram",
               "X-Client-Version": "0.2.0",
             },
           });
+        })()
+      : await taroRequest<
+          ApiSuccess<{ token: string; refresh_token: string }> | ApiFailure
+        >({
+          url: `${API_BASE_URL}/auth/dev-login`,
+          method: "POST",
+          data: { guardian_id: "guardian-demo-001" },
+          header: {
+            "Content-Type": "application/json",
+            "X-Client-Platform": "miniprogram",
+            "X-Client-Version": "0.2.0",
+          },
+        });
     const body = response.data;
     if (
       response.statusCode < 200 ||

@@ -21,10 +21,7 @@ import {
 import { success } from "./http.js";
 import { parseInput } from "./validation.js";
 import { adminReviewer, resourceNotFound } from "./auth.js";
-import {
-  contentHash,
-  syncAllKnowledgeSources,
-} from "./knowledge-sync.js";
+import { contentHash, syncAllKnowledgeSources } from "./knowledge-sync.js";
 @Controller("knowledge")
 export class KnowledgeController {
   @Get() async list(@Req() request: Request) {

@@ -3,7 +3,9 @@
  */
 import { strict as assert } from "node:assert";
 import { createRequire } from "node:module";
-const require = createRequire("D:/boks/bokstice/services/api/package.json");
+const require = createRequire(
+  new URL("../../services/api/package.json", import.meta.url),
+);
 const { Pool } = require("pg");
 
 const API = process.env.API_BASE ?? "http://127.0.0.1:3000/v1";
@@ -28,10 +30,16 @@ async function test(name, fn) {
 
 async function req(path, opts = {}) {
   const url = `${API}${path}`;
-  const headers = { "Content-Type": "application/json", "X-Client-Version": "0.2.0-test", ...opts.headers };
+  const headers = {
+    "Content-Type": "application/json",
+    "X-Client-Version": "0.2.0-test",
+    ...opts.headers,
+  };
   const r = await fetch(url, { ...opts, headers });
   const ct = r.headers.get("content-type") ?? "";
-  const body = ct.includes("application/json") ? await r.json() : await r.text();
+  const body = ct.includes("application/json")
+    ? await r.json()
+    : await r.text();
   return { status: r.status, body, headers: r.headers };
 }
 
@@ -64,21 +72,49 @@ await test("AI /health 返回 200", async () => {
 // 幂等键
 await test("幂等键：同 key + 同 body 第二次返回缓存", async () => {
   const key = `e2e-${Date.now()}`;
-  const body = { guardian_id: "guardian-demo-001", family_id: "family-primary-low-001" };
-  const r1 = await req("/auth/dev-login", { method: "POST", body: JSON.stringify(body), headers: { "Idempotency-Key": key } });
-  assert.ok([200, 201].includes(r1.status), `dev-login 期望 200/201，实际 ${r1.status}`);
+  const body = {
+    guardian_id: "guardian-demo-001",
+    family_id: "family-primary-low-001",
+  };
+  const r1 = await req("/auth/dev-login", {
+    method: "POST",
+    body: JSON.stringify(body),
+    headers: { "Idempotency-Key": key },
+  });
+  assert.ok(
+    [200, 201].includes(r1.status),
+    `dev-login 期望 200/201，实际 ${r1.status}`,
+  );
   const t1 = r1.body?.data?.token;
   assert.ok(t1, "首次必须返回 token");
-  const r2 = await req("/auth/dev-login", { method: "POST", body: JSON.stringify(body), headers: { "Idempotency-Key": key } });
+  const r2 = await req("/auth/dev-login", {
+    method: "POST",
+    body: JSON.stringify(body),
+    headers: { "Idempotency-Key": key },
+  });
   assert.ok([200, 201].includes(r2.status));
   assert.equal(r2.body?.data?.token, t1, "幂等键命中必须返回相同 token");
 });
 
 await test("幂等键：同 key + 不同 body 返回 409", async () => {
   const key = `e2e-mismatch-${Date.now()}`;
-  const r1 = await req("/auth/dev-login", { method: "POST", body: JSON.stringify({ guardian_id: "guardian-demo-001", family_id: "family-primary-low-001" }), headers: { "Idempotency-Key": key } });
+  const r1 = await req("/auth/dev-login", {
+    method: "POST",
+    body: JSON.stringify({
+      guardian_id: "guardian-demo-001",
+      family_id: "family-primary-low-001",
+    }),
+    headers: { "Idempotency-Key": key },
+  });
   assert.ok([200, 201].includes(r1.status));
-  const r2 = await req("/auth/dev-login", { method: "POST", body: JSON.stringify({ guardian_id: "guardian-demo-002", family_id: "family-junior-003" }), headers: { "Idempotency-Key": key } });
+  const r2 = await req("/auth/dev-login", {
+    method: "POST",
+    body: JSON.stringify({
+      guardian_id: "guardian-demo-002",
+      family_id: "family-junior-003",
+    }),
+    headers: { "Idempotency-Key": key },
+  });
   assert.equal(r2.status, 409);
   assert.equal(r2.body?.error?.code, "IDEMPOTENCY_KEY_MISMATCH");
 });
@@ -86,17 +122,29 @@ await test("幂等键：同 key + 不同 body 返回 409", async () => {
 let token;
 let familyId;
 await test("dev-login 返回 access + refresh（family-primary-low-001）", async () => {
-  const { status, body } = await req("/auth/dev-login", { method: "POST", body: JSON.stringify({ guardian_id: "guardian-demo-001", family_id: "family-primary-low-001" }) });
+  const { status, body } = await req("/auth/dev-login", {
+    method: "POST",
+    body: JSON.stringify({
+      guardian_id: "guardian-demo-001",
+      family_id: "family-primary-low-001",
+    }),
+  });
   assert.ok([200, 201].includes(status));
   assert.ok(body.data?.token);
   assert.ok(body.data?.refresh_token);
-  assert.equal(body.data?.family_id, "family-primary-low-001", "必须绑定到指定 family");
+  assert.equal(
+    body.data?.family_id,
+    "family-primary-low-001",
+    "必须绑定到指定 family",
+  );
   token = body.data.token;
   familyId = body.data.family_id;
 });
 
 await test("Family: GET /families/me 返回家庭 + 儿童列表", async () => {
-  const { status, body } = await req("/families/me", { headers: { Authorization: `Bearer ${token}` } });
+  const { status, body } = await req("/families/me", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   assert.equal(status, 200);
   assert.ok(body.data);
   assert.ok(Array.isArray(body.data.children ?? body.data?.members));
@@ -121,7 +169,9 @@ const stages = [
 ];
 for (const c of stages) {
   await test(`Child ${c.id} (${c.stage}) 体测历史接口可达`, async () => {
-    const { status } = await req(`/assessment/history?child_id=${c.id}`, { headers: { Authorization: `Bearer ${token}` } });
+    const { status } = await req(`/assessment/history?child_id=${c.id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     // 注：当前 demo seed 已扩展；不应 5xx；可能 200/404（preschool 没体测）
     assert.ok([200, 400, 404].includes(status), `${c.id} status=${status}`);
   });
@@ -132,11 +182,17 @@ await test("AI 流式 chat 返回 SSE", async () => {
   const r = await fetch(`${AI}/v1/chat/stream`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ content: "如何提升跳绳成绩？", audience: "primary" }),
+    body: JSON.stringify({
+      content: "如何提升跳绳成绩？",
+      audience: "primary",
+    }),
   });
   assert.equal(r.status, 200);
   const ct = r.headers.get("content-type") ?? "";
-  assert.ok(ct.includes("text/event-stream"), `content-type 应含 text/event-stream，实际 ${ct}`);
+  assert.ok(
+    ct.includes("text/event-stream"),
+    `content-type 应含 text/event-stream，实际 ${ct}`,
+  );
   const reader = r.body.getReader();
   const decoder = new TextDecoder();
   let buf = "";
@@ -152,7 +208,10 @@ await test("AI 流式 chat 返回 SSE", async () => {
       const evMatch = block.match(/^event:\s*(.+)$/m);
       const dataMatch = block.match(/^data:\s*(.+)$/m);
       if (evMatch && dataMatch) {
-        events.push({ event: evMatch[1].trim(), data: JSON.parse(dataMatch[1].trim()) });
+        events.push({
+          event: evMatch[1].trim(),
+          data: JSON.parse(dataMatch[1].trim()),
+        });
       }
     }
   }
@@ -190,7 +249,9 @@ await test("AI 普通问题（KB 模板或 LLM）", async () => {
 await test("审计：boks_audit_events 表存在且可写", async () => {
   const pool = new Pool({ connectionString: process.env.BOKS_DATABASE_URL });
   try {
-    const { rows } = await pool.query("SELECT COUNT(*)::int AS n FROM boks.boks_audit_events");
+    const { rows } = await pool.query(
+      "SELECT COUNT(*)::int AS n FROM boks.boks_audit_events",
+    );
     assert.ok(rows[0].n >= 0, "审计表可读");
   } finally {
     await pool.end();
@@ -228,5 +289,5 @@ console.log(`\n─────────────────────�
 console.log(`✅ pass: ${pass}  ❌ fail: ${fail}`);
 if (fail > 0) {
   for (const f of failures) console.log(`  - ${f.name}: ${f.error}`);
-  process.exit(1);
+  process.exitCode = 1;
 }

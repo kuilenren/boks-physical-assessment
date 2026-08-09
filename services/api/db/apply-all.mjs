@@ -5,13 +5,18 @@
  * - 失败立即退出
  */
 import { readFileSync, readdirSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { Client } from "pg";
 
-const MIGRATIONS_DIR = "D:/boks/bokstice/services/api/db/migrations";
-const url = process.env.BOKS_DATABASE_URL ?? "postgresql://boks:boks-local-only@localhost:5433/boks";
+const MIGRATIONS_DIR = fileURLToPath(new URL("./migrations/", import.meta.url));
+const url =
+  process.env.BOKS_DATABASE_URL ??
+  "postgresql://boks:boks-local-only@localhost:5433/boks";
 
-const files = readdirSync(MIGRATIONS_DIR).filter((f) => f.endsWith(".sql")).sort();
+const files = readdirSync(MIGRATIONS_DIR)
+  .filter((f) => f.endsWith(".sql"))
+  .sort();
 console.log(`发现 ${files.length} 个 migrations`);
 
 const client = new Client({ connectionString: url });
@@ -61,7 +66,10 @@ function splitSqlStatements(sql) {
         continue;
       }
     }
-    if (c === ";" && (i === sql.length - 1 || sql[i + 1] === "\n" || sql[i + 1] === " ")) {
+    if (
+      c === ";" &&
+      (i === sql.length - 1 || sql[i + 1] === "\n" || sql[i + 1] === " ")
+    ) {
       stmts.push(buf);
       buf = "";
       i++;
@@ -80,7 +88,9 @@ console.log(`\n应用完成：${applied}/${files.length}`);
 // 验证
 const verify = new Client({ connectionString: url });
 await verify.connect();
-const { rows } = await verify.query("SELECT count(*)::int AS n FROM information_schema.tables WHERE table_schema='boks'");
+const { rows } = await verify.query(
+  "SELECT count(*)::int AS n FROM information_schema.tables WHERE table_schema='boks'",
+);
 console.log(`boks schema 表数：${rows[0].n}`);
 const { rows: rlsRows } = await verify.query(
   "SELECT count(*)::int AS n FROM pg_tables t JOIN pg_class c ON c.relname=t.tablename JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='boks' AND c.relrowsecurity=true",

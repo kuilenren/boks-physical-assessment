@@ -48,6 +48,10 @@ jobs:
 
   miniprogram:
     runs-on: ubuntu-latest
+    env:
+      # 生产构建必须注入真实 API 域名（http.ts 会拒绝占位域名）；
+      # 上线时由部署流程替换为正式域名。
+      TARO_APP_API_BASE_URL: https://api.boks.fit/v1
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -60,6 +64,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @boks/miniprogram typecheck
       - run: pnpm --filter @boks/miniprogram build:weapp
+      - run: pnpm --filter @boks/miniprogram verify:dist
 
   mobile:
     runs-on: ubuntu-latest
