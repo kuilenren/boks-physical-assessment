@@ -7,6 +7,7 @@ import {
   renameSync,
   writeFileSync,
 } from "node:fs";
+import { setTimeout as sleep } from "node:timers/promises";
 import type {
   AssessmentReport,
   AssessmentSchema,
@@ -634,7 +635,19 @@ export function familyDocuments(next: BoksStore): StoreDocument[] {
 export async function loadFamilyStore(familyId: string): Promise<BoksStore> {
   if (!isPostgresStorage()) return store;
   const document = await readFamilyDocument(familyId);
-  if (!document) throw new Error(`PostgreSQL 家庭文档不存在：${familyId}`);
+  if (!document) {
+    // 开发/演示阶段允许家庭文档按需懒加载；生产路径必须由调用方显式建档。
+    if (isProductionRuntime())
+      throw new Error(`PostgreSQL 家庭文档不存在：${familyId}`);
+    const platform = await loadPlatformStore();
+    return mergeStore({
+      family_id: familyId,
+      configuration: platform.configuration,
+      knowledgeSources: platform.knowledgeSources,
+      knowledgeVersions: platform.knowledgeVersions,
+      auditEvents: platform.auditEvents,
+    } as Partial<BoksStore>);
+  }
   const platform = await loadPlatformStore();
   return mergeStore({
     ...document,
@@ -745,7 +758,7 @@ export function persistStore(next = snapshot()): Promise<void> {
   return Promise.resolve().then(() => {
     const directory = dirname(filePath);
     mkdirSync(directory, { recursive: true });
-    const temp = `${filePath}.${process.pid}.tmp`;
+    const temp = `${filePath}.${process.pid}.${randomUUID().slice(0, 8)}.tmp`;
     writeFileSync(
       temp,
       JSON.stringify(
@@ -759,8 +772,29 @@ export function persistStore(next = snapshot()): Promise<void> {
       ),
       "utf8",
     );
-    renameSync(temp, filePath);
+    // Windows 下并发测试 worker 可能持有目标文件句柄导致 EPERM，重试数次。
+    // 生产环境（postgres 模式）不走此分支。
+    return retryRename(temp, filePath, 8);
   });
+}
+
+async function retryRename(
+  temp: string,
+  dest: string,
+  attempts: number,
+): Promise<void> {
+  for (let i = 0; i < attempts; i += 1) {
+    try {
+      renameSync(temp, dest);
+      return;
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code;
+      if (code !== "EPERM" && code !== "EACCES" && code !== "EBUSY")
+        throw error;
+      if (i === attempts - 1) throw error;
+      await sleep(25 * (i + 1));
+    }
+  }
 }
 export function resetDemoStore(): void {
   const fresh = emptyStore();
@@ -885,7 +919,9 @@ function engineToScoreResults(
     indicator_code: item.indicator_code,
     label:
       labelByCode.get(item.indicator_code) ??
-      (item.indicator_code === "bmi" ? "身体质量指数（BMI）" : item.indicator_code),
+      (item.indicator_code === "bmi"
+        ? "身体质量指数（BMI）"
+        : item.indicator_code),
     raw_value: item.raw_value,
     unit: unitByCode.get(item.indicator_code) ?? "",
     score: item.score,
@@ -908,9 +944,7 @@ export function calculateResults(
     findStandard(schema.standard_version_id, target) ??
     defaultConfiguration.standards[0];
   if (selected.id === NATIONAL_2014_STANDARD_ID) {
-    const child = target.children.find(
-      (item) => item.id === schema.child_id,
-    );
+    const child = target.children.find((item) => item.id === schema.child_id);
     if (!child) {
       const results: ScoreResult[] = [];
       return {

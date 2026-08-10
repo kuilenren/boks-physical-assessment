@@ -13,23 +13,25 @@ function tryRegisterPrivacyPrompt() {
     const taro = require("@tarojs/taro");
     if (typeof taro.onNeedPrivacyAuthorization !== "function") return;
     if (typeof taro.showModal !== "function") return;
-    taro.onNeedPrivacyAuthorization((resolve: (v: { event: string }) => void) => {
-      resolve({ event: "exposureAuthorization" });
-      taro
-        .showModal({
-          title: "需要监护人确认",
-          content: "拍摄和上传照片前，需要先阅读并同意 BOKS 隐私说明。",
-          confirmText: "同意并继续",
-          cancelText: "暂不同意",
-          showCancel: true,
-        })
-        .then((res: { confirm: boolean }) => {
-          resolve({ event: res.confirm ? "agree" : "disagree" });
-        })
-        .catch(() => {
-          resolve({ event: "disagree" });
-        });
-    });
+    taro.onNeedPrivacyAuthorization(
+      (resolve: (v: { event: string }) => void) => {
+        resolve({ event: "exposureAuthorization" });
+        taro
+          .showModal({
+            title: "需要监护人确认",
+            content: "拍摄和上传照片前，需要先阅读并同意 BOKS 隐私说明。",
+            confirmText: "同意并继续",
+            cancelText: "暂不同意",
+            showCancel: true,
+          })
+          .then((res: { confirm: boolean }) => {
+            resolve({ event: res.confirm ? "agree" : "disagree" });
+          })
+          .catch(() => {
+            resolve({ event: "disagree" });
+          });
+      },
+    );
   } catch {
     // ignore：未安装或基础库不兼容
   }

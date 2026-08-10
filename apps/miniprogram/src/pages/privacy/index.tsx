@@ -1,10 +1,5 @@
 import { Button, Text, View } from "@tarojs/components";
-import {
-  setClipboardData,
-  showModal,
-  showToast,
-  useLoad,
-} from "@tarojs/taro";
+import { setClipboardData, showModal, showToast, useLoad } from "@tarojs/taro";
 import { useState } from "react";
 import type { ChildProfile } from "../../models";
 import {

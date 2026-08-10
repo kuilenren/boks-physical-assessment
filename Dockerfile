@@ -3,7 +3,6 @@ WORKDIR /app
 RUN apk add --no-cache python3 py3-pip
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/miniprogram/package.json apps/miniprogram/
-COPY apps/mobile/pubspec.yaml apps/mobile/ || true
 COPY services/api/package.json services/api/
 COPY services/ai/pyproject.toml services/ai/
 COPY packages/contracts/package.json packages/contracts/
@@ -17,8 +16,9 @@ FROM deps AS api
 WORKDIR /app
 COPY services/api services/api
 COPY packages packages
+RUN pnpm --filter @boks/contracts build && pnpm --filter @boks/api build
 EXPOSE 3000
-CMD ["node", "--env-file=.env", "services/api/dist/main.js"]
+CMD ["node", "services/api/dist/main.js"]
 
 # ---------- AI ----------
 FROM python:3.12-slim AS ai

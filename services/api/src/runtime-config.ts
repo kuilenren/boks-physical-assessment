@@ -97,13 +97,21 @@ export function assertRuntimeConfig(): void {
       ),
     );
     errors.push(
-      ...requiredProduction("BOKS_AI_SERVICE_URL", process.env.BOKS_AI_SERVICE_URL),
+      ...requiredProduction(
+        "BOKS_AI_SERVICE_URL",
+        process.env.BOKS_AI_SERVICE_URL,
+      ),
     );
     if (
       process.env.BOKS_AI_SERVICE_URL &&
       !process.env.BOKS_AI_SERVICE_URL.startsWith("https://")
     )
       errors.push("生产环境 BOKS_AI_SERVICE_URL 必须使用 HTTPS。");
+    if (
+      process.env.BOKS_PHONE_AUTH_URL &&
+      !process.env.BOKS_PHONE_AUTH_URL.startsWith("https://")
+    )
+      errors.push("生产环境 BOKS_PHONE_AUTH_URL 必须使用 HTTPS。");
     if (
       process.env.BOKS_OBJECT_STORAGE_ENDPOINT &&
       !process.env.BOKS_OBJECT_STORAGE_ENDPOINT.startsWith("https://")

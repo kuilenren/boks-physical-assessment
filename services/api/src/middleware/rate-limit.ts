@@ -7,9 +7,10 @@
 import type { Request, Response, NextFunction } from "express";
 import { tokenBucket } from "../redis/client.js";
 import { isDevAuthEnabled } from "../runtime-config.js";
+import { familyIdFromValidSession } from "../auth.js";
 import { randomUUID } from "node:crypto";
 
-const DEFAULT_WRITE_RATE = 5;     // req/s per family
+const DEFAULT_WRITE_RATE = 5; // req/s per family
 const DEFAULT_WRITE_CAP = 20;
 const DEFAULT_READ_RATE = 50;
 const DEFAULT_READ_CAP = 100;
@@ -17,13 +18,9 @@ const IP_RATE = 20;
 const IP_CAP = 60;
 
 function familyIdFromToken(req: Request): string | undefined {
-  // 复用 auth.ts 已有的 token 解析（轻量版：从 Authorization 头部反查 session）
-  const auth = req.headers.authorization;
-  if (!auth || !auth.startsWith("Bearer ")) return undefined;
-  const token = auth.slice(7);
-  // 仅取 token 的 family hint（请求头 X-Family-Hint 仅开发环境使用）
+  // 生产环境：familyId 只能来自已验证的会话，绝不信任客户端自报的请求头
   if (isDevAuthEnabled()) return req.header("x-family-hint");
-  return (req as unknown as { familyId?: string }).familyId ?? req.header("x-family-hint");
+  return familyIdFromValidSession(req);
 }
 
 function clientIp(req: Request): string {
@@ -42,7 +39,11 @@ export async function rateLimitMiddleware(
     return;
   }
   const method = req.method;
-  const isWrite = method === "POST" || method === "PATCH" || method === "DELETE" || method === "PUT";
+  const isWrite =
+    method === "POST" ||
+    method === "PATCH" ||
+    method === "DELETE" ||
+    method === "PUT";
   const familyId = familyIdFromToken(req);
   const ip = clientIp(req);
 
@@ -60,7 +61,10 @@ export async function rateLimitMiddleware(
         details: [],
         retryable: true,
       },
-      meta: { trace_id: req.header("x-trace-id") ?? randomUUID(), request_id: randomUUID() },
+      meta: {
+        trace_id: req.header("x-trace-id") ?? randomUUID(),
+        request_id: randomUUID(),
+      },
     });
     return;
   }
@@ -80,7 +84,10 @@ export async function rateLimitMiddleware(
           details: [],
           retryable: true,
         },
-        meta: { trace_id: req.header("x-trace-id") ?? randomUUID(), request_id: randomUUID() },
+        meta: {
+          trace_id: req.header("x-trace-id") ?? randomUUID(),
+          request_id: randomUUID(),
+        },
       });
       return;
     }

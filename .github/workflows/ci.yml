@@ -76,7 +76,7 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
-      - run: flutter build apk --debug --dart-define=BOKS_API_BASE_URL=https://api.example.invalid/v1
+      - run: flutter build apk --debug --dart-define=BOKS_API_BASE_URL=https://www.boks-ai.com.cn/v1
 
   python:
     runs-on: ubuntu-latest

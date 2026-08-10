@@ -1,4 +1,5 @@
 """Legacy 同步端点（保留，向后兼容）；新版本请使用 streaming.server"""
+
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
@@ -7,7 +8,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 
 from .audit import append_audit
-from .llm_router import LlmUnavailableError, stream, LlmRequest, LlmMessage, TASK_DEFAULTS
+from .llm_router import TASK_DEFAULTS, LlmMessage, LlmRequest, LlmUnavailableError, stream
 from .models import (
     AuditEvent,
     ChatRequest,
@@ -99,12 +100,13 @@ async def chat(request: ChatRequest) -> ChatResponse:
         try:
             hits = retrieve(request.documents, request.content)
             context = "\n".join(
-                f"[{document.title} v{document.version}] {document.content}"
-                for document, _ in hits
+                f"[{document.title} v{document.version}] {document.content}" for document, _ in hits
             )
             messages = [
                 LlmMessage(role="system", content=SYSTEM_PROMPT),
-                LlmMessage(role="user", content=f"已发布资料：\n{context}\n\n问题：{request.content}"),
+                LlmMessage(
+                    role="user", content=f"已发布资料：\n{context}\n\n问题：{request.content}"
+                ),
             ]
             llm_req = LlmRequest(
                 task="chat",
@@ -114,6 +116,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
             )
             collected: list[str] = []
             import httpx
+
             async with httpx.AsyncClient() as client:
                 async for chunk in stream(llm_req, client=client):
                     if chunk.delta:

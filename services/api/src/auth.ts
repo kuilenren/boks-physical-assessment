@@ -239,6 +239,27 @@ export function resourceForbidden(code: string, message: string): never {
   } satisfies StableError);
 }
 
+/**
+ * 仅从「已验证的会话」中解析 family_id（用于限流）。
+ * - 无效/过期 token 一律返回 undefined，绝不信任客户端自报的 X-Family-Hint。
+ * - 未提供 token 时返回 undefined（按 IP 限流兜底）。
+ */
+export function familyIdFromValidSession(request: Request): string | undefined {
+  const header = request.headers.authorization;
+  if (!header?.startsWith("Bearer ")) return undefined;
+  const token = header.slice(7);
+  const session =
+    store.sessions[token] ?? persistedSessions.get(hashSecret(token));
+  if (
+    session &&
+    session.revoked_at === null &&
+    new Date(session.expires_at).getTime() > Date.now()
+  ) {
+    return session.family_id;
+  }
+  return undefined;
+}
+
 export function isValidSessionToken(token: string): boolean {
   const session =
     store.sessions[token] ?? persistedSessions.get(hashSecret(token));
@@ -548,7 +569,10 @@ export async function loginWithPassword(
   password: string,
 ): Promise<GuardianSession> {
   const account = assertAccountActive(getAccountByUsername(username.trim()));
-  if (!account.password_hash || !verifyPassword(password, account.password_hash))
+  if (
+    !account.password_hash ||
+    !verifyPassword(password, account.password_hash)
+  )
     throw new UnauthorizedException({
       error: {
         code: "ACCOUNT_PASSWORD_INVALID",

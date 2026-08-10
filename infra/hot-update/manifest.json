@@ -8,19 +8,19 @@
   "platforms": {
     "miniprogram": {
       "version": "0.2.0",
-      "url": "https://updates.boks.local/miniprogram-0.2.0.zip",
+      "url": "https://www.boks-ai.com.cn/updates/miniprogram-0.2.0.zip",
       "sha256": "<release-sha>",
       "mandatory": false
     },
     "mobile": {
       "version": "0.2.0",
-      "url": "https://updates.boks.local/mobile-0.2.0.zip",
+      "url": "https://www.boks-ai.com.cn/updates/mobile-0.2.0.zip",
       "sha256": "<release-sha>",
       "mandatory": false
     },
     "admin": {
       "version": "0.1.0",
-      "url": "https://updates.boks.local/admin-0.1.0.zip",
+      "url": "https://www.boks-ai.com.cn/updates/admin-0.1.0.zip",
       "sha256": "<release-sha>",
       "mandatory": false
     }
@@ -28,7 +28,7 @@
   "rollback": {
     "enabled": true,
     "previous_version": "0.1.0",
-    "url": "https://updates.boks.local/rollback-0.1.0.zip"
+    "url": "https://www.boks-ai.com.cn/updates/rollback-0.1.0.zip"
   },
   "ab_test": {
     "buckets": {

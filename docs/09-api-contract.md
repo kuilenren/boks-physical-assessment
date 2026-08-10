@@ -2,7 +2,7 @@
 
 ## 1. 基础约定
 
-- Base URL：`https://api.example.com/v1`
+- Base URL：`https://www.boks-ai.com.cn/v1`
 - JSON：`application/json; charset=utf-8`
 - 时间：RFC 3339 UTC，例如 `2026-08-01T01:30:00Z`
 - ID：UUIDv7 字符串

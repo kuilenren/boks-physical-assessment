@@ -2,7 +2,10 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import { join, relative } from "node:path";
 
-const DIST = new URL("../dist/", import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1");
+const DIST = new URL("../dist/", import.meta.url).pathname.replace(
+  /^\/([A-Z]:)/,
+  "$1",
+);
 const FAILURES = [];
 
 async function walk(dir) {
@@ -30,7 +33,9 @@ for (const file of files) {
   const matches = text.match(mwRe) || [];
   if (matches.length > 0) {
     totalMw += matches.length;
-    FAILURES.push(`[mw] ${relative(DIST, file)}: ${matches.length} occurrences`);
+    FAILURES.push(
+      `[mw] ${relative(DIST, file)}: ${matches.length} occurrences`,
+    );
   }
 }
 
@@ -38,7 +43,7 @@ const appJs = await readFile(join(DIST, "app.js"), "utf8");
 const runtimeChunk = await readFile(join(DIST, "runtime.js"), "utf8");
 const appJson = JSON.parse(await readFile(join(DIST, "app.json"), "utf8"));
 
-if (!appJs.includes("require(\"./runtime\")")) {
+if (!appJs.includes('require("./runtime")')) {
   FAILURES.push("[runtime] app.js does not require('./runtime')");
 }
 
@@ -51,7 +56,9 @@ if (!appJson.pages || appJson.pages.length === 0) {
 }
 
 if (runtimeChunk.length > 8192) {
-  FAILURES.push(`[runtime] runtime.js too large (${runtimeChunk.length} bytes)`);
+  FAILURES.push(
+    `[runtime] runtime.js too large (${runtimeChunk.length} bytes)`,
+  );
 }
 
 if (totalMw > 0) {
@@ -64,4 +71,6 @@ if (FAILURES.length > 0) {
   process.exit(1);
 }
 
-console.log(`[verify-dist] OK — app.js=${appJs.length}B runtime.js=${runtimeChunk.length}B pages=${appJson.pages.length}`);
+console.log(
+  `[verify-dist] OK — app.js=${appJs.length}B runtime.js=${runtimeChunk.length}B pages=${appJson.pages.length}`,
+);

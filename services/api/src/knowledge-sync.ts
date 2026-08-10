@@ -20,8 +20,7 @@ export async function fetchSourceContent(
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetch(url, { signal: controller.signal });
-    if (!response.ok)
-      throw new Error(`抓取来源失败：HTTP ${response.status}`);
+    if (!response.ok) throw new Error(`抓取来源失败：HTTP ${response.status}`);
     return await response.text();
   } finally {
     clearTimeout(timer);
@@ -45,13 +44,25 @@ function latestVersion(
 export async function syncKnowledgeSource(
   sourceId: string,
   fetcher: (url: string) => Promise<string> = fetchSourceContent,
-): Promise<{ source_id: string; status: "updated" | "unchanged" | "failed"; reason?: string }> {
+): Promise<{
+  source_id: string;
+  status: "updated" | "unchanged" | "failed";
+  reason?: string;
+}> {
   const platform = await loadPlatformStore();
   const source = platform.knowledgeSources[sourceId];
   if (!source)
-    return { source_id: sourceId, status: "failed", reason: "KNOWLEDGE_SOURCE_NOT_FOUND" };
+    return {
+      source_id: sourceId,
+      status: "failed",
+      reason: "KNOWLEDGE_SOURCE_NOT_FOUND",
+    };
   if (!source.fetch_url)
-    return { source_id: sourceId, status: "failed", reason: "KNOWLEDGE_SOURCE_NO_URL" };
+    return {
+      source_id: sourceId,
+      status: "failed",
+      reason: "KNOWLEDGE_SOURCE_NO_URL",
+    };
   let content: string;
   try {
     content = await fetcher(source.fetch_url);

@@ -2,26 +2,53 @@
 BM25 简易实现（jieba 0.42 中文分词 + 自定义 BOKS 词表）
 不依赖 rank_bm25，避免额外依赖
 """
+
 from __future__ import annotations
+
 import math
 import re
 from collections import Counter
-from typing import Iterable
 
 try:
     import jieba
+
     _JIEBA_AVAILABLE = True
 except ImportError:
     _JIEBA_AVAILABLE = False
 
 # BOKS 领域词表（防止专业术语被错误切分）
 _BOKS_TERMS = [
-    "BMI", "肺活量", "坐位体前屈", "仰卧起坐", "引体向上", "立定跳远",
-    "50米跑", "50米×8", "800米", "1000米", "1分钟跳绳", "沙包",
-    "国家学生体质健康标准", "国民体质测定", "脊柱侧弯", "体态",
-    "Cobb角", "扁平足", "X型腿", "O型腿", "圆肩", "驼背",
-    "骨盆前倾", "膝超伸", "高低肩", "训练计划", "体测", "打卡",
-    "监护人", "知识库", "标准评分",
+    "BMI",
+    "肺活量",
+    "坐位体前屈",
+    "仰卧起坐",
+    "引体向上",
+    "立定跳远",
+    "50米跑",
+    "50米×8",
+    "800米",
+    "1000米",
+    "1分钟跳绳",
+    "沙包",
+    "国家学生体质健康标准",
+    "国民体质测定",
+    "脊柱侧弯",
+    "体态",
+    "Cobb角",
+    "扁平足",
+    "X型腿",
+    "O型腿",
+    "圆肩",
+    "驼背",
+    "骨盆前倾",
+    "膝超伸",
+    "高低肩",
+    "训练计划",
+    "体测",
+    "打卡",
+    "监护人",
+    "知识库",
+    "标准评分",
 ]
 for term in _BOKS_TERMS:
     if _JIEBA_AVAILABLE:

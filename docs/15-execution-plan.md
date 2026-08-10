@@ -283,7 +283,7 @@
 ### 4.1 网络层统一（阶段 1/7）
 
 - 小程序与 App 共用一个 HTTP 客户端能力规范：`timeout`、指数退避重试、`AbortSignal` 取消、`Idempotency-Key` 自动生成、`X-Trace-Id` 透传、分页 `page_token`。
-- 生产 baseURL 从编译期注入，禁止占位域名；CI 检测 `api.example.invalid`。
+- 生产 baseURL 从编译期注入，禁止占位域名；CI 检测 `api.example.invalid`。生产域名：`https://www.boks-ai.com.cn/v1`。
 - 会话：access 短时 + refresh 轮转；登出清理本地 token 与儿童选择。
 
 ### 4.2 数据模型（阶段 2）
