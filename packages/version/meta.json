@@ -48,7 +48,7 @@
   "hot_update": {
     "enabled": true,
     "min_native_version": "0.2.0",
-    "delivery": "https://updates.boks.local/manifest.json",
-    "rollback_url": "https://updates.boks.local/rollback.json"
+    "delivery": "https://api.boks-ai.com.cn/updates/manifest.json",
+    "rollback_url": "https://api.boks-ai.com.cn/updates/rollback.json"
   }
 }

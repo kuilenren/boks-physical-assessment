@@ -11,7 +11,10 @@ import re
 from .models import IntentDecision
 
 RED_FLAG_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
-    ("emergency", re.compile(r"呼吸困难|不能呼吸|喘不上气|窒息|晕厥|昏迷|抽搐|急症|急救|窒息|失去意识")),
+    (
+        "emergency",
+        re.compile(r"呼吸困难|不能呼吸|喘不上气|窒息|晕厥|昏迷|抽搐|急症|急救|窒息|失去意识"),
+    ),
     ("severe_weakness", re.compile(r"明显无力|不能站立|下肢无力|肢体麻木|麻木|刺痛|发麻")),
     ("persistent_pain", re.compile(r"夜间疼痛|夜间痛|静息痛|持续疼痛|反复疼痛|疼痛")),
     ("acute_pain", re.compile(r"急性疼痛|剧烈疼痛|剧痛|锐痛|刺痛|酸痛|胀痛")),
@@ -21,7 +24,12 @@ RED_FLAG_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
 
 # 允许回答的意图域：非诊断性、流程/行为类问题。
 ALLOWED_INTENT_HINTS: list[tuple[str, re.Pattern[str]]] = [
-    ("process", re.compile(r"怎么|如何|流程|步骤|要求|标准|规则|政策|隐私|删除|导出|照片|拍摄|报告|评分|查询|登录|账号|测试|体测|跳绳|仰卧起坐|肺活量|BMI|训练|锻炼|计划|打卡|目标")),
+    (
+        "process",
+        re.compile(
+            r"怎么|如何|流程|步骤|要求|标准|规则|政策|隐私|删除|导出|照片|拍摄|报告|评分|查询|登录|账号|测试|体测|跳绳|仰卧起坐|肺活量|BMI|训练|锻炼|计划|打卡|目标"
+        ),
+    ),
 ]
 
 REFUSAL_PREFIX = "我不能根据文字或照片做诊断，也不能判断 Cobb 角。"
@@ -56,9 +64,7 @@ def classify(content: str) -> IntentDecision:
             intent="medical",
             reason=f"检测到红旗：{', '.join(labels)}",
         )
-    hints = [
-        label for label, pattern in ALLOWED_INTENT_HINTS if pattern.search(content)
-    ]
+    hints = [label for label, pattern in ALLOWED_INTENT_HINTS if pattern.search(content)]
     if hints:
         return IntentDecision(
             intercept=False,

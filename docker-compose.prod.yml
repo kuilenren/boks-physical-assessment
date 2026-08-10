@@ -1,0 +1,33 @@
+# ============================================================
+# BOKS 生产环境 docker-compose 覆盖文件
+# 用法：cp .env.production.example .env  → 填真实值 →
+#       docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+# 说明：生产不暴露数据库/Redis 端口，仅暴露 API(3000) 与 AI(8001)，
+#       两者均由 Nginx 反代（infra/nginx/boks-ai.com.cn.conf）。
+# ============================================================
+services:
+  postgres:
+    # 生产不向宿主机暴露端口（仅容器内网访问）
+    ports: []
+
+  redis:
+    # 生产不向宿主机暴露端口
+    ports: []
+
+  api:
+    environment:
+      NODE_ENV: production
+      BOKS_RUNTIME_ENV: production
+      BOKS_STORAGE_MODE: postgres
+      BOKS_ENABLE_DEV_AUTH: "false"
+      BOKS_RATE_LIMIT_DISABLED: "false"
+      BOKS_HTTP_ACCESS_LOG: "true"
+    # 生产仅监听本机回环，由 Nginx 反代
+    ports:
+      - "127.0.0.1:3000:3000"
+
+  ai:
+    environment:
+      BOKS_AI_PROVIDER: deepseek
+    ports:
+      - "127.0.0.1:8001:8001"

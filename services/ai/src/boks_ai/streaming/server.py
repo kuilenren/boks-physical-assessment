@@ -10,30 +10,29 @@ NestJS 端通过 POST /v1/chat/conversations/:id/stream 接收请求，
   event: message     data: {"answer":"...","citations":[...]}
   event: done        data: {"trace_id":"...","usage":{...}}
 """
+
 from __future__ import annotations
-import asyncio
+
 import json
 import uuid
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
+from boks_ai.embeddings.client import EMBED_DIM
 from boks_ai.llm_router import (
-    LlmRequest,
-    LlmMessage,
     TASK_DEFAULTS,
-    LlmChunk,
+    LlmMessage,
+    LlmRequest,
     LlmUsage,
-    stream,
-    provider_order,
     is_configured,
+    provider_order,
+    stream,
 )
-from boks_ai.safety import classify, refusal_content
 from boks_ai.retrieval.hybrid import HybridRetriever, make_pg_pool
-from boks_ai.embeddings.client import get_embedder, EMBED_DIM
-
+from boks_ai.safety import classify, refusal_content
 
 app = FastAPI(title="BOKS AI Streaming", version="0.2.0")
 
@@ -53,6 +52,7 @@ async def _ensure_pool() -> None:
 
 def _pg_url() -> str | None:
     import os
+
     return os.environ.get("BOKS_DATABASE_URL")
 
 
@@ -87,12 +87,18 @@ async def _sse_events(req: ChatStreamRequest) -> AsyncIterator[dict]:
 
     decision = classify(req.content)
     if decision.intercept:
-        yield {"event": "message", "data": json.dumps({
-            "answer": refusal_content(req.content),
-            "citations": [],
-            "intent": decision.intent,
-            "intercepted": True,
-        }, ensure_ascii=False)}
+        yield {
+            "event": "message",
+            "data": json.dumps(
+                {
+                    "answer": refusal_content(req.content),
+                    "citations": [],
+                    "intent": decision.intent,
+                    "intercepted": True,
+                },
+                ensure_ascii=False,
+            ),
+        }
         yield {"event": "done", "data": json.dumps({"trace_id": trace_id, "usage": None})}
         return
 
@@ -112,15 +118,24 @@ async def _sse_events(req: ChatStreamRequest) -> AsyncIterator[dict]:
 
     if chunks:
         yield {"event": "plan", "data": json.dumps({"steps": ["kb_search"]})}
-        yield {"event": "tool_call", "data": json.dumps({"id": "kb_search", "args": {"query": req.content}})}
-        yield {"event": "tool_result", "data": json.dumps({
-            "id": "kb_search",
-            "ok": True,
-            "citations": [
-                {"source_id": c.source_id, "title": c.title, "version": c.version}
-                for c in chunks[:3]
-            ],
-        }, ensure_ascii=False)}
+        yield {
+            "event": "tool_call",
+            "data": json.dumps({"id": "kb_search", "args": {"query": req.content}}),
+        }
+        yield {
+            "event": "tool_result",
+            "data": json.dumps(
+                {
+                    "id": "kb_search",
+                    "ok": True,
+                    "citations": [
+                        {"source_id": c.source_id, "title": c.title, "version": c.version}
+                        for c in chunks[:3]
+                    ],
+                },
+                ensure_ascii=False,
+            ),
+        }
 
     # LLM 流式
     context = "\n".join(f"[{c.title} v{c.version}] {c.content}" for c in chunks)
@@ -153,11 +168,15 @@ async def _sse_events(req: ChatStreamRequest) -> AsyncIterator[dict]:
     else:
         try:
             import httpx
+
             async with httpx.AsyncClient() as client:
                 async for chunk in stream(llm_req, client=client):
                     if chunk.delta:
                         full_answer += chunk.delta
-                        yield {"event": "delta", "data": json.dumps({"delta": chunk.delta}, ensure_ascii=False)}
+                        yield {
+                            "event": "delta",
+                            "data": json.dumps({"delta": chunk.delta}, ensure_ascii=False),
+                        }
                     if chunk.usage:
                         final_usage = chunk.usage
         except Exception as e:  # noqa: BLE001
@@ -165,15 +184,20 @@ async def _sse_events(req: ChatStreamRequest) -> AsyncIterator[dict]:
             full_answer = "AI 服务暂时不可用，请稍后重试。"
 
     citations = [
-        {"source_id": c.source_id, "title": c.title, "version": c.version}
-        for c in chunks[:3]
+        {"source_id": c.source_id, "title": c.title, "version": c.version} for c in chunks[:3]
     ]
-    yield {"event": "message", "data": json.dumps({
-        "answer": full_answer,
-        "citations": citations,
-        "intent": decision.intent,
-        "intercepted": False,
-    }, ensure_ascii=False)}
+    yield {
+        "event": "message",
+        "data": json.dumps(
+            {
+                "answer": full_answer,
+                "citations": citations,
+                "intent": decision.intent,
+                "intercepted": False,
+            },
+            ensure_ascii=False,
+        ),
+    }
 
     usage_payload = None
     if final_usage:
@@ -188,7 +212,6 @@ async def _sse_events(req: ChatStreamRequest) -> AsyncIterator[dict]:
 @app.post("/v1/chat")
 async def chat_legacy(req: ChatStreamRequest):
     """非流式版本（兼容旧 client）。返回完整 message。"""
-    chunks = []
     citations = []
     intercepted = False
     intent = "process"

@@ -35,10 +35,6 @@ def retrieve(
     min_score: float = 0.05,
 ) -> list[tuple[KnowledgeDocument, float]]:
     """返回按相关度降序的 (文档, 得分) 列表，分数低于阈值的剔除。"""
-    scored = [
-        (document, _score_document(query, document)) for document in documents
-    ]
+    scored = [(document, _score_document(query, document)) for document in documents]
     scored.sort(key=lambda item: item[1], reverse=True)
-    return [(document, score) for document, score in scored if score >= min_score][
-        :top_k
-    ]
+    return [(document, score) for document, score in scored if score >= min_score][:top_k]

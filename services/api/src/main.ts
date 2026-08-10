@@ -16,7 +16,10 @@ import {
 } from "./runtime-config.js";
 import { seedPublishedKnowledge } from "./seed-knowledge.js";
 import { rateLimitMiddleware } from "./middleware/rate-limit.js";
-import { idempotencyMiddleware, setIdempotencyPool } from "./middleware/idempotency.js";
+import {
+  idempotencyMiddleware,
+  setIdempotencyPool,
+} from "./middleware/idempotency.js";
 import { closeRedis } from "./redis/client.js";
 import { seedExtendedFamilies } from "./seed-extended.js";
 

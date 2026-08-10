@@ -1,6 +1,11 @@
 import { Controller, Get, ServiceUnavailableException } from "@nestjs/common";
 import type { HealthResponse } from "@boks/contracts";
+import { createRequire } from "node:module";
 import { checkStorageHealth } from "./storage.js";
+
+const resolveFromApi = createRequire(__filename);
+const API_VERSION: string =
+  resolveFromApi("../package.json").version ?? "0.0.0";
 
 @Controller("health")
 export class HealthController {
@@ -9,7 +14,7 @@ export class HealthController {
     return {
       service: "boks-api",
       status: "ok",
-      version: "0.1.0",
+      version: API_VERSION,
     };
   }
 
@@ -28,7 +33,7 @@ export class HealthController {
     return {
       service: "boks-api",
       status: "ready" as const,
-      version: "0.1.0",
+      version: API_VERSION,
       storage,
     };
   }

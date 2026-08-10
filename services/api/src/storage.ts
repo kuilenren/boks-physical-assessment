@@ -1,6 +1,9 @@
 import type { Pool, PoolClient } from "pg";
 import { Pool as PgPool } from "pg";
 import { createHash } from "node:crypto";
+import { isIP } from "node:net";
+import { envelopeEncrypt, getFamilyDek } from "./security/kms.js";
+import { isProductionRuntime } from "./runtime-config.js";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -415,6 +418,12 @@ async function syncRelationalTables(
   document: StoreDocument,
 ): Promise<void> {
   const familyId = document.family_id;
+  // RLS：以当前 family 上下文写入，匹配策略 current_setting('app.family_id', true)
+  await client.query("SELECT set_config('app.family_id', $1, true)", [
+    familyId,
+  ]);
+  // KMS：获取该 family 的 DEK，用于 *_enc 加密列
+  const familyDek = await getFamilyDek(familyId, client);
   const familyRecord = records(document.families).find(
     (item) => text(item.id) === familyId,
   );
@@ -609,10 +618,10 @@ async function syncRelationalTables(
         await client.query(
           `
             INSERT INTO boks_standard_score_bands (
-              standard_id, indicator_code, band_index, min_value, max_value,
-              score
+              standard_id, indicator_code, sex_code, grade_code, band_index,
+              min_value, max_value, score
             )
-            VALUES ($1, $2, $3, $4, $5, $6)
+            VALUES ($1, $2, 'unspecified', 'all', $3, $4, $5, $6)
           `,
           [id, rule.indicator_code, index, band.min, band.max, band.score],
         );
@@ -729,15 +738,15 @@ async function syncRelationalTables(
     await client.query(
       `
         INSERT INTO boks_children (
-          id, family_id, display_name, birth_date, sex_code, school_stage,
-          grade_code, profile_status, payload, updated_at
+          id, family_id, display_name_enc, birth_date_enc, sex_code,
+          school_stage, grade_code, profile_status, payload, updated_at
         )
-        VALUES ($1, $2, $3, $4::date, $5, $6, $7, $8, $9::jsonb, NOW())
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, NOW())
         ON CONFLICT (id)
         DO UPDATE SET
           family_id = EXCLUDED.family_id,
-          display_name = EXCLUDED.display_name,
-          birth_date = EXCLUDED.birth_date,
+          display_name_enc = EXCLUDED.display_name_enc,
+          birth_date_enc = EXCLUDED.birth_date_enc,
           sex_code = EXCLUDED.sex_code,
           school_stage = EXCLUDED.school_stage,
           grade_code = EXCLUDED.grade_code,
@@ -748,8 +757,8 @@ async function syncRelationalTables(
       [
         child.id,
         familyId,
-        child.display_name,
-        child.birth_date,
+        envelopeEncrypt(Buffer.from(child.display_name, "utf8"), familyDek),
+        envelopeEncrypt(Buffer.from(child.birth_date, "utf8"), familyDek),
         child.sex_code,
         child.school_stage,
         child.grade_code,
@@ -865,18 +874,31 @@ async function syncRelationalTables(
   for (const session of postureSessionRecords) {
     if (!text(session.id) || !text(session.child_id) || !text(session.status))
       continue;
+    const requiredViews = Array.isArray(session.required_views)
+      ? (session.required_views as unknown[])
+          .map((v) => text(v))
+          .filter((v): v is string => Boolean(v))
+      : [];
+    const quality =
+      typeof session.quality === "object" && session.quality !== null
+        ? (session.quality as JsonRecord)
+        : {};
+    const qualityOverall = text(quality.overall) ?? "pending";
     await client.query(
       `
         INSERT INTO boks_posture_sessions (
-          id, family_id, child_id, status, payload, updated_at
+          id, family_id, child_id, status, required_views, quality_overall,
+          analysis, updated_at
         )
-        VALUES ($1, $2, $3, $4, $5::jsonb, NOW())
+        VALUES ($1, $2, $3, $4, $5::text[], $6, $7::jsonb, NOW())
         ON CONFLICT (id)
         DO UPDATE SET
           family_id = EXCLUDED.family_id,
           child_id = EXCLUDED.child_id,
           status = EXCLUDED.status,
-          payload = EXCLUDED.payload,
+          required_views = EXCLUDED.required_views,
+          quality_overall = EXCLUDED.quality_overall,
+          analysis = EXCLUDED.analysis,
           updated_at = NOW()
       `,
       [
@@ -884,7 +906,9 @@ async function syncRelationalTables(
         familyId,
         session.child_id,
         session.status,
-        JSON.stringify(session),
+        requiredViews,
+        qualityOverall,
+        JSON.stringify(session.analysis ?? {}),
       ],
     );
   }
@@ -895,30 +919,53 @@ async function syncRelationalTables(
       typeof asset.metadata === "object" && asset.metadata !== null
         ? (asset.metadata as JsonRecord)
         : {};
+    const storageKey = text(metadata.storage_key) ?? "";
+    const qualityStatus =
+      text(metadata.quality_status) === "passed" ||
+      text(metadata.quality_status) === "needs_retake"
+        ? text(metadata.quality_status)
+        : "pending";
     await client.query(
       `
         INSERT INTO boks_posture_assets (
-          id, family_id, session_id, view_code, storage_key, checksum_sha256,
-          payload
+          id, family_id, session_id, view_code, storage_key_enc,
+          checksum_sha256, byte_size, mime_type, quality_status, quality_score,
+          quality_reasons, metadata
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::jsonb, $12::jsonb)
         ON CONFLICT (id)
         DO UPDATE SET
           family_id = EXCLUDED.family_id,
           session_id = EXCLUDED.session_id,
           view_code = EXCLUDED.view_code,
-          storage_key = EXCLUDED.storage_key,
+          storage_key_enc = EXCLUDED.storage_key_enc,
           checksum_sha256 = EXCLUDED.checksum_sha256,
-          payload = EXCLUDED.payload
+          byte_size = EXCLUDED.byte_size,
+          mime_type = EXCLUDED.mime_type,
+          quality_status = EXCLUDED.quality_status,
+          quality_score = EXCLUDED.quality_score,
+          quality_reasons = EXCLUDED.quality_reasons,
+          metadata = EXCLUDED.metadata
       `,
       [
         asset.id,
         familyId,
         asset.session_id,
         asset.view,
-        text(metadata.storage_key) ?? null,
+        envelopeEncrypt(Buffer.from(storageKey, "utf8"), familyDek),
         text(metadata.checksum_sha256) ?? null,
-        JSON.stringify(asset),
+        typeof metadata.size_bytes === "number" ? metadata.size_bytes : null,
+        text(metadata.mime_type) ?? null,
+        qualityStatus,
+        typeof metadata.quality_score === "number"
+          ? metadata.quality_score
+          : null,
+        JSON.stringify(
+          Array.isArray(metadata.quality_reasons)
+            ? metadata.quality_reasons
+            : [],
+        ),
+        JSON.stringify(metadata),
       ],
     );
   }
@@ -989,20 +1036,32 @@ async function syncRelationalTables(
         !text(conversation.child_id))
     )
       continue;
+    const messages = Array.isArray(conversation.messages)
+      ? conversation.messages
+      : [];
+    const firstMessage =
+      typeof messages[0] === "object" && messages[0] !== null
+        ? (messages[0] as JsonRecord)
+        : undefined;
+    const firstContent = text(firstMessage?.content);
+    const title =
+      firstContent !== undefined && firstContent.trim().length > 0
+        ? firstContent.trim().slice(0, 80)
+        : "BOKS 对话";
     await client.query(
       `
         INSERT INTO boks_chat_conversations (
           id, family_id, child_id, context_report_id, context_plan_id,
-          payload, created_at
+          title, created_at
         )
-        VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::timestamptz)
+        VALUES ($1, $2, $3, $4, $5, $6, $7::timestamptz)
         ON CONFLICT (id)
         DO UPDATE SET
           family_id = EXCLUDED.family_id,
           child_id = EXCLUDED.child_id,
           context_report_id = EXCLUDED.context_report_id,
           context_plan_id = EXCLUDED.context_plan_id,
-          payload = EXCLUDED.payload
+          title = EXCLUDED.title
       `,
       [
         conversation.id,
@@ -1010,13 +1069,10 @@ async function syncRelationalTables(
         text(conversation.child_id) ?? null,
         text(conversation.context_report_id) ?? null,
         text(conversation.context_plan_id) ?? null,
-        JSON.stringify(conversation),
+        title,
         conversation.created_at,
       ],
     );
-    const messages = Array.isArray(conversation.messages)
-      ? conversation.messages
-      : [];
     for (const message of messages) {
       if (
         typeof message !== "object" ||
@@ -1057,21 +1113,31 @@ async function syncRelationalTables(
   }
 
   for (const source of records(document.knowledgeSources)) {
-    if (
-      !text(source.id) ||
-      !text(source.title) ||
-      !text(source.owner) ||
-      !text(source.created_at)
-    )
-      continue;
+    if (!text(source.id) || !text(source.title)) continue;
     await client.query(
       `
-        INSERT INTO boks_knowledge_sources (id, title, owner, created_at)
-        VALUES ($1, $2, $3, $4::timestamptz)
+        INSERT INTO boks_knowledge_sources (
+          id, title, publisher, url, doc_type, language, retrieved_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7::timestamptz)
         ON CONFLICT (id)
-        DO UPDATE SET title = EXCLUDED.title, owner = EXCLUDED.owner
+        DO UPDATE SET
+          title = EXCLUDED.title,
+          publisher = EXCLUDED.publisher,
+          url = EXCLUDED.url,
+          doc_type = EXCLUDED.doc_type,
+          language = EXCLUDED.language,
+          retrieved_at = EXCLUDED.retrieved_at
       `,
-      [source.id, source.title, source.owner, source.created_at],
+      [
+        source.id,
+        source.title,
+        text(source.owner) ?? "BOKS 知识库",
+        text(source.fetch_url) ?? "",
+        "guide",
+        "zh-CN",
+        text(source.created_at) ?? new Date().toISOString(),
+      ],
     );
   }
   for (const version of records(document.knowledgeVersions)) {
@@ -1087,18 +1153,22 @@ async function syncRelationalTables(
     await client.query(
       `
         INSERT INTO boks_knowledge_versions (
-          id, source_id, version, title, status, content_hash, payload,
-          published_at
+          id, source_id, version, title, category, audience, language, status,
+          content, content_hash, published_at
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8::timestamptz)
+        VALUES ($1, $2, $3, $4, 'guide', ARRAY['parent'], 'zh-CN', $5, $6,
+                $7, $8::timestamptz)
         ON CONFLICT (id)
         DO UPDATE SET
           source_id = EXCLUDED.source_id,
           version = EXCLUDED.version,
           title = EXCLUDED.title,
+          category = EXCLUDED.category,
+          audience = EXCLUDED.audience,
+          language = EXCLUDED.language,
           status = EXCLUDED.status,
+          content = EXCLUDED.content,
           content_hash = EXCLUDED.content_hash,
-          payload = EXCLUDED.payload,
           published_at = EXCLUDED.published_at
       `,
       [
@@ -1107,8 +1177,8 @@ async function syncRelationalTables(
         version.version,
         version.title,
         version.status,
+        content,
         hashSecret(content),
-        JSON.stringify(version),
         text(version.published_at) ?? null,
       ],
     );
@@ -1124,13 +1194,15 @@ async function syncRelationalTables(
     await client.query(
       `
         INSERT INTO boks_deletion_requests (
-          id, family_id, child_id, status, created_at, completed_at,
+          id, family_id, child_id, status, scope, created_at, completed_at,
           deleted_asset_count, proof_hash
         )
-        VALUES ($1, $2, $3, $4, $5::timestamptz, $6::timestamptz, $7, $8)
+        VALUES ($1, $2, $3, $4, $5::jsonb, $6::timestamptz, $7::timestamptz,
+                $8, $9)
         ON CONFLICT (id)
         DO UPDATE SET
           status = EXCLUDED.status,
+          scope = EXCLUDED.scope,
           completed_at = EXCLUDED.completed_at,
           deleted_asset_count = EXCLUDED.deleted_asset_count,
           proof_hash = EXCLUDED.proof_hash
@@ -1140,6 +1212,11 @@ async function syncRelationalTables(
         familyId,
         deletion.child_id,
         deletion.status,
+        JSON.stringify(
+          Array.isArray(deletion.scope)
+            ? deletion.scope
+            : [{ child_id: deletion.child_id, type: "child" }],
+        ),
         deletion.created_at,
         text(deletion.completed_at) ?? null,
         typeof deletion.deleted_asset_count === "number"
@@ -1163,21 +1240,47 @@ async function syncRelationalTables(
       !text(event.created_at)
     )
       continue;
+    let actorType = "guardian";
+    let actorId = text(event.actor) ?? "";
+    const systemMatch = /^system:(.+)$/.exec(actorId);
+    if (systemMatch) {
+      actorType = "system";
+      actorId = systemMatch[1];
+    } else if (
+      text(event.actor_type) &&
+      ["guardian", "admin", "staff", "ai_agent", "cron"].includes(
+        text(event.actor_type) ?? "",
+      )
+    ) {
+      actorType = text(event.actor_type) ?? "guardian";
+      actorId = text(event.actor_id) ?? actorId;
+    }
     await client.query(
       `
         INSERT INTO boks_audit_events (
-          id, family_id, action, actor, created_at, payload
+          id, family_id, actor_type, actor_id, target_type, target_id, action,
+          ip, user_agent, request_id, outcome, error_code, payload_enc,
+          created_at
         )
-        VALUES ($1, $2, $3, $4, $5::timestamptz, $6::jsonb)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
+                $14::timestamptz)
         ON CONFLICT (id) DO NOTHING
       `,
       [
         event.id,
         familyId,
+        actorType,
+        actorId,
+        text(event.target_type) ?? null,
+        text(event.target_id) ?? null,
         event.action,
-        event.actor,
+        isIP(text(event.ip) ?? "") > 0 ? text(event.ip) : null,
+        text(event.user_agent) ?? null,
+        text(event.request_id) ?? null,
+        text(event.outcome) ?? "success",
+        text(event.error_code) ?? null,
+        envelopeEncrypt(Buffer.from(JSON.stringify(event), "utf8"), familyDek),
         event.created_at,
-        JSON.stringify(event),
       ],
     );
   }
@@ -1415,8 +1518,19 @@ export function updateFamilyDocument(
         [familyId],
       );
       const payload = result.rows[0]?.payload;
-      if (typeof payload !== "object" || payload === null)
-        throw new Error(`家庭文档不存在：${familyId}`);
+      if (typeof payload !== "object" || payload === null) {
+        if (isProductionRuntime())
+          throw new Error(`家庭文档不存在：${familyId}`);
+        // 开发/演示：缺失即按空文档创建（首次写时建档）。
+        await client.query(
+          `
+            INSERT INTO boks_store_documents (family_id, payload, updated_at)
+            VALUES ($1, $2::jsonb, NOW())
+            ON CONFLICT (family_id) DO NOTHING
+          `,
+          [familyId, JSON.stringify({ family_id: familyId })],
+        );
+      }
       const next = updater({
         ...(payload as StoreDocument),
         family_id: familyId,
@@ -1424,9 +1538,10 @@ export function updateFamilyDocument(
       const normalized = { ...next, family_id: familyId };
       await client.query(
         `
-          UPDATE boks_store_documents
-          SET payload = $2::jsonb, updated_at = NOW()
-          WHERE family_id = $1
+          INSERT INTO boks_store_documents (family_id, payload, updated_at)
+          VALUES ($1, $2::jsonb, NOW())
+          ON CONFLICT (family_id) DO UPDATE
+            SET payload = EXCLUDED.payload, updated_at = NOW()
         `,
         [familyId, JSON.stringify(stripSensitiveAuthFields(normalized))],
       );

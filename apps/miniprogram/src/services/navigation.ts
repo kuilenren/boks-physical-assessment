@@ -19,6 +19,8 @@ interface RouteParams {
   [key: string]: string | undefined;
 }
 
+type TabParamsMap = Record<string, RouteParams>;
+
 function parseQuery(query: string): RouteParams {
   const params: RouteParams = {};
   for (const pair of query.split("&")) {
@@ -35,13 +37,13 @@ function parseQuery(query: string): RouteParams {
   return params;
 }
 
-function storedTabParams(): RouteParams {
+function storedTabParams(): TabParamsMap {
   const value = getStorageSync(TAB_PARAMS_KEY);
   if (typeof value !== "object" || value === null) return {};
-  return value as RouteParams;
+  return value as TabParamsMap;
 }
 
-export function readTabParams(): RouteParams {
+export function readTabParams(): TabParamsMap {
   return storedTabParams();
 }
 

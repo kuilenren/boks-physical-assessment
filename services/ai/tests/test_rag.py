@@ -22,18 +22,13 @@ def test_retrieve_ranks_relevant_document_first() -> None:
 
 
 def test_retrieve_returns_empty_for_irrelevant_query() -> None:
-    documents = [
-        make_document("a", "肺活量测试标准", "肺活量测试要求学生在统一测试日完成吹气。")
-    ]
+    documents = [make_document("a", "肺活量测试标准", "肺活量测试要求学生在统一测试日完成吹气。")]
     hits = retrieve(documents, "天气怎么样")
     assert hits == []
 
 
 def test_retrieve_honors_top_k() -> None:
-    documents = [
-        make_document(str(i), f"文档 {i}", f"训练计划第 {i} 周的内容。")
-        for i in range(5)
-    ]
+    documents = [make_document(str(i), f"文档 {i}", f"训练计划第 {i} 周的内容。") for i in range(5)]
     hits = retrieve(documents, "训练计划")
     assert len(hits) <= 3
 

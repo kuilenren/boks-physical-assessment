@@ -29,7 +29,7 @@ class BoksApiClient {
                      'BOKS_API_BASE_URL',
                      defaultValue: kDebugMode
                          ? 'http://10.0.2.2:3000/v1'
-                         : 'https://api.example.invalid/v1',
+                         : 'https://api.boks-ai.com.cn/v1',
                    ))
                .replaceFirst(RegExp(r'/$'), '');
 
@@ -58,7 +58,7 @@ class BoksApiClient {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
       'X-Client-Platform': 'android',
-      'X-Client-Version': '0.1.0',
+      'X-Client-Version': '0.2.0',
       if (_guardianToken != null) 'Authorization': 'Bearer $_guardianToken',
     };
     final response = switch (method) {

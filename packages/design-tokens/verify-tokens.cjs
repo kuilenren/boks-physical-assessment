@@ -56,7 +56,9 @@ for (const [k, s] of Object.entries(sets)) {
 }
 
 const rate = 1 - missing / (total * Object.keys(files).length);
-console.log(`token 一致率 ${(rate * 100).toFixed(1)}%（共 ${total} keys，各端缺失 ${JSON.stringify(detail)}）`);
+console.log(
+  `token 一致率 ${(rate * 100).toFixed(1)}%（共 ${total} keys，各端缺失 ${JSON.stringify(detail)}）`,
+);
 if (rate < 0.999) {
   process.exit(1);
 }

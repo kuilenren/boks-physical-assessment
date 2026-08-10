@@ -8,12 +8,21 @@ const API = process.env.API_BASE ?? "http://127.0.0.1:3000/v1";
 const AI = process.env.AI_BASE ?? "http://127.0.0.1:8001";
 
 const smoke = [
-  { name: "API health", url: `${API}/health`, expect: (b) => b.status === "ok" },
-  { name: "API ready", url: `${API}/health/ready`, expect: (b) => b.status === "ready" },
+  {
+    name: "API health",
+    url: `${API}/health`,
+    expect: (b) => b.status === "ok",
+  },
+  {
+    name: "API ready",
+    url: `${API}/health/ready`,
+    expect: (b) => b.status === "ready",
+  },
   { name: "AI health", url: `${AI}/health`, expect: (b) => b.status === "ok" },
 ];
 
-let pass = 0, fail = 0;
+let pass = 0,
+  fail = 0;
 for (const t of smoke) {
   try {
     const r = await fetch(t.url);
@@ -28,4 +37,6 @@ for (const t of smoke) {
 }
 
 console.log(`\n冒烟：${pass}/${smoke.length}`);
-process.exit(fail === 0 ? 0 : 1);
+// 用 exitCode 而非 process.exit()：避免与 fetch keep-alive 连接
+// 的异步关闭竞争触发 libuv UV_HANDLE_CLOSING 断言（Windows Node）
+process.exitCode = fail === 0 ? 0 : 1;

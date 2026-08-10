@@ -154,7 +154,8 @@ export default function AssessmentInputPage() {
         </Button>
       </View>
       <Text className="muted">
-        评分依据国家学生体质健康标准（2014 年修订）查表计算，结果仅作体能观察，不构成医疗建议或诊断。
+        评分依据国家学生体质健康标准（2014
+        年修订）查表计算，结果仅作体能观察，不构成医疗建议或诊断。
       </Text>
     </View>
   );

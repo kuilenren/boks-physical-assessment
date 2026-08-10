@@ -11,7 +11,8 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { Pool } from "pg";
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+// migrate.ts 位于 services/api/db/，上一级即服务根目录（services/api）
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MIGRATIONS_DIR = path.join(ROOT, "db/migrations");
 
 type Migration = {
@@ -34,7 +35,9 @@ function parseSplit(body: string): { up: string; down: string } {
 }
 
 export async function discover(): Promise<Migration[]> {
-  const files = (await readdir(MIGRATIONS_DIR)).filter((f) => f.endsWith(".sql"));
+  const files = (await readdir(MIGRATIONS_DIR)).filter((f) =>
+    f.endsWith(".sql"),
+  );
   const out: Migration[] = [];
   for (const file of files) {
     const body = await readFile(path.join(MIGRATIONS_DIR, file), "utf8");
@@ -55,7 +58,11 @@ export async function discover(): Promise<Migration[]> {
   return out.sort((a, b) => a.version - b.version);
 }
 
-export async function ensureMigrationsTable(client: import("pg").PoolClient): Promise<void> {
+export async function ensureMigrationsTable(
+  client: import("pg").PoolClient,
+): Promise<void> {
+  // boks schema 由迁移 0001 创建，但迁移跟踪表本身需要它存在——幂等预建
+  await client.query(`CREATE SCHEMA IF NOT EXISTS boks`);
   await client.query(`
     CREATE TABLE IF NOT EXISTS boks.boks_schema_migrations (
       id              TEXT PRIMARY KEY,
@@ -77,16 +84,21 @@ export async function migrate(opts: {
   password: string;
   dryRun?: boolean;
 }): Promise<{ applied: string[]; skipped: string[]; total: number }> {
-  const pool = new Pool({ connectionString: opts.url, user: opts.user, password: opts.password });
+  const pool = new Pool({
+    connectionString: opts.url,
+    user: opts.user,
+    password: opts.password,
+  });
   const client = await pool.connect();
   const applied: string[] = [];
   const skipped: string[] = [];
   const migrations = await discover();
   try {
     await ensureMigrationsTable(client);
-    const { rows } = await client.query<{ id: string; checksum_sha256: string }>(
-      `SELECT id, checksum_sha256 FROM boks.boks_schema_migrations`,
-    );
+    const { rows } = await client.query<{
+      id: string;
+      checksum_sha256: string;
+    }>(`SELECT id, checksum_sha256 FROM boks.boks_schema_migrations`);
     const appliedMap = new Map(rows.map((r) => [r.id, r.checksum_sha256]));
     for (const m of migrations) {
       const prev = appliedMap.get(m.id);
@@ -115,7 +127,15 @@ export async function migrate(opts: {
           `INSERT INTO boks.boks_schema_migrations
            (id, version, domain, checksum_sha256, applied_by, duration_ms, rollback_sql)
            VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-          [m.id, m.version, m.domain, m.checksum, opts.user, Date.now() - t0, m.down],
+          [
+            m.id,
+            m.version,
+            m.domain,
+            m.checksum,
+            opts.user,
+            Date.now() - t0,
+            m.down,
+          ],
         );
         await client.query("COMMIT");
         applied.push(m.id);
@@ -137,7 +157,11 @@ export async function rollback(opts: {
   password: string;
   steps?: number;
 }): Promise<{ rolledBack: string[] }> {
-  const pool = new Pool({ connectionString: opts.url, user: opts.user, password: opts.password });
+  const pool = new Pool({
+    connectionString: opts.url,
+    user: opts.user,
+    password: opts.password,
+  });
   const client = await pool.connect();
   const rolledBack: string[] = [];
   try {
@@ -163,7 +187,10 @@ export async function rollback(opts: {
       await client.query("BEGIN");
       try {
         await client.query(row.rollback_sql);
-        await client.query(`DELETE FROM boks.boks_schema_migrations WHERE id = $1`, [row.id]);
+        await client.query(
+          `DELETE FROM boks.boks_schema_migrations WHERE id = $1`,
+          [row.id],
+        );
         await client.query("COMMIT");
         rolledBack.push(row.id);
       } catch (e) {
@@ -178,7 +205,11 @@ export async function rollback(opts: {
   return { rolledBack };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// tsx / ts-node 在加载 ESM 时会改写 module URL，因此用绝对路径比对而非字符串拼接。
+// 这里使用 pathToFileURL 兼容 Windows / POSIX，避免 tsx 静默吞掉命令。
+import { pathToFileURL } from "node:url";
+const scriptUrl = process.argv[1] ? pathToFileURL(process.argv[1]).href : "";
+if (import.meta.url === scriptUrl && process.argv[1]) {
   const cmd = process.argv[2] ?? "up";
   const url = process.env.BOKS_DATABASE_URL;
   const user = process.env.BOKS_DATABASE_USER ?? "postgres";
@@ -188,7 +219,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     process.exit(1);
   }
   if (cmd === "up") {
-    migrate({ url, user, password, dryRun: process.argv.includes("--dry-run") }).then(
+    migrate({
+      url,
+      user,
+      password,
+      dryRun: process.argv.includes("--dry-run"),
+    }).then(
       (r) => console.log(JSON.stringify(r)),
       (e) => {
         console.error(e);

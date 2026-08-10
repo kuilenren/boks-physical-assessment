@@ -23,7 +23,8 @@ function errorCode(fn: () => unknown): string {
     fn();
     throw new Error("expected to throw");
   } catch (error) {
-    const body = (error as { response?: { error?: { code?: string } } }).response;
+    const body = (error as { response?: { error?: { code?: string } } })
+      .response;
     return body?.error?.code ?? String(error);
   }
 }
@@ -59,17 +60,19 @@ describe("account & role system", () => {
       },
       { headers: {} } as import("express").Request,
     );
-    expect(errorCode(() =>
-      controller.setupSuperAdmin(
-        {
-          org_name: "另一所学校",
-          display_name: "另一个校长",
-          username: "principal-2",
-          password: "Password456",
-        },
-        { headers: {} } as import("express").Request,
+    expect(
+      errorCode(() =>
+        controller.setupSuperAdmin(
+          {
+            org_name: "另一所学校",
+            display_name: "另一个校长",
+            username: "principal-2",
+            password: "Password456",
+          },
+          { headers: {} } as import("express").Request,
+        ),
       ),
-    )).toBe("SUPER_ADMIN_EXISTS");
+    ).toBe("SUPER_ADMIN_EXISTS");
   });
 
   it("logs in with username + password and carries role/org", async () => {
@@ -105,7 +108,9 @@ describe("account & role system", () => {
     );
     await expect(
       auth.loginWithPassword("principal", "WrongPass123"),
-    ).rejects.toMatchObject({ response: { error: { code: "ACCOUNT_PASSWORD_INVALID" } } });
+    ).rejects.toMatchObject({
+      response: { error: { code: "ACCOUNT_PASSWORD_INVALID" } },
+    });
   });
 
   it("super admin opens a staff account, which cannot access admin-only routes", async () => {
@@ -137,17 +142,17 @@ describe("account & role system", () => {
 
     const teacher = await auth.loginWithPassword("teacher-01", "Teacher123");
     expect(teacher.role).toBe("staff");
-    expect(errorCode(() => controller.accounts(requestWith(teacher.token)))).toBe(
-      "ROLE_REQUIRED",
-    );
+    expect(
+      errorCode(() => controller.accounts(requestWith(teacher.token))),
+    ).toBe("ROLE_REQUIRED");
   });
 
   it("requires super admin to list accounts", async () => {
     const controller = new AuthController();
     const session = auth.createSession("guardian-demo-001");
-    expect(errorCode(() => controller.accounts(requestWith(session.token)))).toBe(
-      "ROLE_REQUIRED",
-    );
+    expect(
+      errorCode(() => controller.accounts(requestWith(session.token))),
+    ).toBe("ROLE_REQUIRED");
   });
 
   it("rejects creating an account without credentials", async () => {
@@ -200,7 +205,9 @@ describe("account & role system", () => {
     );
     await expect(
       auth.loginWithPassword("teacher-01", "Teacher123"),
-    ).rejects.toMatchObject({ response: { error: { code: "ACCOUNT_DISABLED" } } });
+    ).rejects.toMatchObject({
+      response: { error: { code: "ACCOUNT_DISABLED" } },
+    });
   });
 
   it("phone login with dev code resolves an account when configured", async () => {
@@ -242,9 +249,9 @@ describe("account & role system", () => {
     );
     await db.persistStore();
     const raw = existsSync(testFile)
-      ? (JSON.parse(
-          readFileSync(testFile, "utf8"),
-        ) as unknown as { accounts: Record<string, unknown> })
+      ? (JSON.parse(readFileSync(testFile, "utf8")) as unknown as {
+          accounts: Record<string, unknown>;
+        })
       : { accounts: {} };
     expect(Object.keys(raw.accounts).length).toBe(1);
   });

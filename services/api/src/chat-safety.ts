@@ -14,14 +14,12 @@ const redFlagPatterns: Array<{
   {
     label: "severe_weakness",
     pattern: /明显无力|不能站立|下肢无力|肢体麻木|麻木|刺痛|发麻/i,
-    advice:
-      "无力和麻木可能提示神经或循环问题，请不要自行判断，尽快就医。",
+    advice: "无力和麻木可能提示神经或循环问题，请不要自行判断，尽快就医。",
   },
   {
     label: "persistent_pain",
     pattern: /夜间疼痛|夜间痛|静息痛|持续疼痛|反复疼痛|疼痛/i,
-    advice:
-      "夜间或静息状态下仍持续疼痛，需要专业查体，请预约专业人员评估。",
+    advice: "夜间或静息状态下仍持续疼痛，需要专业查体，请预约专业人员评估。",
   },
   {
     label: "acute_pain",
@@ -31,8 +29,7 @@ const redFlagPatterns: Array<{
   {
     label: "injury",
     pattern: /外伤|骨折|扭伤|脱位|血肿|淤青|肿胀/i,
-    advice:
-      "外伤或疑似骨折请在固定和就医前避免活动，不要强行继续训练。",
+    advice: "外伤或疑似骨折请在固定和就医前避免活动，不要强行继续训练。",
   },
   {
     label: "diagnosis_request",
@@ -55,8 +52,16 @@ export type SafetyDecision = {
 export function classifySafety(content: string): SafetyDecision {
   const hit = redFlagPatterns.find((item) => item.pattern.test(content));
   if (hit)
-    return { intercept: true, intent: "medical", reason: `检测到红旗：${hit.label}` };
-  return { intercept: false, intent: "process", reason: "普通流程类问题，可以回答。" };
+    return {
+      intercept: true,
+      intent: "medical",
+      reason: `检测到红旗：${hit.label}`,
+    };
+  return {
+    intercept: false,
+    intent: "process",
+    reason: "普通流程类问题，可以回答。",
+  };
 }
 
 export function refusalContent(content: string): string {

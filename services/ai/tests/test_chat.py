@@ -43,8 +43,6 @@ def test_chat_degrades_to_template_with_citations() -> None:
 
 
 def test_classify_endpoint() -> None:
-    response = client.post(
-        "/v1/classify", json={"content": "孩子夜间疼痛怎么办？"}
-    )
+    response = client.post("/v1/classify", json={"content": "孩子夜间疼痛怎么办？"})
     assert response.status_code == 200
     assert response.json()["intercept"] is True

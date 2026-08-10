@@ -4,9 +4,10 @@ Knowledge Sync：从 PG 读取已发布的知识库版本，重新切分 + embed
 - embedding：BGE-M3 / multilingual-e5-base（768 维）
 - 入库：boks.boks_knowledge_chunks
 """
+
 from __future__ import annotations
+
 import re
-from typing import Iterable
 
 import asyncpg
 
@@ -51,6 +52,7 @@ def chunk_text(text: str) -> list[str]:
 
 def bm25_terms_json(content: str) -> dict[str, int]:
     from .retrieval.bm25 import tokenize
+
     tokens = tokenize(content)
     out: dict[str, int] = {}
     for t in tokens:
@@ -69,40 +71,39 @@ async def sync_published(pool: asyncpg.Pool) -> int:
         """,
     )
     total = 0
-    async with pool.acquire() as conn:
-        async with conn.transaction():
-            for row in rows:
-                # 已有 chunks 则跳过
-                existing = await conn.fetchval(
-                    "SELECT COUNT(*) FROM boks.boks_knowledge_chunks WHERE version_id = $1",
+    async with pool.acquire() as conn, conn.transaction():
+        for row in rows:
+            # 已有 chunks 则跳过
+            existing = await conn.fetchval(
+                "SELECT COUNT(*) FROM boks.boks_knowledge_chunks WHERE version_id = $1",
+                row["id"],
+            )
+            if existing and existing > 0:
+                total += int(existing)
+                continue
+            pieces = chunk_text(row["content"])
+            if not pieces:
+                continue
+            vectors = embedder.embed_batch(pieces)
+            for ordinal, (piece, vec) in enumerate(zip(pieces, vectors)):
+                chunk_id = f"{row['id']}-{ordinal:04d}"
+                bm25 = bm25_terms_json(piece)
+                await conn.execute(
+                    """
+                    INSERT INTO boks.boks_knowledge_chunks
+                      (id, version_id, ordinal, section, content, token_count, embedding, bm25_terms, metadata)
+                    VALUES ($1,$2,$3,$4,$5,$6,$7::vector,$8,$9)
+                    ON CONFLICT (id) DO NOTHING
+                    """,
+                    chunk_id,
                     row["id"],
+                    ordinal,
+                    None,
+                    piece,
+                    len(piece),
+                    vec,
+                    bm25,
+                    {"title": row["title"], "source_id": row["source_id"]},
                 )
-                if existing and existing > 0:
-                    total += int(existing)
-                    continue
-                pieces = chunk_text(row["content"])
-                if not pieces:
-                    continue
-                vectors = embedder.embed_batch(pieces)
-                for ordinal, (piece, vec) in enumerate(zip(pieces, vectors)):
-                    chunk_id = f"{row['id']}-{ordinal:04d}"
-                    bm25 = bm25_terms_json(piece)
-                    await conn.execute(
-                        """
-                        INSERT INTO boks.boks_knowledge_chunks
-                          (id, version_id, ordinal, section, content, token_count, embedding, bm25_terms, metadata)
-                        VALUES ($1,$2,$3,$4,$5,$6,$7::vector,$8,$9)
-                        ON CONFLICT (id) DO NOTHING
-                        """,
-                        chunk_id,
-                        row["id"],
-                        ordinal,
-                        None,
-                        piece,
-                        len(piece),
-                        vec,
-                        bm25,
-                        {"title": row["title"], "source_id": row["source_id"]},
-                    )
-                    total += 1
+                total += 1
     return total

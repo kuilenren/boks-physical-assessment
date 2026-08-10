@@ -189,7 +189,11 @@ export class TrainingController {
         (item) => item.plan_id === planId && item.day === input.day,
       );
       if (existing) {
-        next.checkIns[existing.id] = { ...existing, ...checkIn, id: existing.id };
+        next.checkIns[existing.id] = {
+          ...existing,
+          ...checkIn,
+          id: existing.id,
+        };
       } else {
         next.checkIns[checkIn.id] = checkIn;
       }

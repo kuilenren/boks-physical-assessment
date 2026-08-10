@@ -208,9 +208,7 @@ export default function HomePage() {
       {insightError ? (
         <View className="danger-note">
           <Icon name="alert" size={16} tone="danger" />
-          <Text>
-            {insightError} 可先继续录入体测或查看已有家庭档案。
-          </Text>
+          <Text>{insightError} 可先继续录入体测或查看已有家庭档案。</Text>
         </View>
       ) : null}
 
@@ -330,7 +328,7 @@ export default function HomePage() {
           <Text className="entry-copy">正、背、左、右视角，先授权再拍摄</Text>
           <Text className="entry-link">
             进入拍摄
-            <Icon name="arrow" size={14} tone="sky" />
+            <Icon name="arrow" size={14} />
           </Text>
         </View>
       </View>

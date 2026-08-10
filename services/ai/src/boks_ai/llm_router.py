@@ -4,14 +4,16 @@ LLM Router（多 provider + 超时 + 重试 + 降级 + token 计数）
 替换 llm.py 的 if-else 手写实现，行为兼容。
 Provider: deepseek / minimax；按 BOKS_AI_PROVIDER 选主，其余降级。
 """
+
 from __future__ import annotations
-import os
+
 import asyncio
 import hashlib
 import json
-import time
-from dataclasses import dataclass, asdict, field
-from typing import AsyncIterator, Literal, Any
+import os
+from collections.abc import AsyncIterator
+from dataclasses import asdict, dataclass
+from typing import Any, Literal
 
 import httpx
 
@@ -61,20 +63,20 @@ class LlmChunk:
 
 # Task-level defaults
 TASK_DEFAULTS: dict[str, dict[str, Any]] = {
-    "chat":     {"temperature": 0.3, "max_tokens": 900},
+    "chat": {"temperature": 0.3, "max_tokens": 900},
     "classify": {"temperature": 0.0, "max_tokens": 8},
-    "rerank":   {"temperature": 0.0, "max_tokens": 4},
-    "summary":  {"temperature": 0.1, "max_tokens": 350},
-    "extract":  {"temperature": 0.0, "max_tokens": 600},
-    "embed":    {"temperature": 0.0, "max_tokens": 1},
+    "rerank": {"temperature": 0.0, "max_tokens": 4},
+    "summary": {"temperature": 0.1, "max_tokens": 350},
+    "extract": {"temperature": 0.0, "max_tokens": 600},
+    "embed": {"temperature": 0.0, "max_tokens": 1},
 }
 
 # Cost (CNY per 1k tokens) — 估算，仅作看板
 COST_PER_1K = {
-    ("deepseek", "in"):  0.001,
+    ("deepseek", "in"): 0.001,
     ("deepseek", "out"): 0.002,
-    ("minimax", "in"):   0.010,
-    ("minimax", "out"):  0.030,
+    ("minimax", "in"): 0.010,
+    ("minimax", "out"): 0.030,
 }
 
 
@@ -150,7 +152,6 @@ async def _complete_one(
         "Authorization": f"Bearer {_api_key(provider)}",
         "Content-Type": "application/json",
     }
-    full_usage: LlmUsage | None = None
     async with client.stream(
         "POST",
         _endpoint(provider),
@@ -161,7 +162,6 @@ async def _complete_one(
         if resp.status_code >= 400:
             body = await resp.aread()
             raise LlmUnavailableError(f"{provider} HTTP {resp.status_code}: {body[:200]!r}")
-        buffer = ""
         async for line in resp.aiter_lines():
             if not line or not line.startswith("data:"):
                 continue
@@ -178,11 +178,11 @@ async def _complete_one(
                 fr = choices[0].get("finish_reason")
                 if delta or fr:
                     yield LlmChunk(delta=delta, finish_reason=fr)
-            if "usage" in obj and obj["usage"]:
-                full_usage = _extract_usage(provider, obj)
 
 
-async def stream(req: LlmRequest, *, client: httpx.AsyncClient | None = None) -> AsyncIterator[LlmChunk]:
+async def stream(
+    req: LlmRequest, *, client: httpx.AsyncClient | None = None
+) -> AsyncIterator[LlmChunk]:
     order = provider_order()
     if not order:
         raise LlmUnavailableError("LLM 未配置（缺少端点、模型或密钥）。")
@@ -213,4 +213,4 @@ async def stream(req: LlmRequest, *, client: httpx.AsyncClient | None = None) ->
 
 
 def cache_key(prompt_id: str, tone: ToneName, query: str) -> str:
-    return hashlib.sha256(f"{prompt_id}|{tone}|{query}".encode("utf-8")).hexdigest()
+    return hashlib.sha256(f"{prompt_id}|{tone}|{query}".encode()).hexdigest()
